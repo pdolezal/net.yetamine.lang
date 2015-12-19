@@ -1,4 +1,4 @@
 /**
- * Tiny extensions to the Java runtime library.
+ * Small extensions to the Java runtime library.
  */
 package net.yetamine.lang;

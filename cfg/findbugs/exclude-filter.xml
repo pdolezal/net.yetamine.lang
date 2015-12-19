@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FindBugsFilter>
+     <Match>
+       <Class name="net.yetamine.lang.creational.Singleton" />
+       <Method name="readObject" />
+       <Bug pattern="SE_METHOD_MUST_BE_PRIVATE" />
+     </Match>
+</FindBugsFilter>

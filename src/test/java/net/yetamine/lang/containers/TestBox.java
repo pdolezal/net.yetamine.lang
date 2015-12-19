@@ -1,0 +1,140 @@
+package net.yetamine.lang.containers;
+
+import java.util.Arrays;
+import java.util.Optional;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.UnaryOperator;
+import java.util.stream.Collectors;
+
+import org.testng.Assert;
+import org.testng.annotations.Test;
+
+/**
+ * Tests {@link Box}.
+ */
+public final class TestBox {
+
+    /**
+     * Tests construction methods.
+     */
+    @Test
+    public void testConstruction() {
+        Assert.assertNull(Box.empty().get());
+        Assert.assertNull(Box.of(null).get());
+
+        final Object o = new Object();
+        Assert.assertEquals(Box.of(o).get(), o);
+    }
+
+    /**
+     * Tests accepting methods.
+     */
+    @Test
+    public void testAccepting() {
+        final Object o = new Object();
+        Assert.assertEquals(Box.empty().set(o).get(), o);
+
+        final Box<Object> box = Box.empty();
+        box.accept(o);
+        Assert.assertEquals(box.get(), o);
+    }
+
+    /**
+     * Tests {@link Box#acceptingOnce(Box)}.
+     */
+    @Test
+    public void testAcceptingOnce() {
+        final Object o1 = new Object();
+        final Object o2 = new Object();
+
+        final Box<Optional<Object>> box = Box.empty();
+        Assert.assertNull(box.get());
+
+        final Consumer<Object> c = Box.acceptingOnce(box);
+        Assert.assertFalse(box.get().isPresent());
+        c.accept(null);
+        Assert.assertFalse(box.get().isPresent());
+
+        c.accept(o1);
+        Assert.assertEquals(box.get().get(), o1);
+
+        c.accept(o2);
+        Assert.assertEquals(box.get().get(), o1);
+
+        c.accept(null);
+        Assert.assertEquals(box.get().get(), o1);
+    }
+
+    /**
+     * Tests {@link Box#equals(Object)} and {@link Box#hashCode()}.
+     */
+    @Test
+    public void testEquals() {
+        Assert.assertEquals(Box.empty(), Box.of(null));
+        Assert.assertEquals(Box.empty().hashCode(), Box.of(null).hashCode());
+
+        final Object o1 = new Object();
+        final Object o2 = new Object();
+        Assert.assertEquals(Box.of(o1), Box.of(o1));
+        Assert.assertEquals(Box.of(o1).hashCode(), Box.of(o1).hashCode());
+
+        Assert.assertNotEquals(Box.of(o1), Box.of(o2));
+        Assert.assertNotEquals(Box.of(o1), Box.empty());
+    }
+
+    /**
+     * Tests {@link Box#stream()}.
+     */
+    @Test
+    public void testStream() {
+        final Box<Object> box = Box.empty();
+        Assert.assertEquals(box.stream().collect(Collectors.toList()), Arrays.asList((Object) null));
+
+        final Object o = new Object();
+        box.set(o);
+        Assert.assertEquals(box.stream().collect(Collectors.toList()), Arrays.asList(o));
+    }
+
+    /**
+     * Tests {@link Box#nonNull()}.
+     */
+    @Test
+    public void testNonNull() {
+        Assert.assertFalse(Box.empty().nonNull().isPresent());
+        Assert.assertFalse(Box.of(null).nonNull().isPresent());
+
+        final Object o = new Object();
+        Assert.assertTrue(Box.of(o).nonNull().isPresent());
+        Assert.assertEquals(Box.of(o).nonNull().get(), o);
+    }
+
+    /**
+     * Tests {@link Box#map(java.util.function.Function)}.
+     */
+    @Test
+    public void testMap() {
+        final Function<Integer, Long> f = i -> i + 1L;
+        Assert.assertEquals(Box.of(1).map(f), Long.valueOf(2L));
+    }
+
+    /**
+     * Tests {@link Box#replace(java.util.function.Function)}.
+     */
+    @Test
+    public void testReplace() {
+        final UnaryOperator<Integer> f = i -> i + 1;
+        Assert.assertEquals(Box.of(1).replace(f), Box.of(2));
+    }
+
+    /**
+     * Tests {@link Box#use(Consumer)}.
+     */
+    @Test
+    public void testUse() {
+        Box.empty().use(value -> Assert.assertNull(value));
+
+        final Object o = new Object();
+        Box.of(o).use(value -> Assert.assertEquals(value, o));
+    }
+}
