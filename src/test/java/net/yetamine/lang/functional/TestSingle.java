@@ -3,6 +3,7 @@ package net.yetamine.lang.functional;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.function.BiFunction;
 
@@ -203,19 +204,7 @@ public final class TestSingle {
      */
     @Test(dataProvider = "numbers")
     public <T extends Comparable<T>> void testCollector(Collection<T> source, Single<T> expected) {
-        final BiFunction<Single<T>, T, Single<T>> max = (s, i) -> {
-            if (s.single().isUnknown()) {
-                return Single.single(i);
-            }
-
-            final T value = s.get();
-            if (value.compareTo(i) < 0) { // Found the new maximum
-                return Single.single(i);
-            }
-
-            return (value == i) ? s.update() : s;
-        };
-
+        final BiFunction<Single<T>, T, Single<T>> max = Single.optimum(Comparator.<T> naturalOrder());
         Assert.assertEquals(source.stream().collect(Single.collector(max)), expected);
         Assert.assertEquals(source.stream().reduce(Single.none(), max, Single::merge), expected);
     }

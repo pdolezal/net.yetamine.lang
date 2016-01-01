@@ -1,5 +1,6 @@
 package net.yetamine.lang.functional;
 
+import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.Iterator;
 import java.util.List;
@@ -403,6 +404,36 @@ public final class Single<T> implements Supplier<T> {
     public static <T> Single<T> last(Stream<? extends T> source) {
         return source.collect(LastCollector.getInstance());
     }
+
+    /**
+     * Returns a function that can be used with {@link #collector(BiFunction)}
+     * or {@link Stream#reduce(Object, BiFunction, BinaryOperator)} for finding
+     * an optimum, i.e., the maximal element according to the given comparator.
+     *
+     * @param <T>
+     *            the type of the represented value
+     * @param comparator
+     *            the comparator to use. It must not be {@code null}.
+     *
+     * @return the selecting function
+     */
+    public static <T> BiFunction<Single<T>, T, Single<T>> optimum(Comparator<T> comparator) {
+        Objects.requireNonNull(comparator);
+
+        return (s, i) -> {
+            if (s.single().isUnknown()) {
+                return Single.single(i);
+            }
+
+            final T value = s.get();
+            final int compare = comparator.compare(value, i);
+            if (compare < 0) { // Found the new maximum
+                return Single.single(i);
+            }
+
+            return (compare == 0) ? s.update() : s;
+        };
+    };
 
     /**
      * Returns a collector for making a {@link Single} instance from a stream.
