@@ -9,7 +9,7 @@ What can be found here:
 * Support classes for dealing with `TimeUnit`-based quantities.
 * Simple fix-sized containers like `Tuple2` and `Tuple3`.
 * A mutable `Box` for objects, which is useful for accumulators and for "out" method parameters.
-* Extensions for dealing with `Optional`.
+* Companions for `Optional`: `Choice` and `Single`.
 * Trivalent logic value type `Trivalent`.
 * `Cloneable` support – no more fiddling with reflection at home.
 * Support for serializable singleton and multiton implementations.
@@ -136,6 +136,33 @@ For such simple cases, `Trivalent` offers `Optional`-like monadic support:
 resolution.ifUnknown(() -> System.out.println("I have no data yet.")).ifBoolean(b -> {
 	System.out.format("You are %s.", b ? "right" : "wrong");
 });
+```
+
+
+### When `Optional` becomes awkward ###
+
+`Optional` is great. But it can only tell that it contains an object or not. Sometimes you might need rather a container that just marks a value as acceptable or not and lets its consumer to decide how to deal with the value, because sometimes even a wrong value is better than none, e.g., when logging or when taking an alternative decision needs some information to take a better path.
+
+But there is one more use case when `Optional` does not work very well, although it should:
+
+```{java}
+boolean greet(String name) {
+    final Optional<String> result = greeting(name); // Find some optional value
+    if (result.isPresent()) {
+        System.out.println(result.get());
+        return true;
+    }
+    
+    return false; // No greeting for you
+}
+```
+
+Try to avoid consulting `isPresent` *and* `get`. There are several ways: using `Optional::map`, storing `result.orElse(null)` and testing the intermediate result… or to use `Choice`:
+
+```{java}
+boolean greet(String name) {
+    return Choice.of(greeting(name)).ifAccepted(System.out::println).isAccepted();
+}
 ```
 
 
