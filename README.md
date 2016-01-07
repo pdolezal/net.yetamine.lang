@@ -130,6 +130,14 @@ if (resolution.isUnknown()) {
 }
 ```
 
+For such simple cases, `Trivalent` offers `Optional`-like monadic support:
+
+```{java}
+resolution.ifUnknown(() -> System.out.println("I have no data yet.")).ifBoolean(b -> {
+	System.out.format("You are %s.", b ? "right" : "wrong");
+});
+```
+
 
 ### And there is more… ###
 

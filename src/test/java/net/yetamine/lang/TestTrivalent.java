@@ -3,6 +3,8 @@ package net.yetamine.lang;
 import java.util.Arrays;
 import java.util.Collection;
 
+import net.yetamine.lang.containers.Box;
+
 import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -192,5 +194,35 @@ public final class TestTrivalent {
             { Trivalent.TRUE,       true, false, false }
             // @formatter:on
         };
+    }
+
+    /**
+     * Tests all "if" methods.
+     */
+    public void testIfs() {
+        final Box<Boolean> box = Box.empty();
+
+        for (Trivalent value : Trivalent.values()) {
+            box.accept(Boolean.FALSE);
+            value.ifUnknown(() -> box.accept(Boolean.TRUE));
+            Assert.assertEquals(box.get().booleanValue(), value.isUnknown());
+
+            box.accept(Boolean.FALSE);
+            value.ifTrue(() -> box.accept(Boolean.TRUE));
+            Assert.assertEquals(box.get().booleanValue(), value.isTrue());
+
+            box.accept(Boolean.FALSE);
+            value.ifFalse(() -> box.accept(Boolean.TRUE));
+            Assert.assertEquals(box.get().booleanValue(), value.isFalse());
+
+            box.accept(null); // Simulate Trivalent with null Boolean
+            value.ifBoolean(b -> box.accept(b));
+
+            if (value.isBoolean()) {
+                Assert.assertEquals(box.get().booleanValue(), value.asBoolean());
+            } else {
+                Assert.assertNull(box.get());
+            }
+        }
     }
 }

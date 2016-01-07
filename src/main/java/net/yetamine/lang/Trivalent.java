@@ -1,6 +1,7 @@
 package net.yetamine.lang;
 
 import java.util.Optional;
+import java.util.function.Consumer;
 
 /**
  * A representation of trivalent logic values, using Kleene's definition for the
@@ -312,6 +313,75 @@ public enum Trivalent {
      */
     public final boolean isBoolean() {
         return (this != UNKNOWN);
+    }
+
+    /**
+     * Runs an action if {@link #isTrue()}.
+     *
+     * @param action
+     *            the action to run if {@link #isTrue()}. It must not be
+     *            {@code null}.
+     *
+     * @return this instance
+     */
+    public final Trivalent ifTrue(Runnable action) {
+        if (isTrue()) {
+            action.run();
+        }
+
+        return this;
+    }
+
+    /**
+     * Runs an action if {@link #isFalse()}.
+     *
+     * @param action
+     *            the action to run if {@link #isFalse()}. It must not be
+     *            {@code null}.
+     *
+     * @return this instance
+     */
+    public final Trivalent ifFalse(Runnable action) {
+        if (isFalse()) {
+            action.run();
+        }
+
+        return this;
+    }
+
+    /**
+     * Runs an action if {@link #isUnknown()}.
+     *
+     * @param action
+     *            the action to run if {@link #isUnknown()}. It must not be
+     *            {@code null}.
+     *
+     * @return this instance
+     */
+    public final Trivalent ifUnknown(Runnable action) {
+        if (isUnknown()) {
+            action.run();
+        }
+
+        return this;
+    }
+
+    /**
+     * Runs an action if {@link #isBoolean()} and passes the boolean value to
+     * it.
+     *
+     * @param action
+     *            the action to run if {@link #isBoolean()}. It must not be
+     *            {@code null}.
+     *
+     * @return this instance
+     */
+    public final Trivalent ifBoolean(Consumer<? super Boolean> action) {
+        if (isBoolean()) {
+            action.accept(asBoolean());
+        }
+
+        return this;
     }
 
     /**
