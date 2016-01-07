@@ -95,8 +95,8 @@ public final class TestTimeSpan {
             final TimeSpan u = t.unit(unit);
             Assert.assertEquals(u.compareTo(t), 0);
             Assert.assertEquals(t.compareTo(u), 0);
-            Assert.assertTrue( (unit == t.unit()) || !t.equals(u));
-            Assert.assertTrue( (unit == t.unit()) || !u.equals(t));
+            Assert.assertTrue((unit == t.unit()) || !t.equals(u));
+            Assert.assertTrue((unit == t.unit()) || !u.equals(t));
         }
     }
 
@@ -217,13 +217,15 @@ public final class TestTimeSpan {
     public static Object[][] shifting() {
         final List<Object[]> result = new ArrayList<>();
 
-        for (TimeUnit unit : TimeUnit.values()) { // @formatter:off
+        for (TimeUnit unit : TimeUnit.values()) {
+            // @formatter:off
             result.add(new Object[] { TimeSpan.of(0, unit), 10, unit, TimeSpan.of(10, unit) });
             result.add(new Object[] { TimeSpan.of(10, unit), -5, unit, TimeSpan.of(5, unit) });
             result.add(new Object[] { TimeSpan.of(5, unit), -10, unit, TimeSpan.of(0, unit) });
             result.add(new Object[] { TimeSpan.of(Long.MAX_VALUE, unit), 10, unit, TimeSpan.of(Long.MAX_VALUE, unit) });
             result.add(new Object[] { TimeSpan.of(10, unit), Long.MAX_VALUE, unit, TimeSpan.of(Long.MAX_VALUE, unit) });
-        } // @formatter:on
+            // @formatter:on
+        }
 
         return result.toArray(new Object[result.size()][]);
     }

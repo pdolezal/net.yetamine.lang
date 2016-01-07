@@ -55,7 +55,8 @@ public final class TestPredicates {
         final Predicate<Object> t = o -> true;
         final Predicate<Object> f = o -> false;
 
-        return new Object[][] { // @formatter:off
+        return new Object[][] {
+            // @formatter:off
             { Arrays.asList(t, t, t) },
             { Arrays.asList(t, t, f) },
             { Arrays.asList(t, f, f) },
@@ -64,6 +65,7 @@ public final class TestPredicates {
             { Arrays.asList(f, t, t) },
             { Arrays.asList(t, f, t) },
             { Arrays.asList(f, t, f) },
-        }; // @formatter:on
+            // @formatter:on
+        };
     }
 }

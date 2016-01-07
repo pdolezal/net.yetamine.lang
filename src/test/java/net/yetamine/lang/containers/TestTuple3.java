@@ -54,11 +54,13 @@ public final class TestTuple3 {
     @SuppressWarnings("javadoc")
     @DataProvider(name = "iterables")
     public static Object[][] iterables() {
-        return new Object[][] { // @formatter:off
+        return new Object[][] {
+// @formatter:off
             { Collections.emptyList()               },
             { Collections.singleton(new Object())   },
             { Arrays.asList(1, 2)                   }
-        }; // @formatter:on
+            // @formatter:on
+        };
     }
 
     /**
@@ -153,7 +155,6 @@ public final class TestTuple3 {
         Assert.assertEquals(t.outer(), Tuple2.of(o1, o3));
     }
 
-
     /**
      * Tests of zipping methods.
      *
@@ -187,10 +188,12 @@ public final class TestTuple3 {
     @SuppressWarnings("javadoc")
     @DataProvider(name = "collections")
     public static Object[][] collections() {
-        return new Object[][] { // @formatter:off
+        return new Object[][] {
+// @formatter:off
             { Collections.emptyList()       },
             { Collections.singletonList(10) },
             { Arrays.asList(10, 11, 12)     }
-        }; // @formatter:on
+            // @formatter:on
+        };
     }
 }

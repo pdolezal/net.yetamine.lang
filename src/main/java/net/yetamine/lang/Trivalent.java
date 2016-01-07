@@ -66,7 +66,7 @@ public enum Trivalent {
          */
         @Override
         public boolean asBoolean() {
-            throw new ClassCastException("Trivalent.UNKNOWN can't be cast to a Boolean.");
+            throw new ClassCastException("Trivalent.UNKNOWN::asBoolean");
         }
     },
 

@@ -16,7 +16,7 @@ public final class TimeSpan implements Serializable, Comparable<TimeSpan> {
     /** Serialization version: 1 */
     private static final long serialVersionUID = 1L;
 
-    /** Zero-representing instances for all units */
+    /** Zero-representing instances for all units. */
     private static final Map<TimeUnit, TimeSpan> ZERO = new EnumMap<>(TimeUnit.class);
 
     static {
@@ -45,8 +45,10 @@ public final class TimeSpan implements Serializable, Comparable<TimeSpan> {
         nanoseconds = valueUnit.toNanos(value);
 
         if (value < 0) {
-            final String f = "Invalid time span (%1$d %2$s).";
-            throw new IllegalArgumentException(String.format(f, value, valueUnit.toString().toLowerCase()));
+            // Intentionally keep the value here as direct TimeUnit; this is precondition
+            // check and the caller is responsible for passing correct input. If fails to
+            // do so, the message should be helpful, but also as direct as possible.
+            throw new IllegalArgumentException(String.format("%d %s", value, valueUnit));
         }
 
         unit = Objects.requireNonNull(showUnit);
@@ -107,7 +109,7 @@ public final class TimeSpan implements Serializable, Comparable<TimeSpan> {
      */
     @Override
     public String toString() {
-        return new StringBuilder().append(value()).append(' ').append(unit.toString().toLowerCase()).toString();
+        return new StringBuilder().append(value()).append(' ').append(TimeUnits.symbolOf(unit)).toString();
     }
 
     /**
@@ -189,8 +191,8 @@ public final class TimeSpan implements Serializable, Comparable<TimeSpan> {
     }
 
     /**
-     * Returns an instance without fractional part of the precise
-     * representation using {@link #unit()} for truncating.
+     * Returns an instance without fractional part of the precise representation
+     * using {@link #unit()} for truncating.
      *
      * @return an instance without fractional part of the precise representation
      */

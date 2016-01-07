@@ -146,9 +146,11 @@ public final class Quoting implements Function<Object, String> {
      * @see java.util.function.Function#apply(java.lang.Object)
      */
     public String apply(Object o) {
-        return (o != null)
-                ? new StringBuilder().append(opening).append(escape.apply(o.toString())).append(closing).toString()
-                : missing.get();
+        if (o == null) {
+            return missing.get();
+        }
+
+        return new StringBuilder().append(opening).append(escape.apply(o.toString())).append(closing).toString();
     }
 
     // Optimized common cases for direct use

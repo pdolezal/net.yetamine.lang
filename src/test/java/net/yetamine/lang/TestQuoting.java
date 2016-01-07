@@ -102,7 +102,8 @@ public final class TestQuoting {
     @SuppressWarnings("javadoc")
     @DataProvider(name = "functions")
     public static Object[][] functions() {
-        return new Object[][] { // @formatter:off
+        return new Object[][] {
+            // @formatter:off
             { Quoting.with("*"),                        "string", "*string*", "null"    },
             { Quoting.with("*").missing("none"),        "string", "*string*", "none"    },
             { Quoting.with("*").missing((String) null), "string", "*string*", null      },
@@ -117,6 +118,7 @@ public final class TestQuoting {
             { Quoting.with("<", ">").escape(s -> s.substring(0, 1)),                    "string", "<s>", "null" },
             { Quoting.with("<", ">").escape(s -> s.substring(0, 1)).missing("none"),    "string", "<s>", "none" },
             { Quoting.with("<", ">").missing("none").escape(s -> s.substring(0, 1)),    "string", "<s>", "none" }
-        }; // @formatter:on
+            // @formatter:on
+        };
     }
 }

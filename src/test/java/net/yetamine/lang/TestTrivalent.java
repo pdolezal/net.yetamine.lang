@@ -49,7 +49,8 @@ public final class TestTrivalent {
     @SuppressWarnings("javadoc")
     @DataProvider(name = "and")
     public static Object[][] and() {
-        return new Object[][] { // @formatter:off
+        return new Object[][] {
+            // @formatter:off
             { Trivalent.UNKNOWN,    Trivalent.UNKNOWN,  Trivalent.UNKNOWN   },
             { Trivalent.UNKNOWN,    Trivalent.FALSE,    Trivalent.FALSE     },
             { Trivalent.UNKNOWN,    Trivalent.TRUE,     Trivalent.UNKNOWN   },
@@ -61,7 +62,8 @@ public final class TestTrivalent {
             { Trivalent.TRUE,       Trivalent.UNKNOWN,  Trivalent.UNKNOWN   },
             { Trivalent.TRUE,       Trivalent.FALSE,    Trivalent.FALSE     },
             { Trivalent.TRUE,       Trivalent.TRUE,     Trivalent.TRUE      }
-        }; // @formatter:on
+            // @formatter:on
+        };
     }
 
     /**
@@ -88,7 +90,8 @@ public final class TestTrivalent {
     @SuppressWarnings("javadoc")
     @DataProvider(name = "or")
     public static Object[][] or() {
-        return new Object[][] { // @formatter:off
+        return new Object[][] {
+            // @formatter:off
             { Trivalent.UNKNOWN,    Trivalent.UNKNOWN,  Trivalent.UNKNOWN   },
             { Trivalent.UNKNOWN,    Trivalent.FALSE,    Trivalent.UNKNOWN   },
             { Trivalent.UNKNOWN,    Trivalent.TRUE,     Trivalent.TRUE      },
@@ -100,7 +103,8 @@ public final class TestTrivalent {
             { Trivalent.TRUE,       Trivalent.UNKNOWN,  Trivalent.TRUE      },
             { Trivalent.TRUE,       Trivalent.FALSE,    Trivalent.TRUE      },
             { Trivalent.TRUE,       Trivalent.TRUE,     Trivalent.TRUE      }
-        }; // @formatter:on
+            // @formatter:on
+        };
     }
 
     /**
@@ -119,11 +123,13 @@ public final class TestTrivalent {
     @SuppressWarnings("javadoc")
     @DataProvider(name = "negation")
     public static Object[][] negation() {
-        return new Object[][] { // @formatter:off
+        return new Object[][] {
+            // @formatter:off
             { Trivalent.UNKNOWN,    Trivalent.UNKNOWN   },
             { Trivalent.FALSE,      Trivalent.TRUE      },
             { Trivalent.TRUE,       Trivalent.FALSE     }
-        }; // @formatter:on
+            // @formatter:on
+        };
     }
 
     /**
@@ -179,10 +185,12 @@ public final class TestTrivalent {
     @SuppressWarnings("javadoc")
     @DataProvider(name = "indicatives")
     public static Object[][] indicatives() {
-        return new Object[][] { // @formatter:off
+        return new Object[][] {
+            // @formatter:off
             { Trivalent.UNKNOWN,    false, false, true },
             { Trivalent.FALSE,      false, true, false },
             { Trivalent.TRUE,       true, false, false }
-        }; // @formatter:on
+            // @formatter:on
+        };
     }
 }

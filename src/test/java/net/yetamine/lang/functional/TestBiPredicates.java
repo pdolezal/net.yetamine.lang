@@ -57,7 +57,8 @@ public final class TestBiPredicates {
         final BiPredicate<Object, Object> t = (o1, o2) -> true;
         final BiPredicate<Object, Object> f = (o1, o2) -> false;
 
-        return new Object[][] { // @formatter:off
+        return new Object[][] {
+            // @formatter:off
             { Arrays.asList(t, t, t) },
             { Arrays.asList(t, t, f) },
             { Arrays.asList(t, f, f) },
@@ -66,6 +67,7 @@ public final class TestBiPredicates {
             { Arrays.asList(f, t, t) },
             { Arrays.asList(t, f, t) },
             { Arrays.asList(f, t, f) },
-        }; // @formatter:on
+            // @formatter:on
+        };
     }
 }

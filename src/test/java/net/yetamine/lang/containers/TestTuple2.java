@@ -217,10 +217,12 @@ public final class TestTuple2 {
     @SuppressWarnings("javadoc")
     @DataProvider(name = "collections")
     public static Object[][] collections() {
-        return new Object[][] { // @formatter:off
+        return new Object[][] {
+// @formatter:off
             { Collections.emptyList()       },
             { Collections.singletonList(10) },
             { Arrays.asList(10, 11, 12)     }
-        }; // @formatter:on
+            // @formatter:on
+        };
     }
 }

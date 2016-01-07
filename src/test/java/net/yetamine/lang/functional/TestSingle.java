@@ -118,7 +118,8 @@ public final class TestSingle {
     @SuppressWarnings("javadoc")
     @DataProvider(name = "merging")
     public static Object[][] merging() {
-        return new Object[][] { // @formatter:off
+        return new Object[][] {
+            // @formatter:off
             { Single.none(),    Single.none(),      Single.none()       },
             { Single.none(),    Single.single(1),   Single.single(1)    },
             { Single.none(),    Single.some(1),     Single.some(1)      },
@@ -130,7 +131,8 @@ public final class TestSingle {
             { Single.some(1),   Single.none(),      Single.some(1)      },
             { Single.some(1),   Single.single(2),   Single.some(1)      },
             { Single.some(1),   Single.some(2),     Single.some(1)      }
-        }; // @formatter:on
+            // @formatter:on
+        };
     }
 
     /**
@@ -151,12 +153,14 @@ public final class TestSingle {
     @SuppressWarnings("javadoc")
     @DataProvider(name = "head")
     public static Object[][] head() {
-        return new Object[][] { // @formatter:off
+        return new Object[][] {
+            // @formatter:off
             { Collections.emptyList(),  Single.none()       },
             { Collections.singleton(1), Single.single(1)    },
             { Arrays.asList(1, 2),      Single.some(1)      },
             { Arrays.asList(1, 2, 3),   Single.some(1)      }
-        }; // @formatter:on
+            // @formatter:on
+        };
     }
 
     /**
@@ -178,12 +182,14 @@ public final class TestSingle {
     @SuppressWarnings("javadoc")
     @DataProvider(name = "last")
     public static Object[][] last() {
-        return new Object[][] { // @formatter:off
+        return new Object[][] {
+            // @formatter:off
             { Collections.emptyList(),      Single.none()       },
             { Collections.singletonList(1), Single.single(1)    },
             { Arrays.asList(1, 2),          Single.some(2)      },
             { Arrays.asList(1, 2, 3),       Single.some(3)      }
-        }; // @formatter:on
+            // @formatter:on
+        };
     }
 
     /**
@@ -212,7 +218,8 @@ public final class TestSingle {
     @SuppressWarnings("javadoc")
     @DataProvider(name = "numbers")
     public static Object[][] numbers() {
-        return new Object[][] { // @formatter:off
+        return new Object[][] {
+            // @formatter:off
             { Collections.emptyList(),  Single.none()       },
             { Collections.singleton(1), Single.single(1)    },
             { Arrays.asList(1, 1),      Single.some(1)      },
@@ -224,6 +231,7 @@ public final class TestSingle {
             { Arrays.asList(2, 2, 1),   Single.some(2)      },
             { Arrays.asList(1, 2, 2),   Single.some(2)      },
             { Arrays.asList(2, 1, 2),   Single.some(2)      }
-        }; // @formatter:on
+            // @formatter:on
+        };
     }
 }

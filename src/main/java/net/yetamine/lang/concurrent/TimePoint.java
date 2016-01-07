@@ -61,7 +61,7 @@ public final class TimePoint implements Comparable<TimePoint> {
         final long now = now();
 
         // Avoid wrapping the past to the future
-        if ( (nanoOffset < 0) && (nanoOffset < -now)) {
+        if ((nanoOffset < 0) && (nanoOffset < -now)) {
             return past();
         }
 
@@ -139,7 +139,7 @@ public final class TimePoint implements Comparable<TimePoint> {
             return true;
         }
 
-        return ( (obj instanceof TimePoint) && ( ((TimePoint) obj).point == point));
+        return ((obj instanceof TimePoint) && (((TimePoint) obj).point == point));
     }
 
     /**

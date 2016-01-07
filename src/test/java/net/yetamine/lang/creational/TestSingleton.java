@@ -100,11 +100,13 @@ public final class TestSingleton {
     @SuppressWarnings("javadoc")
     @DataProvider(name = "missingLookup")
     public static Object[][] missingLookup() {
-        return new Object[][] { // @formatter:off
+        return new Object[][] {
+            // @formatter:off
             { TestingSingleton.class,   TestingSingleton.class, "missing"   },
             { TestSingleton.class,      TestingSingleton.class, "missing"   },
             { Object.class,             Object.class,           ""          }
-        }; // @formatter:on
+            // @formatter:on
+        };
     }
 
     /**
@@ -125,11 +127,13 @@ public final class TestSingleton {
     @SuppressWarnings("javadoc")
     @DataProvider(name = "failingLookup")
     public static Object[][] failingLookup() {
-        return new Object[][] { // @formatter:off
+        return new Object[][] {
+            // @formatter:off
             { TestingSingleton.class,   TestSingleton.class,    ""              },
             { TestSingleton.class,      TestSingleton.class,    ""              },
             { TestSingleton.class,      TestSingleton.class,    "alternative"   }
-        }; // @formatter:on
+            // @formatter:on
+        };
     }
 
     // Helper testing methods for lookups

@@ -14,7 +14,6 @@ import net.yetamine.lang.containers.Box;
  */
 public final class TestBiConsumers {
 
-
     /**
      * Tests conditional consumers.
      */
