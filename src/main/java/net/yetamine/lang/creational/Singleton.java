@@ -17,7 +17,7 @@ import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
-import net.yetamine.lang.Quoting;
+import net.yetamine.lang.formatting.Quoting;
 import net.yetamine.lang.functional.Single;
 
 /**

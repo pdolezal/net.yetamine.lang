@@ -1,4 +1,4 @@
-package net.yetamine.lang;
+package net.yetamine.lang.formatting;
 
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -6,6 +6,8 @@ import java.util.function.Supplier;
 import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+
+import net.yetamine.lang.formatting.Quoting;
 
 /**
  * Tests {@link Quoting}.

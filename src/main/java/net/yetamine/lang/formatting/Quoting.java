@@ -1,4 +1,4 @@
-package net.yetamine.lang;
+package net.yetamine.lang.formatting;
 
 import java.util.Objects;
 import java.util.function.Function;

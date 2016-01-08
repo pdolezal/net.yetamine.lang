@@ -17,9 +17,9 @@ import java.util.stream.Collector;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-import net.yetamine.lang.Quoting;
 import net.yetamine.lang.Trivalent;
 import net.yetamine.lang.containers.Box;
+import net.yetamine.lang.formatting.Quoting;
 
 /**
  * A counter-part for {@link Optional} that represents an element together with
