@@ -187,6 +187,15 @@ public final class Single<T> implements Supplier<T> {
     }
 
     /**
+     * Creates a stream of this instance as the only element of the stream.
+     *
+     * @return a stream of this instance
+     */
+    public Stream<Single<T>> stream() {
+        return Stream.of(this);
+    }
+
+    /**
      * Returns an {@link Optional} containing the represented value.
      *
      * @return an {@link Optional} containing the represented value
