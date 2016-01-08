@@ -49,7 +49,7 @@ public final class TestAcceptor {
         final Acceptor<Box<Integer>> acceptor = b -> b.replace(i -> i + 1);
 
         // Increments only even numbers
-        final Acceptor<Box<Integer>> even = acceptor.onlyIf(b -> b.get() % 2 == 0);
+        final Acceptor<Box<Integer>> even = acceptor.onlyIf(b -> (b.get() % 2) == 0);
 
         final Box<Integer> value = Box.of(0);
         Assert.assertEquals(even.apply(value).get(), Integer.valueOf(1));

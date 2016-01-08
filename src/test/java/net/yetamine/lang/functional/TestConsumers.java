@@ -19,7 +19,7 @@ public final class TestConsumers {
      */
     @Test
     public void testConditional() {
-        final Predicate<Box<Integer>> even = b -> b.get() % 2 == 0;
+        final Predicate<Box<Integer>> even = b -> (b.get() % 2) == 0;
         final Consumer<Box<Integer>> consumer = b -> b.replace(i -> i + 1);
         final Consumer<Box<Integer>> conditional = Consumers.conditional(even, consumer);
 

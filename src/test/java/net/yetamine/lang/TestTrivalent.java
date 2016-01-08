@@ -3,11 +3,11 @@ package net.yetamine.lang;
 import java.util.Arrays;
 import java.util.Collection;
 
-import net.yetamine.lang.containers.Box;
-
 import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+
+import net.yetamine.lang.containers.Box;
 
 /**
  * Tests {@link Trivalent}.

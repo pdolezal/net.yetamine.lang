@@ -7,8 +7,6 @@ import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-import net.yetamine.lang.formatting.Quoting;
-
 /**
  * Tests {@link Quoting}.
  */
