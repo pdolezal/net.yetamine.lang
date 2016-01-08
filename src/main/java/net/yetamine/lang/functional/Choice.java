@@ -6,6 +6,7 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 /**
  * An alternative to {@link Optional} for the cases when the value may or may
@@ -183,6 +184,15 @@ public final class Choice<T> implements Supplier<T> {
     }
 
     /**
+     * Creates a stream of this instance as the only element of the stream.
+     *
+     * @return a stream of this instance
+     */
+    public Stream<Choice<T>> stream() {
+        return Stream.of(this);
+    }
+
+    /**
      * Returns an {@link Optional} with the value if the value
      * {@link #isAccepted()} and not {@code null}.
      *
@@ -275,6 +285,21 @@ public final class Choice<T> implements Supplier<T> {
         }
 
         return this;
+    }
+
+    /**
+     * Maps this instance.
+     *
+     * @param <V>
+     *            the type of the new represented value
+     * @param f
+     *            the mapping function. It must not be {@code null} and it
+     *            should not return {@code null}.
+     *
+     * @return the result of the mapping function
+     */
+    public <V> Choice<V> map(Function<? super Choice<T>, Choice<V>> f) {
+        return f.apply(this);
     }
 
     /**
