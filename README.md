@@ -4,16 +4,16 @@ This repository provides a library with small extensions of the Java runtime lib
 
 What can be found here:
 
-* A utility for smart quoting of values for message formatting (especially for logging and debugging purposes).
-* Support for adapting arbitrary objects for use in try-with-resources.
-* Support classes for dealing with `TimeUnit`-based quantities.
+* Trivalent logic value type `Trivalent`.
 * Simple fix-sized containers like `Tuple2` and `Tuple3`.
 * A mutable `Box` for objects, which is useful for accumulators and for "out" method parameters.
-* Companions for `Optional`: `Choice` and `Single`.
-* Trivalent logic value type `Trivalent`.
-* `Cloneable` support – no more fiddling with reflection at home.
+* Companions for `Optional`: `Choice` and `Single`. `Traversing` is notable as well.
+* Some minor utilities for using functional interfaces. 
+* Support classes for dealing with `TimeUnit`-based quantities.
+* Support for adapting arbitrary objects for use in try-with-resources.
 * Support for serializable singleton and multiton implementations.
-* And some more minor additions, mostly to ease working with functional interfaces. Especially interesting is the `Traversing` interface that shows a pattern to `null`-safe traversal through graph structures (this should interest all JSON lovers).
+* `Cloneable` support: no more fiddling with reflection.
+* Several formatting utilities.
 
 
 ## Examples ##
@@ -67,7 +67,14 @@ if (optimum.single().isFalse()) { // Is that optimum really the only one?
 
 ### Tuples ###
 
-Java is hostile towards tuples and therefore alternative solutions, often better in semantic expressiveness, must be applied instead. But sometimes having a tuple is useful anyway, especially when dealing with maps and streams of map entries. Indeed, transforming map entries in a stream or retruning two or three values from a function at once is painful. Is it really necessary to make a special type everytime, even when the functionality is internal or very local? Use rather `Tuple2` or `Tuple3`.
+Java is hostile towards tuples and therefore alternative solutions, often better in semantic expressiveness, must be applied instead. But sometimes having a tuple is useful anyway, especially when dealing with maps and streams of map entries. Indeed, transforming map entries in a stream or returning two or three values from a function at once is painful. Is it really necessary to make a special type everytime, even when the functionality is internal or very local? Use rather `Tuple2` or `Tuple3`:
+
+```{java}
+// Usual construction pattern for such classes
+final Tuple2<String, String> t2 = Tuple2.of("red", "rot");
+// And for friends of static imports a more concise variant (here for Tuple3)
+final Tuple2<String, String, Locale> t3 = tuple3("red", "rot", Locale.GERMAN);
+```
 
 But let's see something more appealing. What about zipping?
 
@@ -85,6 +92,9 @@ Tuple2.zip(en, de).forEach(t -> t.accept(colors::put));
 If `en` and `de` were streams, we could use `Collectors` to make the map:
 
 ```{java}
+map = Tuple2.zip(en, de).collect(Tuple2.toMap());
+
+// Which is actually a shortcut for:
 map = Tuple2.zip(en, de).collect(Collectors.toMap(Tuple2::get1, Tuple2::get2));
 ```
 

@@ -3,6 +3,8 @@ package net.yetamine.lang.containers;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -218,11 +220,38 @@ public final class TestTuple2 {
     @DataProvider(name = "collections")
     public static Object[][] collections() {
         return new Object[][] {
-// @formatter:off
+            // @formatter:off
             { Collections.emptyList()       },
             { Collections.singletonList(10) },
             { Arrays.asList(10, 11, 12)     }
             // @formatter:on
         };
+    }
+
+    /**
+     * Tests {@link Tuple2#asMap()}.
+     */
+    @Test
+    public void testAsMap() {
+        final Object k = new Object();
+        final Object v = new Object();
+
+        final Map<Object, Object> map = new HashMap<>();
+        map.put(k, v);
+        Assert.assertEquals(Tuple2.of(k, v).asMap(), map);
+    }
+
+    /**
+     * Tests {@link Tuple2#toMap()}.
+     */
+    @Test
+    public void testToMap() {
+        final Map<Object, Object> map = new LinkedHashMap<>();
+
+        for (int i = 0; i < 10; i++) {
+            map.put(new Object(), new Object());
+        }
+
+        Assert.assertEquals(map.entrySet().stream().map(Tuple2::from).collect(Tuple2.toMap()), map);
     }
 }
