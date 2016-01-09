@@ -13,7 +13,7 @@ What can be found here:
 * Trivalent logic value type `Trivalent`.
 * `Cloneable` support – no more fiddling with reflection at home.
 * Support for serializable singleton and multiton implementations.
-* And some more minor additions, mostly to ease working with functional interfaces.
+* And some more minor additions, mostly to ease working with functional interfaces. Especially interesting is the `Traversing` interface that shows a pattern to `null`-safe traversal through graph structures (this should interest all JSON lovers).
 
 
 ## Examples ##
@@ -164,6 +164,32 @@ boolean greet(String name) {
     return Choice.of(greeting(name)).ifAccepted(System.out::println).isAccepted();
 }
 ```
+
+
+### Sweet `Traversing` ###
+
+This piece of code might remind you of something:
+
+```{java}
+final String connectToAddress = configuration.getSection(NETWORK).getSection(CONNECTION).getValue(ADDRESS);
+```
+
+What is some of the objects on the path is missing? Wrapping all in a `catch` block for `NullPointerException` is terrible, but practical. Using `null` checks before diving deeper is clean, but completely impractical. Well, some may know using `Optional` for that:
+
+```{java}
+final String connectToAddress = Optional.ofNullable(configuration)
+    .map(o -> o.getSection(NETWORK)).map(o -> o.getSection(CONNECTION)).map(o -> o.getValue(ADDRESS))
+    .orElseThrow(() -> new IllegalArgumentException("Missing connection address."));
+```
+
+Hm. Guessing this *is* better than the `if`-not-`null`-check way, but not so much. Too much clutter here. What about:
+
+```{java}
+final String connectToAddress = NETWORK.apply(configuration).flatMap(CONNECT).flatMap(ADDRESS)
+    .orElseThrow(() -> new IllegalArgumentException("Missing connection address."));
+```
+
+How to do so? Even without any modification of the type of the `configuration` variable? The trick is to let the constants implement the `Traversing` interface (which is basically a slightly polished `Function`) and that's it. Another sweet point of this approach is that the constants can be then even `enum` constants. Have a look at our example for the `Traversing` interface to see it in detail.
 
 
 ### And there is more… ###
