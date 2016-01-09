@@ -41,27 +41,28 @@ try {
 ```
 
 
-### Looking for the single occurrence ###
+### Sometimes Boolean is not good enough ###
 
-While `Optional` is fine and `Stream::find*` methods work well, they are not much useful when we need to know whether the provided element is indeed only one of the possibilities. What if the stream provides more of them? A compact solution? Using `Single`:
+Usually, `true` and `false` work well. But what if you need "I don't know (yet)"? Using a `Boolean` with `null` as the third value is a bad practice. Use rather `Trivalent`:
+
+- It is safe: no `null` unboxing and `NullPointerException` surprise.
+- It provides the basic set of operators: `and`, `or`, and `not` according to Kleene's logic.
+- It provides a comfortable interoperability with Boolean types.
 
 ```{java}
-// Filter the elements in a collection and get first one, ensuring that no other exists
-element = Single.head(collection.stream().filter(condition)).orElseThrow(NoSuchElementException::new);
-// Now 'element' contains the single value produced by the stream. If there are more values available,
-// or no values at all, NoSuchElementException is thrown instead.
+if (resolution.isUnknown()) {
+    System.out.println("I have no data yet.");
+} else {
+    System.out.format("You are %s.", resolution.asBoolean() ? "right" : "wrong");
+}
 ```
 
-Throwing an exception might be too harsh. Perhaps we want to find an optimum, perhaps the preference is ordered (e.g., the later prevails), but we also want to warn there are more options and only one of them could be applied:
+For such simple cases, `Trivalent` offers `Optional`-like monadic support:
 
 ```{java}
-// Find an element such that no other element is greater. There may be more such (equally good) 
-// elements though and we want to pick one, but perhaps warn there are more available options.
-optimum = collection.stream().collect(Single.collector(Single.optimum(Comparator.naturalOrder()));
-
-if (optimum.single().isFalse()) { // Is that optimum really the only one?
-    LOGGER.warn("Multiple optimal elements found, using {}.", optimum.get());
-}
+resolution.ifUnknown(() -> System.out.println("I have no data yet.")).ifBoolean(b -> {
+    System.out.format("You are %s.", b ? "right" : "wrong");
+});
 ```
 
 
@@ -124,54 +125,26 @@ if (haveFun(box)) {
 Well, the `Box` can do more. Check it out to see.
 
 
-### Sometimes Boolean is not good enough ###
+### Looking for the single occurrence ###
 
-Usually, `true` and `false` work well. But what if you need "I don't know (yet)"? Using a `Boolean` with `null` as the third value is a bad practice. Use rather `Trivalent`:
-
-- It is safe: no `null` unboxing and `NullPointerException` surprise.
-- It provides the basic set of operators: `and`, `or`, and `not` according to Kleene's logic.
-- It provides a comfortable interoperability with Boolean types.
+While `Optional` is fine and `Stream::find*` methods work well, they are not much useful when we need to know whether the provided element is indeed only one of the possibilities. What if the stream provides more of them? A compact solution? Using `Single`:
 
 ```{java}
-if (resolution.isUnknown()) {
-    System.out.println("I have no data yet.");
-} else {
-    System.out.format("You are %s.", resolution.asBoolean() ? "right" : "wrong");
-}
+// Filter the elements in a collection and get first one, ensuring that no other exists
+element = Single.head(collection.stream().filter(condition)).orElseThrow(NoSuchElementException::new);
+// Now 'element' contains the single value produced by the stream. If there are more values available,
+// or no values at all, NoSuchElementException is thrown instead.
 ```
 
-For such simple cases, `Trivalent` offers `Optional`-like monadic support:
+Throwing an exception might be too harsh. Perhaps we want to find an optimum, perhaps the preference is ordered (e.g., the later prevails), but we also want to warn there are more options and only one of them could be applied:
 
 ```{java}
-resolution.ifUnknown(() -> System.out.println("I have no data yet.")).ifBoolean(b -> {
-	System.out.format("You are %s.", b ? "right" : "wrong");
-});
-```
+// Find an element such that no other element is greater. There may be more such (equally good) 
+// elements though and we want to pick one, but perhaps warn there are more available options.
+optimum = collection.stream().collect(Single.collector(Single.optimum(Comparator.naturalOrder()));
 
-
-### When `Optional` becomes awkward ###
-
-`Optional` is great. But it can only tell that it contains an object or not. Sometimes you might need rather a container that just marks a value as acceptable or not and lets its consumer to decide how to deal with the value, because sometimes even a wrong value is better than none, e.g., when logging or when taking an alternative decision needs some information to take a better path.
-
-But there is one more use case when `Optional` does not work very well, although it should:
-
-```{java}
-boolean greet(String name) {
-    final Optional<String> result = greeting(name); // Find some optional value
-    if (result.isPresent()) {
-        System.out.println(result.get());
-        return true;
-    }
-    
-    return false; // No greeting for you
-}
-```
-
-Try to avoid consulting `isPresent` *and* `get`. There are several ways: using `Optional::map`, storing `result.orElse(null)` and testing the intermediate result… or to use `Choice`:
-
-```{java}
-boolean greet(String name) {
-    return Choice.of(greeting(name)).ifAccepted(System.out::println).isAccepted();
+if (optimum.single().isFalse()) { // Is that optimum really the only one?
+    LOGGER.warn("Multiple optimal elements found, using {}.", optimum.get());
 }
 ```
 
@@ -200,6 +173,33 @@ final String connectToAddress = NETWORK.apply(configuration).flatMap(CONNECT).fl
 ```
 
 How to do so? Even without any modification of the type of the `configuration` variable? The trick is to let the constants implement the `Traversing` interface (which is basically a slightly polished `Function`) and that's it. Another sweet point of this approach is that the constants can be then even `enum` constants. Have a look at our example for the `Traversing` interface to see it in detail.
+
+
+### When `Optional` becomes awkward ###
+
+`Optional` is great and the `Traversing` example shows it. However, it can distinguish only whether an object is present or not and the only invalid value is `null`. Sometimes you might need rather a container that just marks a value as acceptable or not and lets the consumer to decide how to deal with the value, because sometimes even a wrong value is better than none, e.g., when logging or when taking an alternative decision needs some information to take a better path.
+
+Besides that, there is one more use case when `Optional` does not work very well, although it should:
+
+```{java}
+boolean greet(String name) {
+    final Optional<String> result = greeting(name); // Find some optional value
+    if (result.isPresent()) {
+        System.out.println(result.get());
+        return true;
+    }
+    
+    return false; // No greeting for you
+}
+```
+
+Try to avoid consulting `isPresent` *and* `get`. There are several ways: using `Optional::map`, storing `result.orElse(null)` and testing the intermediate result… or to use `Choice`:
+
+```{java}
+boolean greet(String name) {
+    return Choice.of(greeting(name)).ifAccepted(System.out::println).isAccepted();
+}
+```
 
 
 ### And there is more… ###
