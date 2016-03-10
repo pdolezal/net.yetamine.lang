@@ -4,59 +4,136 @@ This repository provides a library with small extensions of the Java runtime lib
 
 What can be found here:
 
-* Quoting helper for formatting messages (especially for logging and debugging purposes).
+* A utility for smart quoting of values for message formatting (especially for logging and debugging purposes).
 * Support for adapting arbitrary objects for use in try-with-resources.
-* Utilities for dealing with `TimeUnit`-based quantities.
+* Support classes for dealing with `TimeUnit`-based quantities.
 * Simple fix-sized containers like `Tuple2` and `Tuple3`.
-* Extensions for `Optional` processing.
-* Trivalent logic value type.
-* `Cloneable` support.
+* A mutable `Box` for objects, which is useful for accumulators and for "out" method parameters.
+* Extensions for dealing with `Optional`.
+* Trivalent logic value type `Trivalent`.
+* `Cloneable` support – no more fiddling with reflection at home.
 * Support for serializable singleton and multiton implementations.
-* And some more minor additions.
+* And some more minor additions, mostly to ease working with functional interfaces.
 
 
 ## Examples ##
 
-Using `Quoting` and `Throwables`:
+Let's have a look at a few code snippets demonstrating some of the functionality that this library provides.
+
+
+### Error messages ###
+
+Error messages should contain the values that indicate the root of the problem. It is nice to have the actual values quoted in a way, so that they do not blend with the rest of the message, but when the value could be `null`, a problem comes.
+
+Having quotes in the message template does not help always. For instance, does the message *Element is 'null'.* mean that the element is `null` or that the element displays as a string *null*? It should be *Element is null.* without the quotes when the element is indeed `null`. Here `Quoting` helps.
+
+And let's combine `Quoting` with `Throwables` in the snippet. Some exceptions don't have any constructor for setting their cause which becomes annoying when the cause is present. So…
 
 ```{java}
 try {
     // Do some stuff
 } catch (IllegalArgumentException e) {
-    // Null-tolerant quoting that does not quote null
+    // Null-tolerant quoting that makes the difference between "null" and null
     final String m = String.format("No element found for %s.", Quoting.single(key));
     // When missing cause-providing constructor, this is a compact alternative
     throw Throwables.init(new NoSuchElementException(m), e);
 }
 ```
 
-Using `Single` to find an element, which must be single, in a stream:
+
+### Looking for the single occurrence ###
+
+While `Optional` is fine and `Stream::find*` methods work well, they are not much useful when we need to know whether the provided element is indeed only one of the possibilities. What if the stream provides more of them? A compact solution? Using `Single`:
 
 ```{java}
-element = Single.from(collection.stream().filter(condition)).orElseThrow(NoSuchElementException::new);
+// Filter the elements in a collection and get first one, ensuring that no other exists
+element = Single.head(collection.stream().filter(condition)).orElseThrow(NoSuchElementException::new);
 // Now 'element' contains the single value produced by the stream. If there are more values available,
 // or no values at all, NoSuchElementException is thrown instead.
 ```
 
-A function wants to return two values, using `Tuple2`:
+Throwing an exception might be too harsh. Perhaps we want to find an optimum, perhaps the preference is ordered (e.g., the later prevails), but we also want to warn there are more options and only one of them could be applied:
 
 ```{java}
-Tuple2<String, Integer> foo() {
-    // Some code
-    return Tuple2.of(string, integer);
-}
+// Find an element such that no other element is greater. There may be more such (equally good) 
+// elements though and we want to pick one, but perhaps warn there are more available options.
+optimum = collection.stream().collect(Single.collector(Single.optimum(Comparator.naturalOrder()));
 
-// Using then in the classical way
-final Tuple2<String, Integer> result = foo();
-if (result.get2() > 0) {
-    System.out.println(result.get1());
+if (optimum.single().isFalse()) { // Is that optimum really the only one?
+    LOGGER.warn("Multiple optimal elements found, using {}.", optimum.get());
 }
-
-// Or the equivalent code in a more functional manner
-foo().map(t -> (t.get2() > 0) ? Optional.of(t.get1()) : Optional.empty()).ifPresent(System.out::println);
 ```
 
-And there is much more. Feel free to discover better patterns and let us know!
+
+### Tuples ###
+
+Java is hostile towards tuples and therefore alternative solutions, often better in semantic expressiveness, must be applied instead. But sometimes having a tuple is useful anyway, especially when dealing with maps and streams of map entries. Indeed, transforming map entries in a stream or retruning two or three values from a function at once is painful. Is it really necessary to make a special type everytime, even when the functionality is internal or very local? Use rather `Tuple2` or `Tuple3`.
+
+But let's see something more appealing. What about zipping?
+
+```{java}
+// We have two lists of corresponding values:
+final List<String> en = Arrays.asList("red", "green", "blue");
+final List<String> de = Arrays.asList("rot", "grün", "blau");
+
+// And we want a map like this: {red=rot, green=grün, blue=blau}
+final Map<String, String> colors = new LinkedHashMap<>();
+Tuple2.zip(en, de).forEach(t -> t.accept(colors::put));
+// Here it is!
+```
+
+If `en` and `de` were streams, we could use `Collectors` to make the map:
+
+```{java}
+map = Tuple2.zip(en, de).collect(Collectors.toMap(Tuple2::get1, Tuple2::get2));
+```
+
+
+### Having a `Box` is a good thing ###
+
+A mutable box for storing a reference is often useful, e.g., when implementing a `Collector` or when passing a value from a method using an "out" parameter. An `AtomicReference` is often too expensive, a single-element array… well, arrays are better to avoid for many reasons… The `Box` is the best solution then:
+
+```{java}
+boolean haveFun(Box<? super String> box) {
+    if (new Random().nextInt() % 2 == 0) {
+        box.set("Surprise!");
+        return true;
+   }
+   
+   return false;
+}
+
+// Let's have fun then:
+final Box<String> box = Box.empty();
+
+if (haveFun(box)) {
+    System.out.println(box.get());
+}
+```
+
+Well, the `Box` can do more. Check it out to see.
+
+
+### Sometimes Boolean is not good enough ###
+
+Usually, `true` and `false` work well. But what if you need "I don't know (yet)"? Using a `Boolean` with `null` as the third value is a bad practice. Use rather `Trivalent`:
+
+- It is safe: no `null` unboxing and `NullPointerException` surprise.
+- It provides the basic set of operators: `and`, `or`, and `not` according to Kleene's logic.
+- It provides a comfortable interoperability with Boolean types.
+
+```{java}
+if (resolution.isUnknown()) {
+    System.out.println("I have no data yet.");
+} else {
+    System.out.format("You are %s.", resolution.asBoolean() ? "right" : "wrong");
+}
+```
+
+
+### And there is more… ###
+
+Have a look, feel free to discover your ways to use that, and let us know!
 
 
 ## Prerequisites ##
