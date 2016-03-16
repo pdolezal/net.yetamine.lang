@@ -21,7 +21,7 @@ import java.util.function.Supplier;
 
 /**
  * A proxy for an object that has no suitable {@link Object#toString()} method
- * override. For {@link net.yetamine.lang.Introspection}, this class could be
+ * override. For {@link net.yetamine.lang.introspective.Introspection}, this class could be
  * useful as well for representing the keys of the values that are designated
  * for human-friendly representation of a property.
  */

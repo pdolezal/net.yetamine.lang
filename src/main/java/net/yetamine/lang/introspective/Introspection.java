@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.yetamine.lang;
+package net.yetamine.lang.introspective;
 
 import java.util.Collections;
 import java.util.Map;
