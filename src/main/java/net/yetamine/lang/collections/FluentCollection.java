@@ -21,14 +21,11 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Spliterator;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
-
-import net.yetamine.lang.functional.Source;
 
 /**
  * An extension of the {@link Collection} interface providing more fluent
@@ -37,7 +34,7 @@ import net.yetamine.lang.functional.Source;
  * @param <E>
  *            the type of values
  */
-public interface FluentCollection<E> extends Collection<E>, CollectionFluency<E, FluentCollection<E>>, Source<FluentCollection<E>> {
+public interface FluentCollection<E> extends Collection<E> {
 
     /**
      * Makes a new instance of the default adapter implementation.
@@ -52,6 +49,8 @@ public interface FluentCollection<E> extends Collection<E>, CollectionFluency<E,
     static <E> FluentCollection<E> adapt(Collection<E> collection) {
         return new FluentCollectionAdapter<>(collection);
     }
+
+    // Common fluent extensions support
 
     /**
      * Returns the pure {@link Collection} interface for this instance.
@@ -74,12 +73,18 @@ public interface FluentCollection<E> extends Collection<E>, CollectionFluency<E,
     Collection<E> container();
 
     /**
-     * Applies the given function to {@link #container()}.
+     * Returns a {@link Stream} providing this instance which can be used for
+     * pipeline-like processing of this instance then.
      *
-     * <p>
-     * This method is convenient shortcut for {@link #map(Function)} which would
-     * prefer to use the {@link #container()} anyway, e.g., when this instance
-     * acts as a {@link Collection} builder.
+     * @return a stream providing this instance
+     */
+    default Stream<? extends FluentCollection<E>> self() {
+        return Stream.of(this);
+    }
+
+    /**
+     * Applies the given function to {@link #container()} interpreting it as a
+     * collection.
      *
      * @param <U>
      *            the type of the result
@@ -89,38 +94,28 @@ public interface FluentCollection<E> extends Collection<E>, CollectionFluency<E,
      *
      * @return the result of the mapping function
      */
-    default <U> U remap(Function<? super Collection<E>, ? extends U> mapping) {
+    default <U> U withCollection(Function<? super Collection<E>, ? extends U> mapping) {
         return mapping.apply(container());
-    }
-
-    // Source interface implementation
-
-    /**
-     * @see net.yetamine.lang.functional.Source#filter(java.util.function.Predicate)
-     */
-    default Optional<FluentCollection<E>> filter(Predicate<? super FluentCollection<E>> predicate) {
-        return predicate.test(this) ? Optional.of(this) : Optional.empty();
-    }
-
-    /**
-     * @see net.yetamine.lang.functional.Source#accept(java.util.function.Consumer)
-     */
-    default FluentCollection<E> accept(Consumer<? super FluentCollection<E>> consumer) {
-        consumer.accept(this);
-        return this;
-    }
-
-    /**
-     * @see net.yetamine.lang.functional.Source#map(java.util.function.Function)
-     */
-    default <U> U map(Function<? super FluentCollection<E>, ? extends U> mapping) {
-        return mapping.apply(this);
     }
 
     // Fluent extensions for Collection
 
     /**
-     * @see net.yetamine.lang.collections.CollectionFluency#include(java.lang.Object)
+     * Adds the given element.
+     *
+     * <p>
+     * The way how the element is added depends on the semantics of the more
+     * concrete {@link Collection#add(Object)} contract. However, the element
+     * should be contained in this instance at least once if the operation is
+     * successful.
+     *
+     * @param value
+     *            the element to add
+     *
+     * @return this instance
+     *
+     * @throws UnsupportedOperationException
+     *             if an element could not be added
      */
     default FluentCollection<E> include(E value) {
         add(value);
@@ -128,7 +123,16 @@ public interface FluentCollection<E> extends Collection<E>, CollectionFluency<E,
     }
 
     /**
-     * @see net.yetamine.lang.collections.CollectionFluency#includeMore(java.lang.Object[])
+     * Adds the given elements.
+     *
+     * <p>
+     * This method should behave like {@link Collection#addAll(Collection)} with
+     * a list of the given elements.
+     *
+     * @param elements
+     *            the elements to add. It must not be {@code null}.
+     *
+     * @return this instance
      */
     default FluentCollection<E> includeMore(@SuppressWarnings("unchecked") E... elements) {
         addAll(Arrays.asList(elements));
@@ -136,7 +140,23 @@ public interface FluentCollection<E> extends Collection<E>, CollectionFluency<E,
     }
 
     /**
-     * @see net.yetamine.lang.collections.CollectionFluency#contain(java.lang.Object)
+     * Adds the given element if no such element exists.
+     *
+     * <p>
+     * The way how the element is added depends on the semantics of the more
+     * concrete {@link Collection#add(Object)} contract. However, the element
+     * should be contained in this instance once if the operation is successful;
+     * the mentioned post-condition might not be guaranteed in concurrent cases,
+     * because an adapter might not have enough support to ensure the atomicity
+     * of test-and-add operation.
+     *
+     * @param value
+     *            the element to add
+     *
+     * @return this instance
+     *
+     * @throws UnsupportedOperationException
+     *             if an element could not be added
      */
     default FluentCollection<E> contain(E value) {
         if (!contains(value)) {
@@ -147,7 +167,16 @@ public interface FluentCollection<E> extends Collection<E>, CollectionFluency<E,
     }
 
     /**
-     * @see net.yetamine.lang.collections.CollectionFluency#containMore(java.lang.Object[])
+     * Adds the given elements that don't exist yet.
+     *
+     * <p>
+     * This method can be based on {@link #contain(Object)} with all its
+     * limitations.
+     *
+     * @param elements
+     *            the elements to add. It must not be {@code null}.
+     *
+     * @return this instance
      */
     default FluentCollection<E> containMore(@SuppressWarnings("unchecked") E... elements) {
         for (E element : elements) {
@@ -158,7 +187,15 @@ public interface FluentCollection<E> extends Collection<E>, CollectionFluency<E,
     }
 
     /**
-     * @see net.yetamine.lang.collections.CollectionFluency#discard(java.lang.Object)
+     * Removes the given element.
+     *
+     * @param value
+     *            the element to remove
+     *
+     * @return this instance
+     *
+     * @throws UnsupportedOperationException
+     *             if the element could not be removed
      */
     default FluentCollection<E> discard(Object value) {
         remove(value);
@@ -166,7 +203,12 @@ public interface FluentCollection<E> extends Collection<E>, CollectionFluency<E,
     }
 
     /**
-     * @see net.yetamine.lang.collections.CollectionFluency#discardAll()
+     * Clears the container.
+     *
+     * @return this instance
+     *
+     * @throws UnsupportedOperationException
+     *             if clearing operation is not supported
      */
     default FluentCollection<E> discardAll() {
         clear();
@@ -174,7 +216,16 @@ public interface FluentCollection<E> extends Collection<E>, CollectionFluency<E,
     }
 
     /**
-     * @see net.yetamine.lang.collections.CollectionFluency#discardIf(java.util.function.Predicate)
+     * Removes only the elements from this instance that do not pass the
+     * condition of the given filter.
+     *
+     * @param filter
+     *            the condition for the elements. It must not be {@code null}.
+     *
+     * @return this instance
+     *
+     * @throws UnsupportedOperationException
+     *             if an element could not be removed
      */
     default FluentCollection<E> discardIf(Predicate<? super E> filter) {
         removeIf(filter);
@@ -182,7 +233,17 @@ public interface FluentCollection<E> extends Collection<E>, CollectionFluency<E,
     }
 
     /**
-     * @see net.yetamine.lang.collections.CollectionFluency#discardAll(java.util.Collection)
+     * Removes only the elements from this instance that are contained in the
+     * specified collection.
+     *
+     * @param collection
+     *            the collection of elements to remove. It must not be
+     *            {@code null}.
+     *
+     * @return this instance
+     *
+     * @throws UnsupportedOperationException
+     *             if an element could not be removed
      */
     default FluentCollection<E> discardAll(Collection<? extends E> collection) {
         removeAll(collection);
@@ -190,7 +251,17 @@ public interface FluentCollection<E> extends Collection<E>, CollectionFluency<E,
     }
 
     /**
-     * @see net.yetamine.lang.collections.CollectionFluency#preserveAll(java.util.Collection)
+     * Retains only the elements in this instance that are contained in the
+     * specified collection.
+     *
+     * @param collection
+     *            the collection of elements to retain. It must not be
+     *            {@code null}.
+     *
+     * @return this instance
+     *
+     * @throws UnsupportedOperationException
+     *             if an element could not be removed
      */
     default FluentCollection<E> preserveAll(Collection<? extends E> collection) {
         retainAll(collection);
@@ -198,7 +269,16 @@ public interface FluentCollection<E> extends Collection<E>, CollectionFluency<E,
     }
 
     /**
-     * @see net.yetamine.lang.collections.CollectionFluency#includeAll(java.util.Collection)
+     * Copies all elements from a source to this instance.
+     *
+     * @param source
+     *            the source of the elements to copy. It must not be
+     *            {@code null}.
+     *
+     * @return this instance
+     *
+     * @throws UnsupportedOperationException
+     *             if an element could not be added
      */
     default FluentCollection<E> includeAll(Collection<? extends E> source) {
         addAll(source);
@@ -206,7 +286,15 @@ public interface FluentCollection<E> extends Collection<E>, CollectionFluency<E,
     }
 
     /**
-     * @see net.yetamine.lang.collections.CollectionFluency#forAll(java.util.function.Consumer)
+     * Applies the given consumer on all elements.
+     *
+     * <p>
+     * This method behaves like {@link Collection#forEach(Consumer)}.
+     *
+     * @param consumer
+     *            the consumer. It must not be {@code null}.
+     *
+     * @return this instance
      */
     default FluentCollection<E> forAll(Consumer<? super E> consumer) {
         forEach(consumer);

@@ -25,15 +25,12 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Spliterator;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
-
-import net.yetamine.lang.functional.Source;
 
 /**
  * An extension of the {@link List} interface providing more fluent programming
@@ -42,7 +39,7 @@ import net.yetamine.lang.functional.Source;
  * @param <E>
  *            the type of values
  */
-public interface FluentList<E> extends List<E>, ListFluency<E, FluentList<E>>, Source<FluentList<E>> {
+public interface FluentList<E> extends FluentCollection<E>, List<E> {
 
     /**
      * Makes a new instance of the default adapter using {@link ArrayList} as
@@ -72,7 +69,7 @@ public interface FluentList<E> extends List<E>, ListFluency<E, FluentList<E>>, S
         return new FluentListAdapter<>(list);
     }
 
-    // Core and common fluent extensions support
+    // Common fluent extensions support
 
     /**
      * Returns the pure {@link List} interface for this instance.
@@ -95,34 +92,17 @@ public interface FluentList<E> extends List<E>, ListFluency<E, FluentList<E>>, S
     List<E> container();
 
     /**
-     * @see net.yetamine.lang.functional.Source#filter(java.util.function.Predicate)
+     * Returns a {@link Stream} providing this instance which can be used for
+     * pipeline-like processing of this instance then.
+     *
+     * @return a stream providing this instance
      */
-    default Optional<FluentList<E>> filter(Predicate<? super FluentList<E>> predicate) {
-        return predicate.test(this) ? Optional.of(this) : Optional.empty();
-    }
-
-    /**
-     * @see net.yetamine.lang.functional.Source#accept(java.util.function.Consumer)
-     */
-    default FluentList<E> accept(Consumer<? super FluentList<E>> consumer) {
-        consumer.accept(this);
-        return this;
-    }
-
-    /**
-     * @see net.yetamine.lang.functional.Source#map(java.util.function.Function)
-     */
-    default <U> U map(Function<? super FluentList<E>, ? extends U> mapping) {
-        return mapping.apply(this);
+    default Stream<? extends FluentList<E>> self() {
+        return Stream.of(this);
     }
 
     /**
      * Applies the given function to {@link #container()}.
-     *
-     * <p>
-     * This method is convenient shortcut for {@link #map(Function)} which would
-     * prefer to use the {@link #container()} anyway, e.g., when this instance
-     * acts as a {@link Collection} builder.
      *
      * @param <U>
      *            the type of the result
@@ -132,14 +112,160 @@ public interface FluentList<E> extends List<E>, ListFluency<E, FluentList<E>>, S
      *
      * @return the result of the mapping function
      */
-    default <U> U remap(Function<? super List<E>, ? extends U> mapping) {
+    default <U> U withList(Function<? super List<E>, ? extends U> mapping) {
         return mapping.apply(container());
     }
 
     // Fluent extensions for List
 
     /**
-     * @see net.yetamine.lang.collections.CollectionFluency#include(java.lang.Object)
+     * Inserts an element at the specified index.
+     *
+     * <p>
+     * This method behaves like {@link List#add(int, Object)}.
+     *
+     * @param index
+     *            the index
+     * @param element
+     *            the element to insert
+     *
+     * @return this instance
+     *
+     * @throws UnsupportedOperationException
+     *             if an element could not be added
+     */
+    default FluentList<E> insert(int index, E element) {
+        add(index, element);
+        return this;
+    }
+
+    /**
+     * Inserts elements from the given collection at the specified index.
+     *
+     * <p>
+     * This method behaves like {@link List#addAll(int, Collection)}.
+     *
+     * @param index
+     *            the index
+     * @param c
+     *            the collection to insert. It must not be {@code null}.
+     *
+     * @return this instance
+     *
+     * @throws UnsupportedOperationException
+     *             if an element could not be added
+     */
+    default FluentList<E> insertAll(int index, Collection<? extends E> c) {
+        addAll(index, c);
+        return this;
+    }
+
+    /**
+     * Removes the element at the given index.
+     *
+     * <p>
+     * This method behaves like {@link List#remove(int)}.
+     *
+     * @param index
+     *            the index
+     *
+     * @return this instance
+     *
+     * @throws UnsupportedOperationException
+     *             if an element could not be added
+     */
+    default FluentList<E> discard(int index) {
+        remove(index);
+        return this;
+    }
+
+    /**
+     * Sets the element at the specified index.
+     *
+     * <p>
+     * This method behaves like {@link List#set(int, Object)}.
+     *
+     * @param index
+     *            the index
+     * @param element
+     *            the element
+     *
+     * @return this instance
+     *
+     * @throws UnsupportedOperationException
+     *             if an element could not be added
+     */
+    default FluentList<E> put(int index, E element) {
+        set(index, element);
+        return this;
+    }
+
+    /**
+     * Replaces the given element.
+     *
+     * <p>
+     * This method gets the element at the given position and stores the value
+     * provided by the given operator instead. Since {@link List} provides no
+     * method with atomic guarantees, this operation might not be executed in
+     * the atomic fashion.
+     *
+     * @param index
+     *            the index
+     * @param operator
+     *            the operator to apply. It must not be {@code null}.
+     *
+     * @return this instance
+     *
+     * @throws UnsupportedOperationException
+     *             if an element could not be added
+     */
+    default FluentList<E> patch(int index, Function<? super E, ? extends E> operator) {
+        set(index, operator.apply(get(index)));
+        return this;
+    }
+
+    /**
+     * Replaces all elements.
+     *
+     * <p>
+     * This method behaves like {@link List#replaceAll(UnaryOperator)}.
+     *
+     * @param operator
+     *            the operator to apply. It must not be {@code null}.
+     *
+     * @return this instance
+     *
+     * @throws UnsupportedOperationException
+     *             if an element could not be added
+     */
+    default FluentList<E> patchAll(Function<? super E, ? extends E> operator) {
+        replaceAll(operator::apply);
+        return this;
+    }
+
+    /**
+     * Sorts this instance.
+     *
+     * <p>
+     * This method behaves like {@link List#sort(Comparator)}.
+     *
+     * @param c
+     *            the comparator to use. It must not be {@code null}.
+     *
+     * @return this instance
+     *
+     * @throws UnsupportedOperationException
+     *             if an element could not be added
+     */
+    default FluentList<E> sorted(Comparator<? super E> c) {
+        sort(c);
+        return this;
+    }
+
+    // Fluent extensions for Collection
+
+    /**
+     * @see net.yetamine.lang.collections.FluentCollection#include(java.lang.Object)
      */
     default FluentList<E> include(E value) {
         add(value);
@@ -147,7 +273,7 @@ public interface FluentList<E> extends List<E>, ListFluency<E, FluentList<E>>, S
     }
 
     /**
-     * @see net.yetamine.lang.collections.CollectionFluency#includeMore(java.lang.Object[])
+     * @see net.yetamine.lang.collections.FluentCollection#includeMore(java.lang.Object[])
      */
     default FluentList<E> includeMore(@SuppressWarnings("unchecked") E... elements) {
         addAll(Arrays.asList(elements));
@@ -155,7 +281,7 @@ public interface FluentList<E> extends List<E>, ListFluency<E, FluentList<E>>, S
     }
 
     /**
-     * @see net.yetamine.lang.collections.CollectionFluency#contain(java.lang.Object)
+     * @see net.yetamine.lang.collections.FluentCollection#contain(java.lang.Object)
      */
     default FluentList<E> contain(E value) {
         if (!contains(value)) {
@@ -166,7 +292,7 @@ public interface FluentList<E> extends List<E>, ListFluency<E, FluentList<E>>, S
     }
 
     /**
-     * @see net.yetamine.lang.collections.CollectionFluency#containMore(java.lang.Object[])
+     * @see net.yetamine.lang.collections.FluentCollection#containMore(java.lang.Object[])
      */
     default FluentList<E> containMore(@SuppressWarnings("unchecked") E... elements) {
         for (E element : elements) {
@@ -177,7 +303,7 @@ public interface FluentList<E> extends List<E>, ListFluency<E, FluentList<E>>, S
     }
 
     /**
-     * @see net.yetamine.lang.collections.CollectionFluency#discard(java.lang.Object)
+     * @see net.yetamine.lang.collections.FluentCollection#discard(java.lang.Object)
      */
     default FluentList<E> discard(Object value) {
         remove(value);
@@ -185,7 +311,7 @@ public interface FluentList<E> extends List<E>, ListFluency<E, FluentList<E>>, S
     }
 
     /**
-     * @see net.yetamine.lang.collections.CollectionFluency#discardAll()
+     * @see net.yetamine.lang.collections.FluentCollection#discardAll()
      */
     default FluentList<E> discardAll() {
         clear();
@@ -193,7 +319,7 @@ public interface FluentList<E> extends List<E>, ListFluency<E, FluentList<E>>, S
     }
 
     /**
-     * @see net.yetamine.lang.collections.CollectionFluency#discardIf(java.util.function.Predicate)
+     * @see net.yetamine.lang.collections.FluentCollection#discardIf(java.util.function.Predicate)
      */
     default FluentList<E> discardIf(Predicate<? super E> filter) {
         removeIf(filter);
@@ -201,7 +327,7 @@ public interface FluentList<E> extends List<E>, ListFluency<E, FluentList<E>>, S
     }
 
     /**
-     * @see net.yetamine.lang.collections.CollectionFluency#discardAll(java.util.Collection)
+     * @see net.yetamine.lang.collections.FluentCollection#discardAll(java.util.Collection)
      */
     default FluentList<E> discardAll(Collection<? extends E> collection) {
         removeAll(collection);
@@ -209,7 +335,7 @@ public interface FluentList<E> extends List<E>, ListFluency<E, FluentList<E>>, S
     }
 
     /**
-     * @see net.yetamine.lang.collections.CollectionFluency#preserveAll(java.util.Collection)
+     * @see net.yetamine.lang.collections.FluentCollection#preserveAll(java.util.Collection)
      */
     default FluentList<E> preserveAll(Collection<? extends E> collection) {
         retainAll(collection);
@@ -217,7 +343,7 @@ public interface FluentList<E> extends List<E>, ListFluency<E, FluentList<E>>, S
     }
 
     /**
-     * @see net.yetamine.lang.collections.CollectionFluency#includeAll(java.util.Collection)
+     * @see net.yetamine.lang.collections.FluentCollection#includeAll(java.util.Collection)
      */
     default FluentList<E> includeAll(Collection<? extends E> source) {
         addAll(source);
@@ -225,71 +351,97 @@ public interface FluentList<E> extends List<E>, ListFluency<E, FluentList<E>>, S
     }
 
     /**
-     * @see net.yetamine.lang.collections.CollectionFluency#forAll(java.util.function.Consumer)
+     * @see net.yetamine.lang.collections.FluentCollection#forAll(java.util.function.Consumer)
      */
     default FluentList<E> forAll(Consumer<? super E> consumer) {
         forEach(consumer);
         return this;
     }
 
+    // List interface default implementation
+
     /**
-     * @see net.yetamine.lang.collections.ListFluency#insert(int,
-     *      java.lang.Object)
+     * @see java.util.List#add(int, java.lang.Object)
      */
-    default FluentList<E> insert(int index, E element) {
-        add(index, element);
-        return this;
+    default void add(int index, E element) {
+        container().add(index, element);
     }
 
     /**
-     * @see net.yetamine.lang.collections.ListFluency#insertAll(int,
-     *      java.util.Collection)
+     * @see java.util.List#addAll(int, java.util.Collection)
      */
-    default FluentList<E> insertAll(int index, Collection<? extends E> c) {
-        addAll(index, c);
-        return this;
+    default boolean addAll(int index, Collection<? extends E> c) {
+        return container().addAll(index, c);
     }
 
     /**
-     * @see net.yetamine.lang.collections.ListFluency#discard(int)
+     * @see java.util.List#get(int)
      */
-    default FluentList<E> discard(int index) {
-        remove(index);
-        return this;
+    default E get(int index) {
+        return container().get(index);
     }
 
     /**
-     * @see net.yetamine.lang.collections.ListFluency#put(int,
-     *      java.lang.Object)
+     * @see java.util.List#indexOf(java.lang.Object)
      */
-    default FluentList<E> put(int index, E element) {
-        set(index, element);
-        return this;
+    default int indexOf(Object o) {
+        return container().indexOf(o);
     }
 
     /**
-     * @see net.yetamine.lang.collections.ListFluency#patch(int,
-     *      java.util.function.Function)
+     * @see java.util.List#lastIndexOf(java.lang.Object)
      */
-    default FluentList<E> patch(int index, Function<? super E, ? extends E> operator) {
-        set(index, operator.apply(get(index)));
-        return this;
+    default int lastIndexOf(Object o) {
+        return container().lastIndexOf(o);
     }
 
     /**
-     * @see net.yetamine.lang.collections.ListFluency#patchAll(java.util.function.Function)
+     * @see java.util.List#listIterator()
      */
-    default FluentList<E> patchAll(Function<? super E, ? extends E> operator) {
-        replaceAll(operator::apply);
-        return this;
+    default ListIterator<E> listIterator() {
+        return container().listIterator();
     }
 
     /**
-     * @see net.yetamine.lang.collections.ListFluency#sorted(java.util.Comparator)
+     * @see java.util.List#listIterator(int)
      */
-    default FluentList<E> sorted(Comparator<? super E> c) {
-        sort(c);
-        return this;
+    default ListIterator<E> listIterator(int index) {
+        return container().listIterator(index);
+    }
+
+    /**
+     * @see java.util.List#remove(int)
+     */
+    default E remove(int index) {
+        return container().remove(index);
+    }
+
+    /**
+     * @see java.util.List#set(int, java.lang.Object)
+     */
+    default E set(int index, E element) {
+        return container().set(index, element);
+    }
+
+    /**
+     * @see java.util.List#replaceAll(java.util.function.UnaryOperator)
+     */
+    default void replaceAll(UnaryOperator<E> operator) {
+        container().replaceAll(operator);
+    }
+
+    /**
+     * @see java.util.List#sort(java.util.Comparator)
+     */
+    default void sort(Comparator<? super E> c) {
+        container().sort(c);
+    }
+
+    /**
+     * @see java.util.List#subList(int, int)
+     */
+    default FluentList<E> subList(int fromIndex, int toIndex) {
+        return adapt(container().subList(fromIndex, toIndex));
     }
 
     // Collection interface default implementation
@@ -316,7 +468,7 @@ public interface FluentList<E> extends List<E>, ListFluency<E, FluentList<E>>, S
     }
 
     /**
-     * @see java.util.Set#iterator()
+     * @see java.util.Collection#iterator()
      */
     default Iterator<E> iterator() {
         return container().iterator();
@@ -418,89 +570,6 @@ public interface FluentList<E> extends List<E>, ListFluency<E, FluentList<E>>, S
      */
     default Spliterator<E> spliterator() {
         return container().spliterator();
-    }
-
-    // List interface default implementation
-
-    default void add(int index, E element) {
-        container().add(index, element);
-    }
-
-    /**
-     * @see java.util.List#addAll(int, java.util.Collection)
-     */
-    default boolean addAll(int index, Collection<? extends E> c) {
-        return container().addAll(index, c);
-    }
-
-    /**
-     * @see java.util.List#get(int)
-     */
-    default E get(int index) {
-        return container().get(index);
-    }
-
-    /**
-     * @see java.util.List#indexOf(java.lang.Object)
-     */
-    default int indexOf(Object o) {
-        return container().indexOf(o);
-    }
-
-    /**
-     * @see java.util.List#lastIndexOf(java.lang.Object)
-     */
-    default int lastIndexOf(Object o) {
-        return container().lastIndexOf(o);
-    }
-
-    /**
-     * @see java.util.List#listIterator()
-     */
-    default ListIterator<E> listIterator() {
-        return container().listIterator();
-    }
-
-    /**
-     * @see java.util.List#listIterator(int)
-     */
-    default ListIterator<E> listIterator(int index) {
-        return container().listIterator(index);
-    }
-
-    /**
-     * @see java.util.List#remove(int)
-     */
-    default E remove(int index) {
-        return container().remove(index);
-    }
-
-    /**
-     * @see java.util.List#set(int, java.lang.Object)
-     */
-    default E set(int index, E element) {
-        return container().set(index, element);
-    }
-
-    /**
-     * @see java.util.List#replaceAll(java.util.function.UnaryOperator)
-     */
-    default void replaceAll(UnaryOperator<E> operator) {
-        container().replaceAll(operator);
-    }
-
-    /**
-     * @see java.util.List#sort(java.util.Comparator)
-     */
-    default void sort(Comparator<? super E> c) {
-        container().sort(c);
-    }
-
-    /**
-     * @see java.util.List#subList(int, int)
-     */
-    default FluentList<E> subList(int fromIndex, int toIndex) {
-        return adapt(container().subList(fromIndex, toIndex));
     }
 }
 

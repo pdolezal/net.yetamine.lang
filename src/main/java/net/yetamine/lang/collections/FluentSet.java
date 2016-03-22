@@ -23,15 +23,12 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.Spliterator;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
-
-import net.yetamine.lang.functional.Source;
 
 /**
  * An extension of the {@link Set} interface providing more fluent programming
@@ -40,7 +37,7 @@ import net.yetamine.lang.functional.Source;
  * @param <E>
  *            the type of values
  */
-public interface FluentSet<E> extends Set<E>, SetFluency<E, FluentSet<E>>, Source<FluentSet<E>> {
+public interface FluentSet<E> extends FluentCollection<E> {
 
     /**
      * Makes a new instance of the default adapter using {@link HashSet} as the
@@ -70,6 +67,8 @@ public interface FluentSet<E> extends Set<E>, SetFluency<E, FluentSet<E>>, Sourc
         return new FluentSetAdapter<>(set);
     }
 
+    // Common fluent extensions support
+
     /**
      * Returns the pure {@link Set} interface for this instance.
      *
@@ -91,12 +90,14 @@ public interface FluentSet<E> extends Set<E>, SetFluency<E, FluentSet<E>>, Sourc
     Set<E> container();
 
     /**
+     * @see net.yetamine.lang.collections.FluentCollection#self()
+     */
+    default Stream<? extends FluentSet<E>> self() {
+        return Stream.of(this);
+    }
+
+    /**
      * Applies the given function to {@link #container()}.
-     *
-     * <p>
-     * This method is convenient shortcut for {@link #map(Function)} which would
-     * prefer to use the {@link #container()} anyway, e.g., when this instance
-     * acts as a {@link Collection} builder.
      *
      * @param <U>
      *            the type of the result
@@ -106,38 +107,14 @@ public interface FluentSet<E> extends Set<E>, SetFluency<E, FluentSet<E>>, Sourc
      *
      * @return the result of the mapping function
      */
-    default <U> U remap(Function<? super Set<E>, ? extends U> mapping) {
+    default <U> U withSet(Function<? super Set<E>, ? extends U> mapping) {
         return mapping.apply(container());
-    }
-
-    // Source interface implementation
-
-    /**
-     * @see net.yetamine.lang.functional.Source#filter(java.util.function.Predicate)
-     */
-    default Optional<FluentSet<E>> filter(Predicate<? super FluentSet<E>> predicate) {
-        return predicate.test(this) ? Optional.of(this) : Optional.empty();
-    }
-
-    /**
-     * @see net.yetamine.lang.functional.Source#accept(java.util.function.Consumer)
-     */
-    default FluentSet<E> accept(Consumer<? super FluentSet<E>> consumer) {
-        consumer.accept(this);
-        return this;
-    }
-
-    /**
-     * @see net.yetamine.lang.functional.Source#map(java.util.function.Function)
-     */
-    default <U> U map(Function<? super FluentSet<E>, ? extends U> mapping) {
-        return mapping.apply(this);
     }
 
     // Fluent extensions for Set
 
     /**
-     * @see net.yetamine.lang.collections.CollectionFluency#include(java.lang.Object)
+     * @see net.yetamine.lang.collections.FluentCollection#include(java.lang.Object)
      */
     default FluentSet<E> include(E value) {
         add(value);
@@ -145,7 +122,7 @@ public interface FluentSet<E> extends Set<E>, SetFluency<E, FluentSet<E>>, Sourc
     }
 
     /**
-     * @see net.yetamine.lang.collections.CollectionFluency#includeMore(java.lang.Object[])
+     * @see net.yetamine.lang.collections.FluentCollection#includeMore(java.lang.Object[])
      */
     default FluentSet<E> includeMore(@SuppressWarnings("unchecked") E... elements) {
         addAll(Arrays.asList(elements));
@@ -153,7 +130,7 @@ public interface FluentSet<E> extends Set<E>, SetFluency<E, FluentSet<E>>, Sourc
     }
 
     /**
-     * @see net.yetamine.lang.collections.CollectionFluency#contain(java.lang.Object)
+     * @see net.yetamine.lang.collections.FluentCollection#contain(java.lang.Object)
      */
     default FluentSet<E> contain(E value) {
         if (!contains(value)) {
@@ -164,7 +141,7 @@ public interface FluentSet<E> extends Set<E>, SetFluency<E, FluentSet<E>>, Sourc
     }
 
     /**
-     * @see net.yetamine.lang.collections.CollectionFluency#containMore(java.lang.Object[])
+     * @see net.yetamine.lang.collections.FluentCollection#containMore(java.lang.Object[])
      */
     default FluentSet<E> containMore(@SuppressWarnings("unchecked") E... elements) {
         for (E element : elements) {
@@ -175,7 +152,7 @@ public interface FluentSet<E> extends Set<E>, SetFluency<E, FluentSet<E>>, Sourc
     }
 
     /**
-     * @see net.yetamine.lang.collections.CollectionFluency#discard(java.lang.Object)
+     * @see net.yetamine.lang.collections.FluentCollection#discard(java.lang.Object)
      */
     default FluentSet<E> discard(Object value) {
         remove(value);
@@ -183,7 +160,7 @@ public interface FluentSet<E> extends Set<E>, SetFluency<E, FluentSet<E>>, Sourc
     }
 
     /**
-     * @see net.yetamine.lang.collections.CollectionFluency#discardAll()
+     * @see net.yetamine.lang.collections.FluentCollection#discardAll()
      */
     default FluentSet<E> discardAll() {
         clear();
@@ -191,7 +168,7 @@ public interface FluentSet<E> extends Set<E>, SetFluency<E, FluentSet<E>>, Sourc
     }
 
     /**
-     * @see net.yetamine.lang.collections.CollectionFluency#discardIf(java.util.function.Predicate)
+     * @see net.yetamine.lang.collections.FluentCollection#discardIf(java.util.function.Predicate)
      */
     default FluentSet<E> discardIf(Predicate<? super E> filter) {
         removeIf(filter);
@@ -199,7 +176,7 @@ public interface FluentSet<E> extends Set<E>, SetFluency<E, FluentSet<E>>, Sourc
     }
 
     /**
-     * @see net.yetamine.lang.collections.CollectionFluency#discardAll(java.util.Collection)
+     * @see net.yetamine.lang.collections.FluentCollection#discardAll(java.util.Collection)
      */
     default FluentSet<E> discardAll(Collection<? extends E> collection) {
         removeAll(collection);
@@ -207,7 +184,7 @@ public interface FluentSet<E> extends Set<E>, SetFluency<E, FluentSet<E>>, Sourc
     }
 
     /**
-     * @see net.yetamine.lang.collections.CollectionFluency#preserveAll(java.util.Collection)
+     * @see net.yetamine.lang.collections.FluentCollection#preserveAll(java.util.Collection)
      */
     default FluentSet<E> preserveAll(Collection<? extends E> collection) {
         retainAll(collection);
@@ -215,7 +192,7 @@ public interface FluentSet<E> extends Set<E>, SetFluency<E, FluentSet<E>>, Sourc
     }
 
     /**
-     * @see net.yetamine.lang.collections.CollectionFluency#includeAll(java.util.Collection)
+     * @see net.yetamine.lang.collections.FluentCollection#includeAll(java.util.Collection)
      */
     default FluentSet<E> includeAll(Collection<? extends E> source) {
         addAll(source);
@@ -223,14 +200,14 @@ public interface FluentSet<E> extends Set<E>, SetFluency<E, FluentSet<E>>, Sourc
     }
 
     /**
-     * @see net.yetamine.lang.collections.CollectionFluency#forAll(java.util.function.Consumer)
+     * @see net.yetamine.lang.collections.FluentCollection#forAll(java.util.function.Consumer)
      */
     default FluentSet<E> forAll(Consumer<? super E> consumer) {
         forEach(consumer);
         return this;
     }
 
-    // Collection/Set interface default implementation
+    // Collection interface default implementation
 
     /**
      * @see java.util.Collection#size()

@@ -216,7 +216,7 @@ static final Map<TimeUnit, String> UNITS = FluentMap.adapt(new EnumMap<TimeUnit,
          .add(TimeUnit.MINUTES, "min")
          .add(TimeUnit.HOURS, "h")
          .add(TimeUnit.DAYS, "d")
-         .remap(Collections::unmodifiableMap);
+         .withMap(Collections::unmodifiableMap);
 ```
 
 If you like this, you might like following as well. `Map` interface has been upgraded much with Java 8 release and its `compute-` methods made it usable for multimaps, but still… do you really want to write the appropriate lambda at all places where you possibly need to compute the default value? And what if you have something like `Map<String, ? extends Collection<String>>` while you'd like to retain defaults? Well, the fluent adapter for a map can incorporate even constructors for default values:
