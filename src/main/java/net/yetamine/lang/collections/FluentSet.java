@@ -133,10 +133,7 @@ public interface FluentSet<E> extends FluentCollection<E> {
      * @see net.yetamine.lang.collections.FluentCollection#contain(java.lang.Object)
      */
     default FluentSet<E> contain(E value) {
-        if (!contains(value)) {
-            add(value);
-        }
-
+        add(value); // For Set this is better than the default implementation
         return this;
     }
 
