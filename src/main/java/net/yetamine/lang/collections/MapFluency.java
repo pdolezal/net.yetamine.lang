@@ -26,22 +26,6 @@ import java.util.function.Function;
  * A mixin interface defining extensions of the {@link Map} interface for making
  * the interface more fluent, which is suitable, e.g., for map builders.
  *
- * <p>
- * This interface is not meant for regular clients, it should rather provide the
- * common frame for making and implementing fluent map adapters for different
- * flavours of the {@link Map} interface. For that reason the methods are not
- * implemented in most cases, just define the contracts.
- *
- * <p>
- * This interface intentionally defines just extensions for the {@link Map}
- * interface. It should be used for mixin inheritance with a {@code Map} type,
- * so that it acts as an adapter for the inherited interface kind. Notice that
- * the extension methods, in order to achieve the desired fluent interface, do
- * return this instance, but the type definition allows to return even another
- * type; such devitation is possible, but needs proper documentation to prevent
- * confusion. Even returning different instance than this might be possible in
- * some cases, but it is discouraged as it is more likely to confuse users.
- *
  * @param <K>
  *            the type of keys
  * @param <V>
@@ -49,7 +33,7 @@ import java.util.function.Function;
  * @param <T>
  *            the type of self
  */
-public interface FluentMapExtensions<K, V, T> extends FluentContainer<T> {
+public interface MapFluency<K, V, T> {
 
     /**
      * Returns the value associated with the given key.
@@ -240,6 +224,16 @@ public interface FluentMapExtensions<K, V, T> extends FluentContainer<T> {
      *             if the association could not be discarded
      */
     T discard(Object key);
+
+    /**
+     * Clears the container.
+     *
+     * @return this instance
+     *
+     * @throws UnsupportedOperationException
+     *             if clearing operation is not supported
+     */
+    T discardAll();
 
     /**
      * Copies all associations from a source to this instance, overwriting the

@@ -16,13 +16,20 @@
 
 package net.yetamine.lang.collections;
 
+import java.io.Serializable;
+import java.util.Collection;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
+
+import net.yetamine.lang.functional.Source;
 
 /**
  * An extension of the {@link Map} interface providing more fluent programming
@@ -63,7 +70,7 @@ import java.util.function.Supplier;
  * @param <V>
  *            the type of values
  */
-public interface FluentMap<K, V> extends Map<K, V>, FluentMapExtensions<K, V, FluentMap<K, V>> {
+public interface FluentMap<K, V> extends Map<K, V>, MapFluency<K, V, FluentMap<K, V>>, Source<FluentMap<K, V>>  {
 
     /**
      * Makes a new instance of the default adapter implementation.
@@ -127,6 +134,8 @@ public interface FluentMap<K, V> extends Map<K, V>, FluentMapExtensions<K, V, Fl
         return new FluentMapAdapter<>(map, defaults);
     }
 
+    // Core fluent extensions support
+
     /**
      * Returns the pure {@link Map} interface for this instance.
      *
@@ -145,7 +154,7 @@ public interface FluentMap<K, V> extends Map<K, V>, FluentMapExtensions<K, V, Fl
      *
      * @return the pure {@link Map} interface for this instance
      */
-    Map<K, V> map();
+    Map<K, V> container();
 
     /**
      * Provides the function for making new values.
@@ -192,8 +201,17 @@ public interface FluentMap<K, V> extends Map<K, V>, FluentMapExtensions<K, V, Fl
         return defaults((factory != null) ? o -> factory.get() : null);
     }
 
+    // Common fluent extensions
+
     /**
-     * @see net.yetamine.lang.collections.FluentContainer#accept(java.util.function.Consumer)
+     * @see net.yetamine.lang.functional.Source#filter(java.util.function.Predicate)
+     */
+    default Optional<FluentMap<K, V>> filter(Predicate<? super FluentMap<K, V>> predicate) {
+        return predicate.test(this) ? Optional.of(this) : Optional.empty();
+    }
+
+    /**
+     * @see net.yetamine.lang.functional.Source#accept(java.util.function.Consumer)
      */
     default FluentMap<K, V> accept(Consumer<? super FluentMap<K, V>> consumer) {
         consumer.accept(this);
@@ -201,43 +219,45 @@ public interface FluentMap<K, V> extends Map<K, V>, FluentMapExtensions<K, V, Fl
     }
 
     /**
-     * @see net.yetamine.lang.collections.FluentContainer#map(java.util.function.Function)
+     * @see net.yetamine.lang.functional.Source#map(java.util.function.Function)
      */
     default <U> U map(Function<? super FluentMap<K, V>, ? extends U> mapping) {
         return mapping.apply(this);
     }
 
     /**
-     * Applies the given function to {@link #map()}.
+     * Applies the given function to {@link #container()}.
      *
      * <p>
      * This method is convenient shortcut for {@link #map(Function)} which would
-     * prefer to use the {@link #map()} anyway, e.g., when this instance acts as
-     * a {@link Map} builder and the result shall avoid any adaptation overhead,
-     * especially when possibly wrapped as an unmodifiable map which shows the
-     * motivation example.
+     * prefer to use the {@link #container()} anyway, e.g., when this instance
+     * acts as a {@link Map} builder and the result shall avoid any adaptation
+     * overhead, especially when possibly wrapped as an unmodifiable map which
+     * shows the motivation example.
      *
      * @param <U>
      *            the type of the result
      * @param mapping
-     *            the function which is supposed to remap {@link #map()} to the
-     *            result to return. It must not be {@code null}.
+     *            the function which is supposed to remap {@link #container()}
+     *            to the result to return. It must not be {@code null}.
      *
      * @return the result of the mapping function
      */
     default <U> U remap(Function<? super Map<K, V>, ? extends U> mapping) {
-        return mapping.apply(map());
+        return mapping.apply(container());
     }
 
+    // Fluent extensions for Map
+
     /**
-     * @see net.yetamine.lang.collections.FluentMapExtensions#find(java.lang.Object)
+     * @see net.yetamine.lang.collections.MapFluency#find(java.lang.Object)
      */
     default Optional<V> find(Object key) {
         return Optional.ofNullable(get(key));
     }
 
     /**
-     * @see net.yetamine.lang.collections.FluentMapExtensions#let(java.lang.Object)
+     * @see net.yetamine.lang.collections.MapFluency#let(java.lang.Object)
      */
     default V let(K key) {
         final Function<? super K, ? extends V> factory = defaults();
@@ -249,7 +269,7 @@ public interface FluentMap<K, V> extends Map<K, V>, FluentMapExtensions<K, V, Fl
     }
 
     /**
-     * @see net.yetamine.lang.collections.FluentMapExtensions#let(java.lang.Object,
+     * @see net.yetamine.lang.collections.MapFluency#let(java.lang.Object,
      *      java.util.function.Function)
      */
     default FluentMap<K, V> let(K key, Function<? super V, ? extends V> function) {
@@ -263,7 +283,7 @@ public interface FluentMap<K, V> extends Map<K, V>, FluentMapExtensions<K, V, Fl
     }
 
     /**
-     * @see net.yetamine.lang.collections.FluentMapExtensions#let(java.lang.Object,
+     * @see net.yetamine.lang.collections.MapFluency#let(java.lang.Object,
      *      java.util.function.BiConsumer)
      */
     default FluentMap<K, V> let(K key, BiConsumer<? super K, ? super V> mutator) {
@@ -286,7 +306,7 @@ public interface FluentMap<K, V> extends Map<K, V>, FluentMapExtensions<K, V, Fl
     }
 
     /**
-     * @see net.yetamine.lang.collections.FluentMapExtensions#patch(java.lang.Object,
+     * @see net.yetamine.lang.collections.MapFluency#patch(java.lang.Object,
      *      java.lang.Object, java.util.function.BiFunction)
      */
     default FluentMap<K, V> patch(K key, V value, BiFunction<? super V, ? super V, ? extends V> function) {
@@ -295,7 +315,7 @@ public interface FluentMap<K, V> extends Map<K, V>, FluentMapExtensions<K, V, Fl
     }
 
     /**
-     * @see net.yetamine.lang.collections.FluentMapExtensions#set(java.lang.Object,
+     * @see net.yetamine.lang.collections.MapFluency#set(java.lang.Object,
      *      java.lang.Object)
      */
     default FluentMap<K, V> set(K key, V value) {
@@ -304,7 +324,7 @@ public interface FluentMap<K, V> extends Map<K, V>, FluentMapExtensions<K, V, Fl
     }
 
     /**
-     * @see net.yetamine.lang.collections.FluentMapExtensions#add(java.lang.Object,
+     * @see net.yetamine.lang.collections.MapFluency#add(java.lang.Object,
      *      java.lang.Object)
      */
     default FluentMap<K, V> add(K key, V value) {
@@ -313,7 +333,7 @@ public interface FluentMap<K, V> extends Map<K, V>, FluentMapExtensions<K, V, Fl
     }
 
     /**
-     * @see net.yetamine.lang.collections.FluentMapExtensions#have(java.lang.Object)
+     * @see net.yetamine.lang.collections.MapFluency#have(java.lang.Object)
      */
     default Optional<V> have(K key) {
         final Function<? super K, ? extends V> factory = defaults();
@@ -325,7 +345,7 @@ public interface FluentMap<K, V> extends Map<K, V>, FluentMapExtensions<K, V, Fl
     }
 
     /**
-     * @see net.yetamine.lang.collections.FluentMapExtensions#discard(java.lang.Object)
+     * @see net.yetamine.lang.collections.MapFluency#discard(java.lang.Object)
      */
     default FluentMap<K, V> discard(Object key) {
         remove(key);
@@ -333,15 +353,15 @@ public interface FluentMap<K, V> extends Map<K, V>, FluentMapExtensions<K, V, Fl
     }
 
     /**
-     * @see net.yetamine.lang.collections.FluentContainer#discard()
+     * @see net.yetamine.lang.collections.MapFluency#discardAll()
      */
-    default FluentMap<K, V> discard() {
+    default FluentMap<K, V> discardAll() {
         clear();
         return this;
     }
 
     /**
-     * @see net.yetamine.lang.collections.FluentMapExtensions#setAll(java.util.Map)
+     * @see net.yetamine.lang.collections.MapFluency#setAll(java.util.Map)
      */
     default FluentMap<K, V> setAll(Map<? extends K, ? extends V> source) {
         source.forEach(this::put);
@@ -349,7 +369,7 @@ public interface FluentMap<K, V> extends Map<K, V>, FluentMapExtensions<K, V, Fl
     }
 
     /**
-     * @see net.yetamine.lang.collections.FluentMapExtensions#addAll(java.util.Map)
+     * @see net.yetamine.lang.collections.MapFluency#addAll(java.util.Map)
      */
     default FluentMap<K, V> addAll(Map<? extends K, ? extends V> source) {
         source.forEach(this::putIfAbsent);
@@ -357,7 +377,7 @@ public interface FluentMap<K, V> extends Map<K, V>, FluentMapExtensions<K, V, Fl
     }
 
     /**
-     * @see net.yetamine.lang.collections.FluentMapExtensions#patchAll(java.util.function.BiFunction)
+     * @see net.yetamine.lang.collections.MapFluency#patchAll(java.util.function.BiFunction)
      */
     default FluentMap<K, V> patchAll(BiFunction<? super K, ? super V, ? extends V> function) {
         replaceAll(function);
@@ -365,10 +385,285 @@ public interface FluentMap<K, V> extends Map<K, V>, FluentMapExtensions<K, V, Fl
     }
 
     /**
-     * @see net.yetamine.lang.collections.FluentMapExtensions#forAll(java.util.function.BiConsumer)
+     * @see net.yetamine.lang.collections.MapFluency#forAll(java.util.function.BiConsumer)
      */
     default FluentMap<K, V> forAll(BiConsumer<? super K, ? super V> consumer) {
         forEach(consumer);
         return this;
+    }
+
+    // Map interface default implementation
+
+    /**
+     * @see java.util.Map#size()
+     */
+    default int size() {
+        return container().size();
+    }
+
+    /**
+     * @see java.util.Map#isEmpty()
+     */
+    default boolean isEmpty() {
+        return container().isEmpty();
+    }
+
+    /**
+     * @see java.util.Map#containsKey(java.lang.Object)
+     */
+    default boolean containsKey(Object key) {
+        return container().containsKey(key);
+    }
+
+    /**
+     * @see java.util.Map#containsValue(java.lang.Object)
+     */
+    default boolean containsValue(Object value) {
+        return container().containsValue(value);
+    }
+
+    /**
+     * @see java.util.Map#get(java.lang.Object)
+     */
+    default V get(Object key) {
+        return container().get(key);
+    }
+
+    /**
+     * @see java.util.Map#put(java.lang.Object, java.lang.Object)
+     */
+    default V put(K key, V value) {
+        return container().put(key, value);
+    }
+
+    /**
+     * @see java.util.Map#remove(java.lang.Object)
+     */
+    default V remove(Object key) {
+        return container().remove(key);
+    }
+
+    /**
+     * @see java.util.Map#remove(java.lang.Object, java.lang.Object)
+     */
+    default boolean remove(Object key, Object value) {
+        return container().remove(key, value);
+    }
+
+    /**
+     * @see java.util.Map#replace(java.lang.Object, java.lang.Object)
+     */
+    default V replace(K key, V value) {
+        return container().replace(key, value);
+    }
+
+    /**
+     * @see java.util.Map#replace(java.lang.Object, java.lang.Object,
+     *      java.lang.Object)
+     */
+    default boolean replace(K key, V oldValue, V newValue) {
+        return container().replace(key, oldValue, newValue);
+    }
+
+    /**
+     * @see java.util.Map#replaceAll(java.util.function.BiFunction)
+     */
+    default void replaceAll(BiFunction<? super K, ? super V, ? extends V> function) {
+        container().replaceAll(function);
+    }
+
+    /**
+     * @see java.util.Map#getOrDefault(java.lang.Object, java.lang.Object)
+     */
+    default V getOrDefault(Object key, V defaultValue) {
+        return container().getOrDefault(key, defaultValue);
+    }
+
+    /**
+     * @see java.util.Map#putIfAbsent(java.lang.Object, java.lang.Object)
+     */
+    default V putIfAbsent(K key, V value) {
+        return container().putIfAbsent(key, value);
+    }
+
+    /**
+     * @see java.util.Map#compute(java.lang.Object,
+     *      java.util.function.BiFunction)
+     */
+    default V compute(K key, java.util.function.BiFunction<? super K, ? super V, ? extends V> remappingFunction) {
+        return container().compute(key, remappingFunction);
+    }
+
+    /**
+     * @see java.util.Map#computeIfAbsent(java.lang.Object,
+     *      java.util.function.Function)
+     */
+    default V computeIfAbsent(K key, Function<? super K, ? extends V> mappingFunction) {
+        return container().computeIfAbsent(key, mappingFunction);
+    }
+
+    /**
+     * @see java.util.Map#computeIfPresent(java.lang.Object,
+     *      java.util.function.BiFunction)
+     */
+    default V computeIfPresent(K key, BiFunction<? super K, ? super V, ? extends V> remappingFunction) {
+        return container().computeIfPresent(key, remappingFunction);
+    }
+
+    /**
+     * @see java.util.Map#merge(java.lang.Object, java.lang.Object,
+     *      java.util.function.BiFunction)
+     */
+    default V merge(K key, V value, BiFunction<? super V, ? super V, ? extends V> remappingFunction) {
+        return container().merge(key, value, remappingFunction);
+    }
+
+    /**
+     * @see java.util.Map#forEach(java.util.function.BiConsumer)
+     */
+    default void forEach(BiConsumer<? super K, ? super V> action) {
+        container().forEach(action);
+    }
+
+    /**
+     * @see java.util.Map#putAll(java.util.Map)
+     */
+    default void putAll(Map<? extends K, ? extends V> m) {
+        container().putAll(m);
+    }
+
+    /**
+     * @see java.util.Map#clear()
+     */
+    default void clear() {
+        container().clear();
+    }
+
+    /**
+     * @see java.util.Map#keySet()
+     */
+    default Set<K> keySet() {
+        return container().keySet();
+    }
+
+    /**
+     * @see java.util.Map#values()
+     */
+    default Collection<V> values() {
+        return container().values();
+    }
+
+    /**
+     * @see java.util.Map#entrySet()
+     */
+    default Set<Map.Entry<K, V>> entrySet() {
+        return container().entrySet();
+    }
+}
+
+/**
+ * The default implementation of the {@link FluentMap} interface which may be
+ * used as an adapter.
+ *
+ * <p>
+ * The implementation is suitable even for immutable instances as it delegates
+ * all the functionality to the backing instance and holds itself no mutable
+ * state.
+ *
+ * @param <K>
+ *            the type of keys
+ * @param <V>
+ *            the type of values
+ */
+final class FluentMapAdapter<K, V> implements Serializable, FluentMap<K, V> {
+
+    /** Serialization version: 1 */
+    private static final long serialVersionUID = 1L;
+
+    /** Backing instance. */
+    private final Map<K, V> map;
+    /** Function for making new values. */
+    private final Function<? super K, ? extends V> defaults;
+
+    /**
+     * Creates a new instance with no {@link #defaults()}.
+     *
+     * @param storage
+     *            the backing instance. It must not be {@code null}.
+     */
+    public FluentMapAdapter(Map<K, V> storage) {
+        map = Objects.requireNonNull(storage);
+        defaults = null; // Explicitly none!
+    }
+
+    /**
+     * Creates a new instance.
+     *
+     * @param storage
+     *            the backing instance. It must not be {@code null}.
+     * @param factory
+     *            the function for making new values
+     */
+    public FluentMapAdapter(Map<K, V> storage, Function<? super K, ? extends V> factory) {
+        map = Objects.requireNonNull(storage);
+        defaults = factory;
+    }
+
+    /**
+     * Creates a new instance.
+     *
+     * @param storage
+     *            the backing instance. It must not be {@code null}.
+     * @param factory
+     *            the function for making new values
+     */
+    public FluentMapAdapter(Map<K, V> storage, Supplier<? extends V> factory) {
+        map = Objects.requireNonNull(storage);
+        defaults = (factory != null) ? o -> factory.get() : null;
+    }
+
+    /**
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public String toString() {
+        return map.toString();
+    }
+
+    /**
+     * @see java.lang.Object#hashCode()
+     */
+    @Override
+    public int hashCode() {
+        return map.hashCode();
+    }
+
+    /**
+     * @see java.lang.Object#equals(java.lang.Object)
+     */
+    @Override
+    public boolean equals(Object obj) {
+        return map.equals(obj);
+    }
+
+    /**
+     * @see net.yetamine.lang.collections.FluentMap#container()
+     */
+    public Map<K, V> container() {
+        return map;
+    }
+
+    /**
+     * @see net.yetamine.lang.collections.FluentMap#defaults()
+     */
+    public Function<? super K, ? extends V> defaults() {
+        return defaults;
+    }
+
+    /**
+     * @see net.yetamine.lang.collections.FluentMap#defaults(java.util.function.Function)
+     */
+    public FluentMap<K, V> defaults(Function<? super K, ? extends V> factory) {
+        return Objects.equals(factory, defaults) ? this : new FluentMapAdapter<>(map, factory);
     }
 }

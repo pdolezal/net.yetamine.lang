@@ -17,44 +17,65 @@
 package net.yetamine.lang.collections;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.Iterator;
+import java.util.List;
+import java.util.ListIterator;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Spliterator;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
 
 import net.yetamine.lang.functional.Source;
 
 /**
- * An extension of the {@link Collection} interface providing more fluent
- * programming style, which is useful, e.g., for building collections.
+ * An extension of the {@link List} interface providing more fluent programming
+ * style, which is useful, e.g., for building collections.
  *
  * @param <E>
  *            the type of values
  */
-public interface FluentCollection<E> extends Collection<E>, CollectionFluency<E, FluentCollection<E>>, Source<FluentCollection<E>> {
+public interface FluentList<E> extends List<E>, ListFluency<E, FluentList<E>>, Source<FluentList<E>> {
+
+    /**
+     * Makes a new instance of the default adapter using {@link ArrayList} as
+     * the backing implementation.
+     *
+     * @param <E>
+     *            the type of values
+     *
+     * @return a new instance of the default adapter implementation with an
+     *         {@link ArrayList}
+     */
+    static <E> FluentList<E> create() {
+        return adapt(new ArrayList<>());
+    }
 
     /**
      * Makes a new instance of the default adapter implementation.
      *
      * @param <E>
      *            the type of values
-     * @param collection
+     * @param list
      *            the collection to adapt. It must not be {@code null}.
      *
      * @return a new instance of the default adapter implementation
      */
-    static <E> FluentCollection<E> adapt(Collection<E> collection) {
-        return new FluentCollectionAdapter<>(collection);
+    static <E> FluentList<E> adapt(List<E> list) {
+        return new FluentListAdapter<>(list);
     }
 
+    // Core and common fluent extensions support
+
     /**
-     * Returns the pure {@link Collection} interface for this instance.
+     * Returns the pure {@link List} interface for this instance.
      *
      * <p>
      * Because this interface is supposed to acts as a base for various
@@ -69,9 +90,31 @@ public interface FluentCollection<E> extends Collection<E>, CollectionFluency<E,
      * returning this instance always might be necessary when the implementation
      * does not adapt any other instance actually.
      *
-     * @return the pure {@link Collection} interface for this instance
+     * @return the pure {@link List} interface for this instance
      */
-    Collection<E> container();
+    List<E> container();
+
+    /**
+     * @see net.yetamine.lang.functional.Source#filter(java.util.function.Predicate)
+     */
+    default Optional<FluentList<E>> filter(Predicate<? super FluentList<E>> predicate) {
+        return predicate.test(this) ? Optional.of(this) : Optional.empty();
+    }
+
+    /**
+     * @see net.yetamine.lang.functional.Source#accept(java.util.function.Consumer)
+     */
+    default FluentList<E> accept(Consumer<? super FluentList<E>> consumer) {
+        consumer.accept(this);
+        return this;
+    }
+
+    /**
+     * @see net.yetamine.lang.functional.Source#map(java.util.function.Function)
+     */
+    default <U> U map(Function<? super FluentList<E>, ? extends U> mapping) {
+        return mapping.apply(this);
+    }
 
     /**
      * Applies the given function to {@link #container()}.
@@ -89,40 +132,16 @@ public interface FluentCollection<E> extends Collection<E>, CollectionFluency<E,
      *
      * @return the result of the mapping function
      */
-    default <U> U remap(Function<? super Collection<E>, ? extends U> mapping) {
+    default <U> U remap(Function<? super List<E>, ? extends U> mapping) {
         return mapping.apply(container());
     }
 
-    // Source interface implementation
-
-    /**
-     * @see net.yetamine.lang.functional.Source#filter(java.util.function.Predicate)
-     */
-    default Optional<FluentCollection<E>> filter(Predicate<? super FluentCollection<E>> predicate) {
-        return predicate.test(this) ? Optional.of(this) : Optional.empty();
-    }
-
-    /**
-     * @see net.yetamine.lang.functional.Source#accept(java.util.function.Consumer)
-     */
-    default FluentCollection<E> accept(Consumer<? super FluentCollection<E>> consumer) {
-        consumer.accept(this);
-        return this;
-    }
-
-    /**
-     * @see net.yetamine.lang.functional.Source#map(java.util.function.Function)
-     */
-    default <U> U map(Function<? super FluentCollection<E>, ? extends U> mapping) {
-        return mapping.apply(this);
-    }
-
-    // Fluent extensions for Collection
+    // Fluent extensions for List
 
     /**
      * @see net.yetamine.lang.collections.CollectionFluency#include(java.lang.Object)
      */
-    default FluentCollection<E> include(E value) {
+    default FluentList<E> include(E value) {
         add(value);
         return this;
     }
@@ -130,7 +149,7 @@ public interface FluentCollection<E> extends Collection<E>, CollectionFluency<E,
     /**
      * @see net.yetamine.lang.collections.CollectionFluency#includeMore(java.lang.Object[])
      */
-    default FluentCollection<E> includeMore(@SuppressWarnings("unchecked") E... elements) {
+    default FluentList<E> includeMore(@SuppressWarnings("unchecked") E... elements) {
         addAll(Arrays.asList(elements));
         return this;
     }
@@ -138,7 +157,7 @@ public interface FluentCollection<E> extends Collection<E>, CollectionFluency<E,
     /**
      * @see net.yetamine.lang.collections.CollectionFluency#contain(java.lang.Object)
      */
-    default FluentCollection<E> contain(E value) {
+    default FluentList<E> contain(E value) {
         if (!contains(value)) {
             add(value);
         }
@@ -149,7 +168,7 @@ public interface FluentCollection<E> extends Collection<E>, CollectionFluency<E,
     /**
      * @see net.yetamine.lang.collections.CollectionFluency#containMore(java.lang.Object[])
      */
-    default FluentCollection<E> containMore(@SuppressWarnings("unchecked") E... elements) {
+    default FluentList<E> containMore(@SuppressWarnings("unchecked") E... elements) {
         for (E element : elements) {
             contain(element);
         }
@@ -160,7 +179,7 @@ public interface FluentCollection<E> extends Collection<E>, CollectionFluency<E,
     /**
      * @see net.yetamine.lang.collections.CollectionFluency#discard(java.lang.Object)
      */
-    default FluentCollection<E> discard(Object value) {
+    default FluentList<E> discard(Object value) {
         remove(value);
         return this;
     }
@@ -168,7 +187,7 @@ public interface FluentCollection<E> extends Collection<E>, CollectionFluency<E,
     /**
      * @see net.yetamine.lang.collections.CollectionFluency#discardAll()
      */
-    default FluentCollection<E> discardAll() {
+    default FluentList<E> discardAll() {
         clear();
         return this;
     }
@@ -176,7 +195,7 @@ public interface FluentCollection<E> extends Collection<E>, CollectionFluency<E,
     /**
      * @see net.yetamine.lang.collections.CollectionFluency#discardIf(java.util.function.Predicate)
      */
-    default FluentCollection<E> discardIf(Predicate<? super E> filter) {
+    default FluentList<E> discardIf(Predicate<? super E> filter) {
         removeIf(filter);
         return this;
     }
@@ -184,7 +203,7 @@ public interface FluentCollection<E> extends Collection<E>, CollectionFluency<E,
     /**
      * @see net.yetamine.lang.collections.CollectionFluency#discardAll(java.util.Collection)
      */
-    default FluentCollection<E> discardAll(Collection<? extends E> collection) {
+    default FluentList<E> discardAll(Collection<? extends E> collection) {
         removeAll(collection);
         return this;
     }
@@ -192,7 +211,7 @@ public interface FluentCollection<E> extends Collection<E>, CollectionFluency<E,
     /**
      * @see net.yetamine.lang.collections.CollectionFluency#preserveAll(java.util.Collection)
      */
-    default FluentCollection<E> preserveAll(Collection<? extends E> collection) {
+    default FluentList<E> preserveAll(Collection<? extends E> collection) {
         retainAll(collection);
         return this;
     }
@@ -200,7 +219,7 @@ public interface FluentCollection<E> extends Collection<E>, CollectionFluency<E,
     /**
      * @see net.yetamine.lang.collections.CollectionFluency#includeAll(java.util.Collection)
      */
-    default FluentCollection<E> includeAll(Collection<? extends E> source) {
+    default FluentList<E> includeAll(Collection<? extends E> source) {
         addAll(source);
         return this;
     }
@@ -208,8 +227,68 @@ public interface FluentCollection<E> extends Collection<E>, CollectionFluency<E,
     /**
      * @see net.yetamine.lang.collections.CollectionFluency#forAll(java.util.function.Consumer)
      */
-    default FluentCollection<E> forAll(Consumer<? super E> consumer) {
+    default FluentList<E> forAll(Consumer<? super E> consumer) {
         forEach(consumer);
+        return this;
+    }
+
+    /**
+     * @see net.yetamine.lang.collections.ListFluency#insert(int,
+     *      java.lang.Object)
+     */
+    default FluentList<E> insert(int index, E element) {
+        add(index, element);
+        return this;
+    }
+
+    /**
+     * @see net.yetamine.lang.collections.ListFluency#insertAll(int,
+     *      java.util.Collection)
+     */
+    default FluentList<E> insertAll(int index, Collection<? extends E> c) {
+        addAll(index, c);
+        return this;
+    }
+
+    /**
+     * @see net.yetamine.lang.collections.ListFluency#discard(int)
+     */
+    default FluentList<E> discard(int index) {
+        remove(index);
+        return this;
+    }
+
+    /**
+     * @see net.yetamine.lang.collections.ListFluency#put(int,
+     *      java.lang.Object)
+     */
+    default FluentList<E> put(int index, E element) {
+        set(index, element);
+        return this;
+    }
+
+    /**
+     * @see net.yetamine.lang.collections.ListFluency#patch(int,
+     *      java.util.function.Function)
+     */
+    default FluentList<E> patch(int index, Function<? super E, ? extends E> operator) {
+        set(index, operator.apply(get(index)));
+        return this;
+    }
+
+    /**
+     * @see net.yetamine.lang.collections.ListFluency#patchAll(java.util.function.Function)
+     */
+    default FluentList<E> patchAll(Function<? super E, ? extends E> operator) {
+        replaceAll(operator::apply);
+        return this;
+    }
+
+    /**
+     * @see net.yetamine.lang.collections.ListFluency#sorted(java.util.Comparator)
+     */
+    default FluentList<E> sorted(Comparator<? super E> c) {
+        sort(c);
         return this;
     }
 
@@ -237,7 +316,7 @@ public interface FluentCollection<E> extends Collection<E>, CollectionFluency<E,
     }
 
     /**
-     * @see java.util.Collection#iterator()
+     * @see java.util.Set#iterator()
      */
     default Iterator<E> iterator() {
         return container().iterator();
@@ -340,11 +419,94 @@ public interface FluentCollection<E> extends Collection<E>, CollectionFluency<E,
     default Spliterator<E> spliterator() {
         return container().spliterator();
     }
+
+    // List interface default implementation
+
+    default void add(int index, E element) {
+        container().add(index, element);
+    }
+
+    /**
+     * @see java.util.List#addAll(int, java.util.Collection)
+     */
+    default boolean addAll(int index, Collection<? extends E> c) {
+        return container().addAll(index, c);
+    }
+
+    /**
+     * @see java.util.List#get(int)
+     */
+    default E get(int index) {
+        return container().get(index);
+    }
+
+    /**
+     * @see java.util.List#indexOf(java.lang.Object)
+     */
+    default int indexOf(Object o) {
+        return container().indexOf(o);
+    }
+
+    /**
+     * @see java.util.List#lastIndexOf(java.lang.Object)
+     */
+    default int lastIndexOf(Object o) {
+        return container().lastIndexOf(o);
+    }
+
+    /**
+     * @see java.util.List#listIterator()
+     */
+    default ListIterator<E> listIterator() {
+        return container().listIterator();
+    }
+
+    /**
+     * @see java.util.List#listIterator(int)
+     */
+    default ListIterator<E> listIterator(int index) {
+        return container().listIterator(index);
+    }
+
+    /**
+     * @see java.util.List#remove(int)
+     */
+    default E remove(int index) {
+        return container().remove(index);
+    }
+
+    /**
+     * @see java.util.List#set(int, java.lang.Object)
+     */
+    default E set(int index, E element) {
+        return container().set(index, element);
+    }
+
+    /**
+     * @see java.util.List#replaceAll(java.util.function.UnaryOperator)
+     */
+    default void replaceAll(UnaryOperator<E> operator) {
+        container().replaceAll(operator);
+    }
+
+    /**
+     * @see java.util.List#sort(java.util.Comparator)
+     */
+    default void sort(Comparator<? super E> c) {
+        container().sort(c);
+    }
+
+    /**
+     * @see java.util.List#subList(int, int)
+     */
+    default FluentList<E> subList(int fromIndex, int toIndex) {
+        return adapt(container().subList(fromIndex, toIndex));
+    }
 }
 
 /**
- * The default implementation of the {@link FluentCollection} interface which
- * may be used as an adapter.
+ * The default implementation of the {@link FluentList} interface which may be
+ * used as an adapter.
  *
  * <p>
  * The implementation is suitable even for immutable instances as it delegates
@@ -354,22 +516,38 @@ public interface FluentCollection<E> extends Collection<E>, CollectionFluency<E,
  * @param <E>
  *            the type of values
  */
-final class FluentCollectionAdapter<E> implements Serializable, FluentCollection<E> {
+final class FluentListAdapter<E> implements Serializable, FluentList<E> {
 
     /** Serialization version: 1 */
     private static final long serialVersionUID = 1L;
 
     /** Backing instance. */
-    private final Collection<E> container;
+    private final List<E> container;
 
     /**
      * Creates a new instance.
      *
-     * @param collection
+     * @param list
      *            the backing instance. It must not be {@code null}.
      */
-    public FluentCollectionAdapter(Collection<E> collection) {
-        container = Objects.requireNonNull(collection);
+    public FluentListAdapter(List<E> list) {
+        container = Objects.requireNonNull(list);
+    }
+
+    /**
+     * @see java.lang.Object#hashCode()
+     */
+    @Override
+    public int hashCode() {
+        return container.hashCode();
+    }
+
+    /**
+     * @see java.lang.Object#equals(java.lang.Object)
+     */
+    @Override
+    public boolean equals(Object obj) {
+        return container.equals(obj);
     }
 
     /**
@@ -383,7 +561,7 @@ final class FluentCollectionAdapter<E> implements Serializable, FluentCollection
     /**
      * @see net.yetamine.lang.collections.FluentCollection#container()
      */
-    public Collection<E> container() {
+    public List<E> container() {
         return container;
     }
 }

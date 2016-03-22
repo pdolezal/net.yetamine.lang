@@ -14,18 +14,34 @@
  * limitations under the License.
  */
 
-package net.yetamine.lang.collections;
+package net.yetamine.lang.functional;
 
+import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 /**
- * A base interface for fluent containers.
+ * Represents an object that itself acts as a source for typical pipeline-like
+ * operations.
  *
  * @param <T>
- *            the type of self
+ *            the type of the object to act as, usually this parameter should be
+ *            the type of the descendant that serves as the base for the whole
+ *            hierarchy using this capability
  */
-public interface FluentContainer<T> {
+public interface Source<T> {
+
+    /**
+     * Applies the given predicate to this instance.
+     *
+     * @param predicate
+     *            the predicate to apply. It must not be {@code null}.
+     *
+     * @return the {@link Optional} instance containing this instance if the
+     *         predicate succeeds, otherwise an empty container
+     */
+    Optional<T> filter(Predicate<? super T> predicate);
 
     /**
      * Applies the given function to this instance.
@@ -50,14 +66,4 @@ public interface FluentContainer<T> {
      * @return this instance
      */
     T accept(Consumer<? super T> consumer);
-
-    /**
-     * Clears the container.
-     *
-     * @return this instance
-     *
-     * @throws UnsupportedOperationException
-     *             if clearing operation is not supported
-     */
-    T discard();
 }

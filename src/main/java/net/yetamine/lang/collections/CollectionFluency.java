@@ -22,15 +22,14 @@ import java.util.function.Predicate;
 
 /**
  * A mixin interface defining extensions of the {@link Collection} interface for
- * making the interface more fluent. See {@link FluentMapExtensions} which is an
- * extended and richer variant of the pattern for maps.
+ * making the interface more fluent.
  *
  * @param <E>
  *            the type of values
  * @param <T>
  *            the type of self
  */
-public interface FluentCollectionExtensions<E, T> extends FluentContainer<T> {
+public interface CollectionFluency<E, T> {
 
     /**
      * Adds the given element.
@@ -112,6 +111,16 @@ public interface FluentCollectionExtensions<E, T> extends FluentContainer<T> {
      *             if the element could not be removed
      */
     T discard(Object value);
+
+    /**
+     * Clears the container.
+     *
+     * @return this instance
+     *
+     * @throws UnsupportedOperationException
+     *             if clearing operation is not supported
+     */
+    T discardAll();
 
     /**
      * Removes only the elements from this instance that do not pass the

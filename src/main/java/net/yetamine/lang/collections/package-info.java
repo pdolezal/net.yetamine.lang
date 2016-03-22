@@ -15,6 +15,21 @@
  */
 
 /**
- * 
+ * Collection extensions.
+ *
+ * <h1>Fluent interface extensions</h1>
+ *
+ * While Java Collections Framework is great, there are some tasks where its
+ * interfaces are not fluent enough. The typical example is initialization of
+ * collection instances, especially constants.
+ *
+ * <p>
+ * To cope with such cases, this package provides a set of adapters that provide
+ * fluent interface extensions in addition to the usual methods. The design of
+ * the adapters consists of two parts: one part provides just the extensions,
+ * while the other combines the extended interface with the extensions. Then
+ * implementations of the adapters are made quite using the default methods.
+ * Making custom adapters is therefore easy if ever needed. The split allows
+ * making mixins as well.
  */
 package net.yetamine.lang.collections;
