@@ -550,6 +550,34 @@ public interface FluentMap<K, V> extends Map<K, V> {
         return this;
     }
 
+    /**
+     * Sets the value if the mapping is absent using a supplier.
+     *
+     * @param key
+     *            the key of the association to compute
+     * @param valueSupplier
+     *            the supplier to provide the value
+     *
+     * @return the computed value
+     */
+    default V supplyIfAbsent(K key, Supplier<? extends V> valueSupplier) {
+        return container().computeIfAbsent(key, k -> valueSupplier.get());
+    }
+
+    /**
+     * Sets the value if the mapping is present using a supplier.
+     *
+     * @param key
+     *            the key of the association to compute
+     * @param valueSupplier
+     *            the supplier to provide the value
+     *
+     * @return the computed value
+     */
+    default V supplyIfPresent(K key, Supplier<? extends V> valueSupplier) {
+        return container().computeIfPresent(key, (k, v) -> valueSupplier.get());
+    }
+
     // Map interface default implementation
 
     /**
@@ -739,7 +767,7 @@ final class FluentMapAdapter<K, V> implements Serializable, FluentMap<K, V> {
     private static final long serialVersionUID = 1L;
 
     /** Backing instance. */
-    private final Map<K, V> map;
+    private final Map<K, V> container;
     /** Function for making new values. */
     private final Function<? super K, ? extends V> defaults;
 
@@ -750,7 +778,7 @@ final class FluentMapAdapter<K, V> implements Serializable, FluentMap<K, V> {
      *            the backing instance. It must not be {@code null}.
      */
     public FluentMapAdapter(Map<K, V> storage) {
-        map = Objects.requireNonNull(storage);
+        container = Objects.requireNonNull(storage);
         defaults = null; // Explicitly none!
     }
 
@@ -763,7 +791,7 @@ final class FluentMapAdapter<K, V> implements Serializable, FluentMap<K, V> {
      *            the function for making new values
      */
     public FluentMapAdapter(Map<K, V> storage, Function<? super K, ? extends V> factory) {
-        map = Objects.requireNonNull(storage);
+        container = Objects.requireNonNull(storage);
         defaults = factory;
     }
 
@@ -776,7 +804,7 @@ final class FluentMapAdapter<K, V> implements Serializable, FluentMap<K, V> {
      *            the function for making new values
      */
     public FluentMapAdapter(Map<K, V> storage, Supplier<? extends V> factory) {
-        map = Objects.requireNonNull(storage);
+        container = Objects.requireNonNull(storage);
         defaults = (factory != null) ? o -> factory.get() : null;
     }
 
@@ -785,7 +813,7 @@ final class FluentMapAdapter<K, V> implements Serializable, FluentMap<K, V> {
      */
     @Override
     public String toString() {
-        return map.toString();
+        return container.toString();
     }
 
     /**
@@ -793,7 +821,7 @@ final class FluentMapAdapter<K, V> implements Serializable, FluentMap<K, V> {
      */
     @Override
     public int hashCode() {
-        return map.hashCode();
+        return container.hashCode();
     }
 
     /**
@@ -801,14 +829,14 @@ final class FluentMapAdapter<K, V> implements Serializable, FluentMap<K, V> {
      */
     @Override
     public boolean equals(Object obj) {
-        return map.equals(obj);
+        return container.equals(obj);
     }
 
     /**
      * @see net.yetamine.lang.collections.FluentMap#container()
      */
     public Map<K, V> container() {
-        return map;
+        return container;
     }
 
     /**
@@ -822,6 +850,6 @@ final class FluentMapAdapter<K, V> implements Serializable, FluentMap<K, V> {
      * @see net.yetamine.lang.collections.FluentMap#defaults(java.util.function.Function)
      */
     public FluentMap<K, V> defaults(Function<? super K, ? extends V> factory) {
-        return Objects.equals(factory, defaults) ? this : new FluentMapAdapter<>(map, factory);
+        return Objects.equals(factory, defaults) ? this : new FluentMapAdapter<>(container, factory);
     }
 }
