@@ -46,9 +46,9 @@ try {
 
 Usually, `true` and `false` work well. But what if you need "I don't know (yet)"? Using a `Boolean` with `null` as the third value is a bad practice. Use rather `Trivalent`:
 
-- It is safe: no `null` unboxing and `NullPointerException` surprise.
-- It provides the basic set of operators: `and`, `or`, and `not` according to Kleene's logic.
-- It provides a comfortable interoperability with Boolean types.
+* It is safe: no `null` unboxing and `NullPointerException` surprise.
+* It provides the basic set of operators: `and`, `or`, and `not` according to Kleene's logic.
+* It provides a comfortable interoperability with Boolean types.
 
 ```{java}
 if (resolution.isUnknown()) {
@@ -219,7 +219,7 @@ static final Map<TimeUnit, String> UNITS = FluentMap.adapt(new EnumMap<TimeUnit,
          .withMap(Collections::unmodifiableMap);
 ```
 
-If you like this, you might like following as well. `Map` interface has been upgraded much with Java 8 release and its `compute-` methods made it usable for multimaps, but still… do you really want to write the appropriate lambda at all places where you possibly need to compute the default value? And what if you have something like `Map<String, ? extends Collection<String>>` while you'd like to retain defaults? Well, the fluent adapter for a map can incorporate even constructors for default values:
+If you like this, you might like following as well. `Map` interface has been upgraded much with Java 8 release and its `compute*` methods made it usable for multimaps, but still… do you really want to write the appropriate lambda at all places where you possibly need to compute the default value? And what if you have something like `Map<String, ? extends Collection<String>>` while you'd like to retain defaults? Well, the fluent adapter for a map can incorporate even constructors for default values:
 
 ```{java}
 // Let's make a map which binds a supplier to get/make default values
@@ -261,6 +261,11 @@ For building this project is needed:
 For using the built library is needed:
 
 * JRE 8 or newer.
+
+
+## Acknowledgments ##
+
+A special thanks belongs to [Atos](http://atos.net/). The development of this library would be much slower without their support which provided a great opportunity to verify the library practically and improve it according to the experience.
 
 
 ## Licensing ##
