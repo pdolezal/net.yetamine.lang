@@ -86,10 +86,10 @@ import java.util.function.Function;
  * The example above could be solved then in the following way:
  *
  * <pre>
- * static final Traversing&gt;Node, Node&lt; NETWORK = n -&lt; Optional.ofNullable(n.child("network"));
- * static final Traversing&gt;Node, Node&lt; LISTEN = n -&lt; Optional.ofNullable(n.child("listen"));
- * static final Traversing&gt;Node, String&lt; ADDRESS = n -&lt; Optional.ofNullable(n.child("address")).map(Node::value);
- * static final Traversing&gt;Node, Integer&lt; PORT = n -&lt; Optional.ofNullable(n.child("port")).map(Node::value).map(Integer::valueOf);
+ * static final Traversing&lt;Node, Node&gt; NETWORK = Traversing.of(n -&gt; n.child("network"));
+ * static final Traversing&lt;Node, Node&gt; LISTEN = Traversing.of(n -&gt; n.child("listen"));
+ * static final Traversing&lt;Node, String&gt; ADDRESS = Traversing.of(n -&gt; n.child("address")).map(Node::value);
+ * static final Traversing&lt;Node, Integer&gt; PORT = Traversing.of(n -&gt; n.child("port")).map(Node::value).map(Integer::valueOf);
  * </pre>
  *
  * Of course, instead of such ad-hoc definitions, a set of definitions for the
@@ -97,11 +97,11 @@ import java.util.function.Function;
  * constant could be defined as:
  *
  * <pre>
- * static final Traversing&gt;Node, Integer&lt; PORT = integerValue("port");
+ * static final Traversing&lt;Node, Integer&gt; PORT = integerValue("port");
  *
  * // Where following definition of 'integerValue' would be in the scope:
- * static Traversing&gt;Node, Integer&lt; integerValue(String name) {
- *     return node -&lt; Optional.ofNullable(node.child(name)).map(Node::value).map(Integer::valueOf);
+ * static Traversing&lt;Node, Integer&gt; integerValue(String name) {
+ *     return Traversing.of(node -&gt; node.child(name)).map(Node::value).map(Integer::valueOf);
  * }
  * </pre>
  *
@@ -109,7 +109,7 @@ import java.util.function.Function;
  * the address and port may look like this:
  *
  * <pre>
- * final Optional&gt;Node&lt; listen = NETWORK.apply(configuration).flatMap(LISTEN);
+ * final Optional&lt;Node&gt; listen = NETWORK.apply(configuration).flatMap(LISTEN);
  * final String address = listen.flatMap(ADDRESS).orElse("localhost");
  * final int port = listen.flatMap(PORT).orElse(DEFAULT_PORT);
  * </pre>
@@ -153,5 +153,24 @@ public interface Traversing<C, V> extends Function<C, Optional<V>> {
     default <T> Traversing<C, T> map(Function<? super V, ? extends T> f) {
         Objects.requireNonNull(f);
         return t -> apply(t).map(f);
+    }
+
+    /**
+     * Makes an instance that uses the given function to extract the root for
+     * the traversal.
+     *
+     * @param <R>
+     *            the type of the root function argument
+     * @param <V>
+     *            the type of the root function result
+     * @param f
+     *            the traversal root extracting function. It must not be
+     *            {@code null}.
+     *
+     * @return the new instance
+     */
+    static <R, V> Traversing<R, V> of(Function<? super R, ? extends V> f) {
+        Objects.requireNonNull(f);
+        return t -> Optional.ofNullable(t).map(f);
     }
 }

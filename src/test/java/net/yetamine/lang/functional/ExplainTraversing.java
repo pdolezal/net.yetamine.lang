@@ -229,35 +229,7 @@ public final class ExplainTraversing {
      *         name
      */
     static Traversing<Node, Node> node(String name) {
-        return node -> Optional.ofNullable(node.children().get(name));
-    }
-
-    /**
-     * Returns a {@link Traversing} instance for getting the {@link String}
-     * value of the {@link Node} with the given name.
-     *
-     * @param name
-     *            the name of the child node to find
-     *
-     * @return a {@link Traversing} instance for getting the {@link String}
-     *         value of the {@link Node} with the given name
-     */
-    static Traversing<Node, String> stringValue(String name) {
-        return node(name).map(Node::string);
-    }
-
-    /**
-     * Returns a {@link Traversing} instance for getting the {@link Integer}
-     * value of the {@link Node} with the given name.
-     *
-     * @param name
-     *            the name of the child node to find
-     *
-     * @return a {@link Traversing} instance for getting the {@link Integer}
-     *         value of the {@link Node} with the given name
-     */
-    static Traversing<Node, Integer> integerValue(String name) {
-        return node(name).map(Node::integer);
+        return Traversing.of(node -> node.children().get(name));
     }
 
     // Some example definitions of the node/value constants
@@ -265,6 +237,6 @@ public final class ExplainTraversing {
     static final Traversing<Node, Node> NETWORK = node("network");
     static final Traversing<Node, Node> LISTEN = node("listen");
     static final Traversing<Node, Node> CONNECT = node("connect");
-    static final Traversing<Node, String> ADDRESS = stringValue("address");
-    static final Traversing<Node, Integer> PORT = integerValue("port");
+    static final Traversing<Node, String> ADDRESS = node("address").map(Node::string);
+    static final Traversing<Node, Integer> PORT = node("port").map(Node::integer);
 }
