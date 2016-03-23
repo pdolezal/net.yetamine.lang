@@ -26,28 +26,6 @@ import java.util.function.Predicate;
 public final class Consumers {
 
     /**
-     * Makes the given consumer accept the specified value.
-     *
-     * @param <T>
-     *            the type of the value
-     * @param consumer
-     *            the consumer to accept the value to. If {@code null}, this
-     *            method does nothing.
-     * @param value
-     *            the value to accept
-     *
-     * @return {@code true} if the consumer accepted the value
-     */
-    public static <T> boolean accept(Consumer<? super T> consumer, T value) {
-        if (consumer == null) {
-            return false;
-        }
-
-        consumer.accept(value);
-        return true;
-    }
-
-    /**
      * Provides a nothing-doing consumer.
      *
      * @param <T>
