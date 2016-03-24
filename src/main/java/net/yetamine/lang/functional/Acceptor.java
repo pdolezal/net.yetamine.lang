@@ -109,7 +109,7 @@ public interface Acceptor<T> extends Consumer<T> {
      *
      * @return a nothing-doing consumer
      */
-    public static <T> Acceptor<T> ignoring() {
+    static <T> Acceptor<T> ignoring() {
         return o -> {
             // Do nothing
         };
