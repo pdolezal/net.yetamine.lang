@@ -178,7 +178,7 @@ How to do so? Even without any modification of the type of the `configuration` v
 
 ### When `Optional` becomes awkward ###
 
-`Optional` is great and the `Traversing` example shows it. However, it can distinguish only whether an object is present or not and the only invalid value is `null`. Sometimes you might need rather a container that just marks a value as acceptable or not and lets the consumer to decide how to deal with the value, because sometimes even a wrong value is better than none, e.g., when logging or when taking an alternative decision needs some information to take a better path.
+`Optional` is great and the `Traversing` example shows it. However, it can distinguish only whether an object is present or not and the only invalid value is `null`. Sometimes you might need rather a container that just marks a value as *true* or *false* and lets the consumer to decide how to deal with the value – sometimes even a wrong value is better than none, e.g., when logging or when taking an alternative decision needs some additional information.
 
 Besides that, there is one more use case when `Optional` does not work very well, although it should:
 
@@ -198,7 +198,7 @@ Try to avoid consulting `isPresent` *and* `get`. There are several ways: using `
 
 ```{java}
 boolean greet(String name) {
-    return Choice.of(greeting(name)).ifAccepted(System.out::println).isAccepted();
+    return Choice.of(greeting(name)).ifTrue(System.out::println).isTrue();
 }
 ```
 

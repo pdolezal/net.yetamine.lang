@@ -44,11 +44,11 @@ public final class TestChoice {
     @Test(dataProvider = "values")
     public void testConstruction(Choice<?> choice, Object o, boolean valid) {
         Assert.assertSame(choice.get(), o);
-        Assert.assertEquals(choice.isAccepted(), valid);
-        Assert.assertNotEquals(choice.isRejected(), valid);
-        Assert.assertEquals(choice, valid ? Choice.accept(o) : Choice.reject(o));
-        Assert.assertNotEquals(choice.flip().isAccepted(), valid);
-        Assert.assertEquals(choice.flip().isRejected(), valid);
+        Assert.assertEquals(choice.isTrue(), valid);
+        Assert.assertNotEquals(choice.isFalse(), valid);
+        Assert.assertEquals(choice, valid ? Choice.asTrue(o) : Choice.asFalse(o));
+        Assert.assertNotEquals(choice.flip().isTrue(), valid);
+        Assert.assertEquals(choice.flip().isFalse(), valid);
 
         if (valid) {
             Assert.assertEquals(choice.optional(), Optional.ofNullable(o));
@@ -60,7 +60,7 @@ public final class TestChoice {
     }
 
     /**
-     * Tests {@link Choice#ifAccepted(java.util.function.Consumer)}.
+     * Tests {@link Choice#ifTrue(java.util.function.Consumer)}.
      *
      * @param choice
      *            the instance to test. It must not be {@code null}.
@@ -72,7 +72,7 @@ public final class TestChoice {
     @Test(dataProvider = "values")
     public void testIfvalid(Choice<?> choice, Object o, boolean valid) {
         final Box<Object> box = Box.of(new Object());
-        choice.ifAccepted(value -> box.set(value));
+        choice.ifTrue(value -> box.set(value));
         if (valid) {
             Assert.assertSame(box.get(), o);
         } else {
@@ -81,7 +81,7 @@ public final class TestChoice {
     }
 
     /**
-     * Tests {@link Choice#ifRejected(java.util.function.Consumer)}.
+     * Tests {@link Choice#ifFalse(java.util.function.Consumer)}.
      *
      * @param choice
      *            the instance to test. It must not be {@code null}.
@@ -93,7 +93,7 @@ public final class TestChoice {
     @Test(dataProvider = "values")
     public void testIfAbsent(Choice<?> choice, Object o, boolean valid) {
         final Box<Object> box = Box.of(new Object());
-        choice.ifRejected(value -> box.set(value));
+        choice.ifFalse(value -> box.set(value));
         if (valid) {
             Assert.assertNotSame(box.get(), o);
         } else {
@@ -120,7 +120,7 @@ public final class TestChoice {
         choice.consume(value -> {
             Assert.assertSame(value, o);
             box.set(o1);
-        } , value -> {
+        }, value -> {
             Assert.assertSame(value, o);
             box.set(o2);
         });
@@ -150,19 +150,19 @@ public final class TestChoice {
         final Choice<?> r = choice.map(value -> {
             Assert.assertSame(value, o);
             return o1;
-        } , value -> {
+        }, value -> {
             Assert.assertSame(value, o);
             return o2;
         });
 
         if (valid) {
             Assert.assertSame(r.get(), o1);
-            Assert.assertTrue(r.isAccepted());
-            Assert.assertFalse(r.isRejected());
+            Assert.assertTrue(r.isTrue());
+            Assert.assertFalse(r.isFalse());
         } else {
             Assert.assertSame(r.get(), o2);
-            Assert.assertTrue(r.isRejected());
-            Assert.assertFalse(r.isAccepted());
+            Assert.assertTrue(r.isFalse());
+            Assert.assertFalse(r.isTrue());
         }
     }
 
@@ -184,7 +184,7 @@ public final class TestChoice {
         final Object r = choice.reconcile(value -> {
             Assert.assertSame(value, o);
             return o1;
-        } , value -> {
+        }, value -> {
             Assert.assertSame(value, o);
             return o2;
         });
@@ -203,11 +203,11 @@ public final class TestChoice {
 
         return new Object[][] {
             // @formatter:off
-            { Choice.accept(o),             o,      true    },
-            { Choice.accept(null),          null,   true    },
+            { Choice.asTrue(o),             o,      true    },
+            { Choice.asTrue(null),          null,   true    },
 
-            { Choice.reject(o),             o,      false   },
-            { Choice.reject(null),          null,   false   },
+            { Choice.asFalse(o),             o,      false  },
+            { Choice.asFalse(null),          null,   false  },
 
             { Choice.nonNull(o),            o,      true    },
             { Choice.nonNull(null),         null,   false   },
@@ -226,7 +226,7 @@ public final class TestChoice {
      */
     @Test(dataProvider = "throwing", expectedExceptions = { NoSuchElementException.class })
     public void testRequire1(Object o) {
-        Choice.reject(o).require();
+        Choice.asFalse(o).require();
     }
 
     /**
@@ -240,7 +240,7 @@ public final class TestChoice {
      */
     @Test(dataProvider = "throwing", expectedExceptions = { IOException.class })
     public void testRequire2(Object o) throws IOException {
-        Choice.reject(o).require(IOException::new);
+        Choice.asFalse(o).require(IOException::new);
     }
 
     @SuppressWarnings("javadoc")

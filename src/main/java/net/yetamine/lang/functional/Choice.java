@@ -27,21 +27,22 @@ import java.util.stream.Stream;
 /**
  * An alternative to {@link Optional} for the cases when the value may or may
  * not be acceptable, but the decision is provided and the container does not
- * decide on its own.
+ * decide on its own. The value is therefore marked as either <i>true</i> or
+ * <i>false</i> and the container provides methods for both these situations.
  *
  * @param <T>
  *            the type of the contained value
  */
 public final class Choice<T> implements Supplier<T> {
 
-    /** Shared instance for accepted {@code null}. */
-    private static final Choice<?> ACCEPTED_NULL = new Choice<>(null, true);
-    /** Shared instance for rejected {@code null}. */
-    private static final Choice<?> REJECTED_NULL = new Choice<>(null, false);
+    /** Shared instance for <i>true</i> {@code null}. */
+    private static final Choice<?> NULL_AS_TRUE = new Choice<>(null, true);
+    /** Shared instance for <i>false</i> {@code null}. */
+    private static final Choice<?> NULL_AS_FALSE = new Choice<>(null, false);
 
     /** Stored value. */
     private final T value;
-    /** Acceptance flag. */
+    /** Flag marking <i>true</i> or <i>false</i>. */
     private final boolean valid;
 
     /**
@@ -50,7 +51,7 @@ public final class Choice<T> implements Supplier<T> {
      * @param o
      *            the value to store
      * @param v
-     *            the validity flag
+     *            the flag marking <i>true</i> or <i>false</i>
      */
     private Choice(T o, boolean v) {
         value = o;
@@ -58,36 +59,37 @@ public final class Choice<T> implements Supplier<T> {
     }
 
     /**
-     * Returns an instance representing the value as accepted.
+     * Returns an instance representing the value as <i>true</i>.
      *
      * @param <T>
      *            the type of the value
      * @param o
      *            the value to represent
      *
-     * @return an instance representing the value as accepted
+     * @return an instance representing the value as <i>true</i>
      */
-    public static <T> Choice<T> accept(T o) {
-        return (o != null) ? new Choice<>(o, true) : accept();
+    public static <T> Choice<T> asTrue(T o) {
+        return (o != null) ? new Choice<>(o, true) : asTrue();
     }
 
     /**
-     * Returns an instance representing the value as rejected.
+     * Returns an instance representing the value as <i>false</i>.
      *
      * @param <T>
      *            the type of the value
      * @param o
      *            the value to represent
      *
-     * @return an instance representing the value as rejected
+     * @return an instance representing the value as <i>false</i>
      */
-    public static <T> Choice<T> reject(T o) {
-        return (o != null) ? new Choice<>(o, false) : reject();
+    public static <T> Choice<T> asFalse(T o) {
+        return (o != null) ? new Choice<>(o, false) : asFalse();
     }
 
     /**
-     * Returns a new instance accepting the value of the given {@link Optional}
-     * instance, or rejecting {@code null} if the given container is empty.
+     * Returns a new instance using the value of the given {@link Optional}
+     * container as <i>true</i>, or {@code null} as <i>false</i> if the given
+     * container is empty.
      *
      * @param <T>
      *            the type of the value
@@ -99,12 +101,12 @@ public final class Choice<T> implements Supplier<T> {
      */
     @SuppressWarnings("unchecked")
     public static <T> Choice<T> of(Optional<? extends T> optional) {
-        return (Choice<T>) optional.map(Choice::accept).orElseGet(Choice::reject);
+        return (Choice<T>) optional.map(Choice::asTrue).orElseGet(Choice::asFalse);
     }
 
     /**
-     * Returns a new instance accepting a non-{@code null} values, rejecting
-     * {@code null}.
+     * Returns a new instance representing a non-{@code null} values as
+     * <i>true</i> and {@code null} as <i>false</i>.
      *
      * @param <T>
      *            the type of the value
@@ -114,7 +116,7 @@ public final class Choice<T> implements Supplier<T> {
      * @return the new instance
      */
     public static <T> Choice<T> nonNull(T o) {
-        return (o != null) ? new Choice<>(o, true) : reject();
+        return (o != null) ? new Choice<>(o, true) : asFalse();
     }
 
     /**
@@ -122,7 +124,7 @@ public final class Choice<T> implements Supplier<T> {
      */
     @Override
     public String toString() {
-        return String.format("Choice[%s: %s]", valid ? "accepted" : "rejected", value);
+        return String.format("Choice[%s: %s]", valid, value);
     }
 
     /**
@@ -162,15 +164,15 @@ public final class Choice<T> implements Supplier<T> {
     }
 
     /**
-     * Returns the value of this choice if {@link #isAccepted()}.
+     * Returns the value of this choice if {@link #isTrue()}.
      *
      * @return the value of this choice
      *
      * @throws NoSuchElementException
-     *             if this choice {@link #isRejected()}
+     *             if this choice {@link #isFalse()}
      */
     public T require() {
-        if (isAccepted()) {
+        if (isTrue()) {
             return get();
         }
 
@@ -178,21 +180,20 @@ public final class Choice<T> implements Supplier<T> {
     }
 
     /**
-     * Returns the value of this choice if {@link #isAccepted()}.
+     * Returns the value of this choice if {@link #isTrue()}.
      *
      * @param <X>
      *            the type of the exception to throw
      * @param e
-     *            the supplier of the exception to throw if
-     *            {@link #isRejected()}
+     *            the supplier of the exception to throw if {@link #isFalse()}
      *
      * @return the value of this choice
      *
      * @throws X
-     *             if this choice {@link #isRejected()}
+     *             if this choice {@link #isFalse()}
      */
     public <X extends Throwable> T require(Supplier<? extends X> e) throws X {
-        if (isAccepted()) {
+        if (isTrue()) {
             return get();
         }
 
@@ -209,56 +210,56 @@ public final class Choice<T> implements Supplier<T> {
     }
 
     /**
-     * Returns an {@link Optional} with the value if the value
-     * {@link #isAccepted()} and not {@code null}.
+     * Returns an {@link Optional} with the value if the value {@link #isTrue()}
+     * and not {@code null}.
      *
      * @return an {@link Optional} with the value, or an empty container if the
-     *         value {@link #isRejected()} or {@code null}
+     *         value {@link #isFalse()} or {@code null}
      */
     public Optional<T> optional() {
-        return isAccepted() ? Optional.ofNullable(get()) : Optional.empty();
+        return isTrue() ? Optional.ofNullable(get()) : Optional.empty();
     }
 
     /**
      * Returns an instance representing the same value, but with the swapped
-     * decision, so that when this instance {@link #isAccepted()}, then the
-     * result {@link #isRejected()}.
+     * decision, so that when this instance {@link #isTrue()}, then the result
+     * {@link #isFalse()}.
      *
      * @return an swapped instance
      */
     public Choice<T> flip() {
-        return isAccepted() ? reject(get()) : accept(get());
+        return isTrue() ? asFalse(get()) : asTrue(get());
     }
 
     /**
-     * Tests if the value represented by this choice is accepted.
+     * Tests if the value represented by this choice is considered <i>true</i>.
      *
-     * @return {@code true} if the represented value is considered accepted
+     * @return {@code true} if the represented value is considered <i>true</i>
      */
-    public boolean isAccepted() {
+    public boolean isTrue() {
         return valid;
     }
 
     /**
-     * Tests if the value represented by this choice is rejected.
+     * Tests if the value represented by this choice is considered <i>false</i>.
      *
-     * @return {@code false} if the represented value is considered accepted
+     * @return {@code false} if the represented value is considered <i>false</i>
      */
-    public boolean isRejected() {
-        return !isAccepted();
+    public boolean isFalse() {
+        return !isTrue();
     }
 
     /**
-     * Passes the represented value to the given consumer if
-     * {@link #isAccepted()} returns {@code true}.
+     * Passes the represented value to the given consumer if {@link #isTrue()}
+     * returns {@code true}.
      *
      * @param consumer
      *            the consumer to accept the value. It must not be {@code null}.
      *
      * @return this instance
      */
-    public Choice<T> ifAccepted(Consumer<? super T> consumer) {
-        if (isAccepted()) {
+    public Choice<T> ifTrue(Consumer<? super T> consumer) {
+        if (isTrue()) {
             consumer.accept(get());
         }
 
@@ -266,15 +267,15 @@ public final class Choice<T> implements Supplier<T> {
     }
 
     /**
-     * Runs the given action if {@link #isAccepted()} returns {@code false}.
+     * Runs the given action if {@link #isTrue()} returns {@code false}.
      *
      * @param consumer
      *            the consumer to accept the value. It must not be {@code null}.
      *
      * @return this instance
      */
-    public Choice<T> ifRejected(Consumer<? super T> consumer) {
-        if (isRejected()) {
+    public Choice<T> ifFalse(Consumer<? super T> consumer) {
+        if (isFalse()) {
             consumer.accept(get());
         }
 
@@ -282,22 +283,22 @@ public final class Choice<T> implements Supplier<T> {
     }
 
     /**
-     * Applies either action depending on {@link #isAccepted()} result.
+     * Applies either action depending on {@link #isTrue()} result.
      *
-     * @param whenAccepted
+     * @param whenTrue
      *            the consumer to accept the represented value if
-     *            {@link #isAccepted()}. It must not be {@code null}.
-     * @param whenRejected
+     *            {@link #isTrue()}. It must not be {@code null}.
+     * @param whenFalse
      *            the consumer to accept the represented value if
-     *            {@link #isRejected()}. It must not be {@code null}.
+     *            {@link #isFalse()}. It must not be {@code null}.
      *
      * @return this instance
      */
-    public Choice<T> consume(Consumer<? super T> whenAccepted, Consumer<? super T> whenRejected) {
-        if (isAccepted()) {
-            whenAccepted.accept(get());
+    public Choice<T> consume(Consumer<? super T> whenTrue, Consumer<? super T> whenFalse) {
+        if (isTrue()) {
+            whenTrue.accept(get());
         } else {
-            whenRejected.accept(get());
+            whenFalse.accept(get());
         }
 
         return this;
@@ -323,55 +324,55 @@ public final class Choice<T> implements Supplier<T> {
      *
      * @param <V>
      *            the type of the new value
-     * @param whenAccepted
-     *            the function to map the represented value if
-     *            {@link #isAccepted()} . It must not be {@code null}.
-     * @param whenRejected
-     *            the function to map the represented value if
-     *            {@link #isRejected()}. It must not be {@code null}.
+     * @param whenTrue
+     *            the function to map the represented value when
+     *            {@link #isTrue()}. It must not be {@code null}.
+     * @param whenFalse
+     *            the function to map the represented value when
+     *            {@link #isFalse()}. It must not be {@code null}.
      *
      * @return a new instance represented the mapped value
      */
-    public <V> Choice<V> map(Function<? super T, ? extends V> whenAccepted, Function<? super T, ? extends V> whenRejected) {
-        return isAccepted() ? accept(whenAccepted.apply(get())) : reject(whenRejected.apply(get()));
+    public <V> Choice<V> map(Function<? super T, ? extends V> whenTrue, Function<? super T, ? extends V> whenFalse) {
+        return isTrue() ? asTrue(whenTrue.apply(get())) : asFalse(whenFalse.apply(get()));
     }
 
     /**
      * Maps the represented value and returns it; this method is a shortcut for
-     * {@code choice.map(whenAccepted, whenRejected).get()}.
+     * {@code choice.map(whenTrue, whenFalse).get()}.
      *
      * @param <V>
      *            the type of the new value
-     * @param whenAccepted
-     *            the function to map the represented value if
-     *            {@link #isAccepted()} . It must not be {@code null}.
-     * @param whenRejected
-     *            the function to map the represented value if
-     *            {@link #isRejected()}. It must not be {@code null}.
+     * @param whenTrue
+     *            the function to map the represented value when
+     *            {@link #isTrue()}. It must not be {@code null}.
+     * @param whenFalse
+     *            the function to map the represented value when
+     *            {@link #isFalse()}. It must not be {@code null}.
      *
      * @return the mapped value
      */
-    public <V> V reconcile(Function<? super T, ? extends V> whenAccepted, Function<? super T, ? extends V> whenRejected) {
-        return isAccepted() ? whenAccepted.apply(get()) : whenRejected.apply(get());
+    public <V> V reconcile(Function<? super T, ? extends V> whenTrue, Function<? super T, ? extends V> whenFalse) {
+        return isTrue() ? whenTrue.apply(get()) : whenFalse.apply(get());
     }
 
     /**
-     * Returns the shared instance representing an accepted {@code null}.
+     * Returns the shared instance representing a {@code null} as <i>true</i>.
      *
-     * @return the shared instance representing an accepted {@code null}
+     * @return the shared instance representing a {@code null} as <i>true</i>
      */
     @SuppressWarnings("unchecked")
-    private static <T> Choice<T> accept() {
-        return (Choice<T>) ACCEPTED_NULL;
+    private static <T> Choice<T> asTrue() {
+        return (Choice<T>) NULL_AS_TRUE;
     }
 
     /**
-     * Returns the shared instance representing rejected {@code null}.
+     * Returns the shared instance representing a {@code null} as <i>false</i>.
      *
-     * @return the shared instance representing rejected {@code null}
+     * @return the shared instance representing a {@code null} as <i>false</i>
      */
     @SuppressWarnings("unchecked")
-    private static <T> Choice<T> reject() {
-        return (Choice<T>) REJECTED_NULL;
+    private static <T> Choice<T> asFalse() {
+        return (Choice<T>) NULL_AS_FALSE;
     }
 }
