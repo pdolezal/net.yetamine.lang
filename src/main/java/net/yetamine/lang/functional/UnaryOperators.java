@@ -49,13 +49,13 @@ public final class UnaryOperators {
      *
      * @return an operator that applies, in sequence, all given functions
      */
-    public static <T> UnaryOperator<T> sequential(Iterable<? extends Function<T, T>> sequence) {
+    public static <T> UnaryOperator<T> sequential(Iterable<? extends Function<? super T, ? extends T>> sequence) {
         Objects.requireNonNull(sequence);
 
         return t -> {
             T result = t;
 
-            for (Function<T, T> function : sequence) {
+            for (Function<? super T, ? extends T> function : sequence) {
                 result = function.apply(result);
             }
 
