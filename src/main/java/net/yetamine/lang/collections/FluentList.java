@@ -122,6 +122,15 @@ public interface FluentList<E> extends FluentCollection<E>, List<E> {
     // Fluent extensions for List
 
     /**
+     * Returns a new cursor for the list.
+     *
+     * @return a new cursor for the list
+     */
+    default Cursor<E> cursor() {
+        return ListCursor.create(container());
+    }
+
+    /**
      * Returns the index for the specified position.
      *
      * <p>
