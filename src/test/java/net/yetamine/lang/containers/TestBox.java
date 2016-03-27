@@ -18,6 +18,7 @@ package net.yetamine.lang.containers;
 
 import java.util.Arrays;
 import java.util.Optional;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.UnaryOperator;
@@ -135,12 +136,17 @@ public final class TestBox {
     }
 
     /**
-     * Tests {@link Box#replace(java.util.function.Function)}.
+     * Tests replacing methods.
      */
     @Test
-    public void testReplace() {
-        final UnaryOperator<Integer> f = i -> i + 1;
-        Assert.assertEquals(Box.of(1).replace(f), Box.of(2));
+    public void testReplacing() {
+        final UnaryOperator<Integer> f1 = i -> i + 1;
+        Assert.assertEquals(Box.of(1).replace(f1), Box.of(2));
+        Assert.assertEquals(Box.of(1).compute(f1), Integer.valueOf(2));
+
+        final BiFunction<Integer, Integer, Integer> f2 = (i, j) -> i + j;
+        Assert.assertEquals(Box.of(1).replace(f2, 2), Box.of(3));
+        Assert.assertEquals(Box.of(1).compute(f2, 2), Integer.valueOf(3));
     }
 
     /**

@@ -19,10 +19,9 @@ package net.yetamine.lang.containers;
 import java.io.Serializable;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.Supplier;
-import java.util.stream.Stream;
 
 /**
  * A mutable container for holding a single value.
@@ -30,7 +29,7 @@ import java.util.stream.Stream;
  * @param <T>
  *            the type of the stored value
  */
-public final class Box<T> implements Serializable, Consumer<T>, Supplier<T> {
+public final class Box<T> implements Serializable, Pointer<T> {
 
     /** Serialization version: 1 */
     private static final long serialVersionUID = 1L;
@@ -138,17 +137,6 @@ public final class Box<T> implements Serializable, Consumer<T>, Supplier<T> {
     }
 
     /**
-     * Returns a stream using this instance as the element source.
-     *
-     * @return a stream using this instance as the element source
-     */
-    public Stream<T> stream() {
-        return Stream.of(this).map(Box::get);
-    }
-
-    /**
-     * Stores the value in this instance.
-     *
      * @see java.util.function.Consumer#accept(java.lang.Object)
      */
     public void accept(T t) {
@@ -156,19 +144,21 @@ public final class Box<T> implements Serializable, Consumer<T>, Supplier<T> {
     }
 
     /**
-     * Returns the value stored in this instance.
-     *
-     * @see java.util.function.Supplier#get()
+     * @see net.yetamine.lang.containers.Pointer#get()
      */
     public T get() {
         return value;
     }
 
     /**
-     * Stores the value in this instance.
+     * Sets the element value.
+     *
+     * <p>
+     * This method is an alias to {@link #accept(Object)}, just returns this
+     * instance.
      *
      * @param t
-     *            the value to accept
+     *            the value to set
      *
      * @return this instance
      */
@@ -178,26 +168,15 @@ public final class Box<T> implements Serializable, Consumer<T>, Supplier<T> {
     }
 
     /**
-     * Returns the value as an {@link Optional} instance.
-     *
-     * <p>
-     * This method provides a bridge to the standard library and allows using
-     * patterns like {@code box.nonNull().orElse(fallback)}
-     *
-     * @return the value as an {@link Optional} instance
-     */
-    public Optional<T> nonNull() {
-        return Optional.ofNullable(value);
-    }
-
-    /**
-     * Updates the stored value the result of the given function applied on the
-     * current value.
+     * Computes the new value of the element, updates the element and returns
+     * its new value.
      *
      * @param mapping
      *            the mapping function to apply. It must not be {@code null}.
      *
      * @return this instance
+     *
+     * @see #compute(Function)
      */
     public Box<T> replace(Function<? super T, ? extends T> mapping) {
         value = mapping.apply(value);
@@ -205,18 +184,24 @@ public final class Box<T> implements Serializable, Consumer<T>, Supplier<T> {
     }
 
     /**
-     * Returns the result of the given function applied on the value stored in
-     * this instance.
+     * Computes the new value of the element, updates the element and returns
+     * its new value.
      *
-     * @param <V>
-     *            the type of the mapping result
      * @param mapping
-     *            the mapping function to apply. It must not be {@code null}.
+     *            the mapping function to apply; it gets the given value as the
+     *            first argument and the current value as the second argument.
+     *            It must not be {@code null}.
+     * @param t
+     *            the value to pass as the first argument to the mapping
+     *            function
      *
-     * @return the result of the mapping function
+     * @return this instance
+     *
+     * @see #compute(BiFunction, Object)
      */
-    public <V> V map(Function<? super T, ? extends V> mapping) {
-        return mapping.apply(value);
+    public Box<T> replace(BiFunction<? super T, ? super T, ? extends T> mapping, T t) {
+        value = mapping.apply(t, value);
+        return this;
     }
 
     /**
