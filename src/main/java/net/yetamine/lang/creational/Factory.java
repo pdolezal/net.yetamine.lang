@@ -58,6 +58,8 @@ public interface Factory<T> extends Supplier<T> {
      * Makes a factory which uses a template object as the prototype for making
      * more instances.
      *
+     * @param <U>
+     *            the type of the template
      * @param <T>
      *            the type of the product
      * @param template
@@ -68,7 +70,7 @@ public interface Factory<T> extends Supplier<T> {
      *
      * @return a factory using a template object
      */
-    static <T> Factory<T> prototype(T template, Function<? super T, ? extends T> builder) {
+    static <U, T> Factory<T> prototype(U template, Function<? super U, ? extends T> builder) {
         Objects.requireNonNull(template);
         Objects.requireNonNull(builder);
 
