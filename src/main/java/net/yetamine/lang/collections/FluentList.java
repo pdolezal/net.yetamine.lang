@@ -24,6 +24,7 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Spliterator;
 import java.util.function.Consumer;
@@ -31,6 +32,8 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
+
+import net.yetamine.lang.Throwables;
 
 /**
  * An extension of the {@link List} interface providing more fluent programming
@@ -119,6 +122,66 @@ public interface FluentList<E> extends FluentCollection<E>, List<E> {
     // Fluent extensions for List
 
     /**
+     * Returns the index for the specified position.
+     *
+     * <p>
+     * This method uses the position definition that differs from the common
+     * index : negative values are understood as offsets from {@link #size()},
+     * e.g., -1 refers to the last element.
+     *
+     * @param position
+     *            the position to get the index
+     *
+     * @return the index
+     */
+    default int index(int position) {
+        return (position < 0) ? size() + position : position;
+    }
+
+    /**
+     * Returns the first element in the list.
+     *
+     * @return the first element in the list
+     *
+     * @throws NoSuchElementException
+     *             if the list is empty
+     */
+    default E head() {
+        try {
+            return get(0);
+        } catch (IndexOutOfBoundsException e) {
+            throw Throwables.init(new NoSuchElementException(), e);
+        }
+    }
+
+    /**
+     * Returns the last element in the list.
+     *
+     * <p>
+     * The default implementation uses the optimistic non-blocking strategy to
+     * cope with concurrent scenarios: it computes the position of the last
+     * element and tries to get it; if the attempt succeeds, the element is
+     * returned, otherwise it tries again, unless the list is empty, which
+     * results in throwing {@link NoSuchElementException}.
+     *
+     * @return the last element in the list
+     *
+     * @throws NoSuchElementException
+     *             if the list is empty
+     */
+    default E tail() {
+        for (int size; (size = size()) != 0;) {
+            try {
+                return get(size - 1);
+            } catch (IndexOutOfBoundsException e) {
+                // Try again
+            }
+        }
+
+        throw new NoSuchElementException();
+    }
+
+    /**
      * Inserts an element at the specified index.
      *
      * <p>
@@ -176,6 +239,22 @@ public interface FluentList<E> extends FluentCollection<E>, List<E> {
      */
     default FluentList<E> discard(int index) {
         remove(index);
+        return this;
+    }
+
+    /**
+     * Appends the element at the end of the list.
+     *
+     * @param element
+     *            the element
+     *
+     * @return this instance
+     *
+     * @throws UnsupportedOperationException
+     *             if an element could not be added
+     */
+    default FluentList<E> append(E element) {
+        add(element);
         return this;
     }
 
