@@ -20,6 +20,7 @@ import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Objects;
 import java.util.function.Function;
+import java.util.function.UnaryOperator;
 
 import net.yetamine.lang.Throwables;
 
@@ -106,7 +107,8 @@ public final class Cloneables {
      * @return a factory that clones the template
      */
     public static <T> Factory<T> prototype(T template) {
-        return Factory.prototype(template, o -> clone(o, IllegalArgumentException::new));
+        final UnaryOperator<T> clone = o -> clone(o, IllegalArgumentException::new);
+        return Factory.prototype(template, clone); // Use a temporary variable to avoid compiler failure
     }
 
     private Cloneables() {
