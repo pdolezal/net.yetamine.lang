@@ -354,7 +354,8 @@ public interface FluentList<E> extends FluentCollection<E>, List<E> {
     /**
      * @see net.yetamine.lang.collections.FluentCollection#includeMore(java.lang.Object[])
      */
-    default FluentList<E> includeMore(@SuppressWarnings("unchecked") E... elements) {
+    @SuppressWarnings("unchecked")
+    default FluentList<E> includeMore(E... elements) {
         addAll(Arrays.asList(elements));
         return this;
     }
@@ -373,7 +374,8 @@ public interface FluentList<E> extends FluentCollection<E>, List<E> {
     /**
      * @see net.yetamine.lang.collections.FluentCollection#containMore(java.lang.Object[])
      */
-    default FluentList<E> containMore(@SuppressWarnings("unchecked") E... elements) {
+    @SuppressWarnings("unchecked")
+    default FluentList<E> containMore(E... elements) {
         for (E element : elements) {
             contain(element);
         }

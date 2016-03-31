@@ -134,7 +134,8 @@ public interface FluentCollection<E> extends Collection<E> {
      *
      * @return this instance
      */
-    default FluentCollection<E> includeMore(@SuppressWarnings("unchecked") E... elements) {
+    @SuppressWarnings("unchecked")
+    default FluentCollection<E> includeMore(E... elements) {
         addAll(Arrays.asList(elements));
         return this;
     }
@@ -178,7 +179,8 @@ public interface FluentCollection<E> extends Collection<E> {
      *
      * @return this instance
      */
-    default FluentCollection<E> containMore(@SuppressWarnings("unchecked") E... elements) {
+    @SuppressWarnings("unchecked")
+    default FluentCollection<E> containMore(E... elements) {
         for (E element : elements) {
             contain(element);
         }

@@ -124,7 +124,8 @@ public interface FluentSet<E> extends FluentCollection<E> {
     /**
      * @see net.yetamine.lang.collections.FluentCollection#includeMore(java.lang.Object[])
      */
-    default FluentSet<E> includeMore(@SuppressWarnings("unchecked") E... elements) {
+    @SuppressWarnings("unchecked")
+    default FluentSet<E> includeMore(E... elements) {
         addAll(Arrays.asList(elements));
         return this;
     }
@@ -140,7 +141,8 @@ public interface FluentSet<E> extends FluentCollection<E> {
     /**
      * @see net.yetamine.lang.collections.FluentCollection#containMore(java.lang.Object[])
      */
-    default FluentSet<E> containMore(@SuppressWarnings("unchecked") E... elements) {
+    @SuppressWarnings("unchecked")
+    default FluentSet<E> containMore(E... elements) {
         for (E element : elements) {
             contain(element);
         }
