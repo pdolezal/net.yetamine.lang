@@ -33,6 +33,20 @@ package net.yetamine.lang.introspective;
 public interface Extensible {
 
     /**
+     * Returns an instance of this interface that describes the given argument.
+     *
+     * @param o
+     *            the object to query
+     *
+     * @return the {@link Extensible} interface of the given object, or an
+     *         instance that returns empty extensions if the argument does not
+     *         implement this interface (including the case of a {@code null})
+     */
+    static Extensible query(Object o) {
+        return (o instanceof Extensible) ? (Extensible) o : MissingExtensible.INSTANCE;
+    }
+
+    /**
      * Returns the extensions of this instance.
      *
      * <p>
@@ -48,4 +62,13 @@ public interface Extensible {
     default Extensions extensions() {
         return Extensions.empty();
     }
+}
+
+/**
+ * A missing {@link Extensible} support helper.
+ */
+enum MissingExtensible implements Extensible {
+
+    /** Common surrogate for missing {@link Extensible} support. */
+    INSTANCE;
 }
