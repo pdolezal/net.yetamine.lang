@@ -33,6 +33,7 @@ public final class TestTrivalent {
     /**
      * Tests operation commutativity.
      */
+    @Test
     public void testCommutativity() {
         final Collection<Trivalent> values = Arrays.asList(Trivalent.values());
         for (Trivalent a : values) {
@@ -215,6 +216,7 @@ public final class TestTrivalent {
     /**
      * Tests all "if" methods.
      */
+    @Test
     public void testIfs() {
         final Box<Boolean> box = Box.empty();
 
