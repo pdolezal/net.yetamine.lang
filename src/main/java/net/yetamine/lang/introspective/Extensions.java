@@ -1,0 +1,331 @@
+/*
+ * Copyright 2016 Yetamine
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package net.yetamine.lang.introspective;
+
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.stream.Stream;
+
+/**
+ * Declares additional abilities and traits extending the basic contract of an
+ * interface to help dynamic adaptation in order to achieve better efficiency.
+ *
+ * <p>
+ * An extension is declared by including a descriptor, known to both the client
+ * of the interface and the interface provider, in the extension set. A client,
+ * which is aware of the extensions, may then run an optimized action easily if
+ * the extension is available.
+ *
+ * <p>
+ * The fluent interface allows employing several patterns. The most usual is
+ * just running a specific action that may exploit a particular extension:
+ *
+ * <pre>
+ * extensions.ifPresent(extension1, action1).ifPresent(extension2, action2);
+ * </pre>
+ *
+ * When an alternative action needs executing, following code snippet is often a
+ * good and fluent way to express such a need:
+ *
+ * <pre>
+ * if (extensions.notMissing(extension, fallback)) {
+ *     // Executes if the extension is not missing
+ * }
+ * </pre>
+ *
+ * The snippet above is basically equivalent to:
+ *
+ * <pre>
+ * if (extensions.known().contains(extension)) {
+ *     // Executes if the extension is not missing
+ * } else {
+ *     // Executes if the extension is missing
+ * }
+ * </pre>
+ *
+ * The direct test with {@link #known()} is rarely needed, perhaps when the set
+ * of required extensions is ready, so that {@link Set#containsAll(Collection)}
+ * could be used immediately. Otherwise following pattern might be used:
+ *
+ * <pre>
+ * // The result is an Optional with the extensions, to that the action may need
+ * // a conversion to match Optional::ifPresent signature:
+ * extensions.allPresent(action, extension1, extension2);
+ * </pre>
+ *
+ * <p>
+ * The implementation is immutable with one outstanding exception: when the
+ * instance is created with {@link #using(Set)}, the result just wraps the given
+ * set as an unmodifiable instance and provides it as {@link #known()}. This may
+ * be useful for more efficient constructions and for the cases when the set may
+ * change over time, which is generally not recommended though.
+ */
+public final class Extensions {
+
+    /** Shared instance for an immutable empty extension set. */
+    private static final Extensions EMPTY = new Extensions(Collections.emptySet());
+
+    /** Known extensions. */
+    private final Set<?> known;
+
+    /**
+     * Creates a new instance.
+     *
+     * @param extensions
+     *            the extensions set. It must not be {@code null}.
+     */
+    private Extensions(Set<?> extensions) {
+        known = extensions;
+    }
+
+    /**
+     * Returns an empty instance.
+     *
+     * @return an empty instance
+     */
+    public static Extensions empty() {
+        return EMPTY;
+    }
+
+    /**
+     * Creates a new instance.
+     *
+     * @param extension
+     *            the extension to provide
+     *
+     * @return the new instance
+     */
+    public static Extensions declare(Object extension) {
+        return new Extensions(Collections.singleton(extension));
+    }
+
+    /**
+     * Creates a new instance.
+     *
+     * @param extensions
+     *            the extensions to provide. It must not be {@code null}.
+     *
+     * @return the new instance
+     */
+    public static Extensions declare(Object... extensions) {
+        return declare(Arrays.asList(extensions));
+    }
+
+    /**
+     * Creates a new instance.
+     *
+     * @param extensions
+     *            the extensions to provide. It must not be {@code null}.
+     *
+     * @return the new instance
+     */
+    public static Extensions declare(Collection<?> extensions) {
+        return using(new HashSet<>(extensions));
+    }
+
+    /**
+     * Creates a new instance.
+     *
+     * <p>
+     * Unlike {@link #declare(Collection)}, this method does not make an
+     * immutable copy of the collection, it rather uses it as it is, therefore
+     * the caller may influence the content of the instance through the original
+     * reference. It is strongly recommended to use a concurrent set then.
+     *
+     * @param extensions
+     *            the extensions to provide. It must not be {@code null}.
+     *
+     * @return the new instance
+     */
+    public static Extensions using(Set<?> extensions) {
+        return new Extensions(Collections.unmodifiableSet(extensions));
+    }
+
+    /**
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public String toString() {
+        return known.toString();
+    }
+
+    /**
+     * @see java.lang.Object#hashCode()
+     */
+    @Override
+    public int hashCode() {
+        return known.hashCode();
+    }
+
+    /**
+     * @see java.lang.Object#equals(java.lang.Object)
+     */
+    @Override
+    public boolean equals(Object obj) {
+        return known.equals(obj);
+    }
+
+    /**
+     * Returns the set of provided extension guarantees.
+     *
+     * @return the set of provided extension guarantees
+     */
+    public Set<?> known() {
+        return known;
+    }
+
+    /**
+     * Tests if the given extension is not present and runs the given action if
+     * the extension is present.
+     *
+     * @param extension
+     *            the extension to test
+     * @param fallback
+     *            the action to run. It must not be {@code null}.
+     *
+     * @return {@code true} if the extension is not present (i.e., is missing)
+     */
+    public Extensions notPresent(Object extension, Runnable fallback) {
+        if (known.contains(extension)) {
+            fallback.run();
+        }
+
+        return this;
+    }
+
+    /**
+     * Tests if the given extension is not missing and runs the given action if
+     * the extension is missing.
+     *
+     * @param extension
+     *            the extension to test
+     * @param fallback
+     *            the action to run. It must not be {@code null}.
+     *
+     * @return {@code true} if the extension is not missing (i.e., is present)
+     */
+    public boolean notMissing(Object extension, Runnable fallback) {
+        if (known.contains(extension)) {
+            return true;
+        }
+
+        fallback.run();
+        return false;
+    }
+
+    /**
+     * Runs an action if the given extension is present.
+     *
+     * @param extension
+     *            the extension to check
+     * @param action
+     *            the action to run. It must not be {@code null}.
+     *
+     * @return this instance
+     */
+    public Extensions ifPresent(Object extension, Runnable action) {
+        notPresent(extension, action);
+        return this;
+    }
+
+    /**
+     * Runs an action if the given extension is missing.
+     *
+     * @param extension
+     *            the extension to check
+     * @param action
+     *            the action to run. It must not be {@code null}.
+     *
+     * @return this instance
+     */
+    public Extensions ifMissing(Object extension, Runnable action) {
+        notMissing(extension, action);
+        return this;
+    }
+
+    /**
+     * Runs an action if all of the given extension are present.
+     *
+     * @param action
+     *            the action to run. It must not be {@code null}.
+     * @param extensions
+     *            the extensions to check. It must not be {@code null}.
+     *
+     * @return this instance
+     */
+    public Extensions allPresent(Runnable action, Object... extensions) {
+        if (Stream.of(extensions).allMatch(known::contains)) {
+            action.run();
+        }
+
+        return this;
+    }
+
+    /**
+     * Runs an action if any of the given extension is present.
+     *
+     * @param action
+     *            the action to run. It must not be {@code null}.
+     * @param extensions
+     *            the extensions to check. It must not be {@code null}.
+     *
+     * @return this instance
+     */
+    public Extensions anyPresent(Runnable action, Object... extensions) {
+        if (Stream.of(extensions).anyMatch(known::contains)) {
+            action.run();
+        }
+
+        return this;
+    }
+
+    /**
+     * Runs an action if all of the given extension are missing.
+     *
+     * @param action
+     *            the action to run. It must not be {@code null}.
+     * @param extensions
+     *            the extensions to check. It must not be {@code null}.
+     *
+     * @return this instance
+     */
+    public Extensions allMissing(Runnable action, Object... extensions) {
+        if (Stream.of(extensions).noneMatch(known::contains)) {
+            action.run();
+        }
+
+        return this;
+    }
+
+    /**
+     * Runs an action if any of the given extension is missing.
+     *
+     * @param action
+     *            the action to run. It must not be {@code null}.
+     * @param extensions
+     *            the extensions to check. It must not be {@code null}.
+     *
+     * @return this instance
+     */
+    public Extensions anyMissing(Runnable action, Object... extensions) {
+        Stream.of(extensions).filter(e -> !known.contains(e)).findAny().ifPresent(e -> action.run());
+        return this;
+    }
+}
