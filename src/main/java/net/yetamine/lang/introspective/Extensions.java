@@ -20,7 +20,9 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -143,6 +145,18 @@ public final class Extensions {
     /**
      * Creates a new instance.
      *
+     * @param extensions
+     *            the extensions to provide. It must not be {@code null}.
+     *
+     * @return the new instance
+     */
+    public static Extensions from(Stream<?> extensions) {
+        return using(extensions.collect(Collectors.toSet()));
+    }
+
+    /**
+     * Creates a new instance.
+     *
      * <p>
      * Unlike {@link #declare(Collection)}, this method does not make an
      * immutable copy of the collection, it rather uses it as it is, therefore
@@ -179,7 +193,7 @@ public final class Extensions {
      */
     @Override
     public boolean equals(Object obj) {
-        return known.equals(obj);
+        return (obj instanceof Extensions) && known.equals(((Extensions) obj).known);
     }
 
     /**
@@ -202,12 +216,13 @@ public final class Extensions {
      *
      * @return {@code true} if the extension is not present (i.e., is missing)
      */
-    public Extensions notPresent(Object extension, Runnable fallback) {
+    public boolean notPresent(Object extension, Runnable fallback) {
         if (known.contains(extension)) {
             fallback.run();
+            return false;
         }
 
-        return this;
+        return true;
     }
 
     /**
@@ -327,5 +342,20 @@ public final class Extensions {
     public Extensions anyMissing(Runnable action, Object... extensions) {
         Stream.of(extensions).filter(e -> !known.contains(e)).findAny().ifPresent(e -> action.run());
         return this;
+    }
+
+    /**
+     * Returns an {@link Optional} containing the given extension if the
+     * extension is present.
+     *
+     * @param <T>
+     *            the type of the extension
+     * @param extension
+     *            the extension to check. It must not be {@code null}.
+     *
+     * @return this instance
+     */
+    public <T> Optional<T> optional(T extension) {
+        return known.contains(extension) ? Optional.of(extension) : Optional.empty();
     }
 }
