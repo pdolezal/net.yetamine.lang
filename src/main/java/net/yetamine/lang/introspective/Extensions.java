@@ -173,6 +173,33 @@ public final class Extensions {
     }
 
     /**
+     * Gets the extensions of the given object.
+     *
+     * @param o
+     *            the object to query
+     *
+     * @return the extensions of the object, or empty extensions if the object
+     *         is not an instance of {@link Extensible} (including the case of
+     *         {@code null} argument)
+     */
+    public static Extensions of(Object o) {
+        return Extensible.query(o).extensions();
+    }
+
+    /**
+     * Gets the extensions of the given object.
+     *
+     * @param o
+     *            the object to query
+     *
+     * @return the extensions of the object, or empty extensions if the argument
+     *         is {@code null}
+     */
+    public static Extensions of(Extensible o) {
+        return (o != null) ? o.extensions() : empty();
+    }
+
+    /**
      * @see java.lang.Object#toString()
      */
     @Override
