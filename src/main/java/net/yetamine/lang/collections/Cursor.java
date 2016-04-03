@@ -170,7 +170,10 @@ public interface Cursor<E> extends Pointer<E> {
      * @return this instance
      */
     default Cursor<E> ifValid(Consumer<? super Cursor<E>> action) {
-        action.accept(this);
+        if (isValid()) {
+            action.accept(this);
+        }
+
         return this;
     }
 
