@@ -16,6 +16,9 @@
 
 package net.yetamine.lang.containers;
 
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+
 /**
  * Utilities for implementing byte containers.
  */
@@ -133,6 +136,25 @@ public final class ByteSequences {
         }
 
         return length1 - length2;
+    }
+
+    /**
+     * Computes SHA-1 digest.
+     *
+     * @param sequence
+     *            the sequence to compute the digest. It must not be
+     *            {@code null}.
+     *
+     * @return the digest
+     */
+    public static byte[] sha1(ByteSequence sequence) {
+        try {
+            final MessageDigest digest = MessageDigest.getInstance("SHA-1");
+            digest.update(sequence.buffer());
+            return digest.digest();
+        } catch (NoSuchAlgorithmException e) {
+            throw new UnsupportedOperationException(e);
+        }
     }
 
     /**

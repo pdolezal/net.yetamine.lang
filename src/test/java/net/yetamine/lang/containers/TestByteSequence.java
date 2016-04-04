@@ -188,7 +188,6 @@ public final class TestByteSequence {
         Assert.assertEquals(compare, result);
         Assert.assertEquals(ByteSequences.compare(seq2, seq1), -compare);
 
-
         Assert.assertEquals(sgn(seq1.toString().compareTo(seq2.toString())), sgn(result));
     }
 

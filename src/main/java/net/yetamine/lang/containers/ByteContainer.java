@@ -191,6 +191,27 @@ public final class ByteContainer implements ByteSequence {
     }
 
     /**
+     * Computes SHA-1 digest.
+     *
+     * @param sequence
+     *            the sequence to process. It must not be {@code null}.
+     *
+     * @return the digest
+     */
+    public static ByteContainer sha1(ByteSequence sequence) {
+        return new ByteContainer(ByteSequences.sha1(sequence));
+    }
+
+    /**
+     * Computes SHA-1 digest.
+     *
+     * @return the digest
+     */
+    public ByteContainer sha1() {
+        return sha1(this);
+    }
+
+    /**
      * @see net.yetamine.lang.containers.ByteSequence#length()
      */
     public int length() {
