@@ -16,9 +16,10 @@
 
 package net.yetamine.lang.containers;
 
-import java.io.InputStream;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
+import java.util.Objects;
 import java.util.stream.IntStream;
 
 /**
@@ -29,7 +30,25 @@ import java.util.stream.IntStream;
  * such, it behaves in a similar way: all index values must fit in valid ranges,
  * otherwise {@link IndexOutOfBoundsException} shall be thrown.
  */
-public interface ByteSequence {
+public interface ByteSequence extends Comparable<ByteSequence> {
+
+    /**
+     * Returns an empty instance.
+     *
+     * @return an empty instance
+     */
+    static ByteSequence empty() {
+        return ByteContainer.empty();
+    }
+
+    /**
+     * Returns a new builder for the default implementation.
+     *
+     * @return the new builder
+     */
+    public static ByteSequenceBuilder builder() {
+        return new ByteSequenceBuilder();
+    }
 
     // General methods
 
@@ -55,62 +74,34 @@ public interface ByteSequence {
     int hashCode();
 
     /**
-     * Implements {@link #equals(Object)}.
+     * Provides string representation of the content.
      *
-     * @param that
-     *            the instance to compare. It must not be {@code null}.
-     * @param obj
-     *            the object to compare
+     * <p>
+     * Implementations should implement this method to produce a string of
+     * hexadecimal digit pairs, each pair for a single byte of the content,
+     * using lower-case representation.
      *
-     * @return {@code true} iff the given object argument is equal to the given
-     *         instance
+     * @return java.lang.Object#toString()
      */
-    static boolean equals(ByteSequence that, Object obj) {
-        if (that == obj) {
-            return true;
-        }
-
-        if (obj instanceof ByteSequence) {
-            final ByteSequence o = (ByteSequence) obj;
-
-            final int length = that.length();
-            if (length != o.length()) {
-                return false;
-            }
-
-            for (int i = 0; i < length; i++) {
-                if (that.valueAt(i) != o.valueAt(i)) {
-                    return false;
-                }
-            }
-
-            return true;
-        }
-
-        return false;
-    }
+    String toString();
 
     /**
-     * Implements {@link #hashCode()}.
+     * Compares to another sequence.
      *
-     * @param that
-     *            the instance for which the hash code shall be computed. It
-     *            must not be {@code null}.
+     * <p>
+     * Byte sequences are compared lexicographically (like strings, just using
+     * bytes instead of chars). However, instead of comparing bytes as signed,
+     * the bytes are compared as unsigned, so that the comparison of the string
+     * representation (as described by {@link #toString()}) is then consistent.
      *
-     * @return the hash code
+     * @see java.lang.Comparable#compareTo(java.lang.Object)
+     * @see java.lang.String#compareTo(java.lang.String)
      */
-    static int hashCode(ByteSequence that) {
-        int result = 0;
-
-        final int length = that.length();
-        for (int i = 0; i < length; i++) {
-            result = 31 * result + that.valueAt(i);
-        }
-
-        return result;
+    default int compareTo(ByteSequence o) {
+        return ByteSequences.compare(this, o);
     }
 
-    // Core sequence methods
+    // Native access methods
 
     /**
      * Returns the length of this sequence (the number of elements in the
@@ -191,7 +182,7 @@ public interface ByteSequence {
      */
     ByteSequence view(int from, int to);
 
-    // Alternative representations/sources
+    // Alternative access methods
 
     /**
      * Returns the sequence as an independent array.
@@ -244,9 +235,119 @@ public interface ByteSequence {
     IntStream stream();
 
     /**
-     * Provides a new stream that supplies the sequence.
+     * Provides a new channel/stream that supplies the sequence.
+     *
+     * <p>
+     * The default implementation wraps {@link #buffer()}. The implementation is
+     * thread safe as long as the underlying source is, and although it needs no
+     * closing actually, it prohibits using after closing.
      *
      * @return a new stream providing the content
      */
-    InputStream inputStream();
+    default ByteSequenceReader reader() {
+        return new DefaultByteSequenceReader(buffer());
+    }
+}
+
+/**
+ * The default implementation of {@link ByteSequenceReader}.
+ */
+final class DefaultByteSequenceReader extends ByteSequenceReader {
+
+    /** Buffer with the data. */
+    private final ByteBuffer buffer;
+
+    /**
+     * @param storage
+     *            the source of the data. It must not be {@code null}.
+     *
+     */
+    public DefaultByteSequenceReader(ByteBuffer storage) {
+        buffer = Objects.requireNonNull(storage);
+        buffer.mark();
+    }
+
+    /**
+     * @see java.nio.channels.ReadableByteChannel#read(java.nio.ByteBuffer)
+     */
+    public synchronized int read(ByteBuffer dst) throws IOException {
+        final int remaining = buffer.remaining();
+        if (remaining == 0) { // End of the stream
+            return dst.hasRemaining() ? -1 : 0;
+        }
+
+        final int limit = buffer.limit();
+        final int length = Math.min(remaining, dst.remaining());
+
+        try {
+            buffer.limit(length);
+            dst.put(buffer);
+        } finally {
+            buffer.limit(limit);
+        }
+
+        return length;
+    }
+
+    /**
+     * @see java.io.InputStream#read()
+     */
+    @Override
+    public synchronized int read() throws IOException {
+        if (buffer.hasRemaining()) {
+            return buffer.get();
+        }
+
+        return -1;
+    }
+
+    /**
+     * @see java.io.InputStream#read(byte[], int, int)
+     */
+    @Override
+    public synchronized int read(byte[] b, int off, int len) throws IOException {
+        final int result = Math.min(buffer.remaining(), len);
+        buffer.get(b, off, result);
+        return result;
+    }
+
+    /**
+     * @see net.yetamine.lang.containers.ByteSequenceReader#available()
+     */
+    @Override
+    public synchronized int available() {
+        return buffer.remaining();
+    }
+
+    /**
+     * @see net.yetamine.lang.containers.ByteSequenceReader#mark(int)
+     */
+    @Override
+    public synchronized void mark(int readlimit) {
+        if (buffer != null) {
+            buffer.mark();
+        }
+    }
+
+    /**
+     * @see net.yetamine.lang.containers.ByteSequenceReader#skip(long)
+     */
+    @Override
+    public synchronized long skip(long n) {
+        if (n <= 0) {
+            return 0;
+        }
+
+        final int result = Math.min((int) Math.min(n, Integer.MAX_VALUE), buffer.remaining());
+        buffer.position(buffer.position() + result);
+        return result;
+    }
+
+    /**
+     * @see net.yetamine.lang.containers.ByteSequenceReader#reset()
+     */
+    @Override
+    public synchronized void reset() {
+        buffer.reset();
+    }
 }

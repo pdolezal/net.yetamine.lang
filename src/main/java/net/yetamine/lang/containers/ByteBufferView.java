@@ -20,83 +20,41 @@ import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.util.stream.IntStream;
 
+import net.yetamine.lang.Throwables;
+
 /**
  * An implementation of {@link ByteSequence} that provides a read-only view on a
  * byte array, but leaving the original reference to the array to the caller,
  * hence the content could be modified externally.
  */
-public final class ByteArrayView implements ByteSequence {
+public final class ByteBufferView implements ByteSequence {
 
-    /** Data of the object. */
-    private final byte[] array;
-    /** Origin of the view. */
-    private final int origin;
-    /** Length of the view. */
-    private final int length;
-    /** Cached byte buffer. */
+    /** Source byte buffer. */
     private ByteBuffer buffer;
 
     /**
      * Creates a new instance.
      *
-     * @param data
-     *            the array to view. It must not be {@code null}.
-     * @param from
-     *            the start index, inclusive
-     * @param count
-     *            the number of array elements to view. It must be positive.
+     * @param source
+     *            the source buffer. It must not be {@code null} and it may not
+     *            be empty.
      */
-    private ByteArrayView(byte[] data, int from, int count) {
-        array = data;
-        origin = from;
-        length = count;
-
-        assert (length > 0);
+    private ByteBufferView(ByteBuffer source) {
+        assert (source.remaining() > 0);
+        buffer = source;
     }
 
     /**
      * Creates a new instance.
      *
      * @param data
-     *            the array to view. It must not be {@code null}.
+     *            the buffer to view. It must not be {@code null}.
      *
      * @return the new instance
      */
-    public static ByteSequence of(byte... data) {
-        return (data.length == 0) ? ByteSequence.empty() : new ByteArrayView(data, 0, data.length);
-    }
-
-    /**
-     * Creates a new instance.
-     *
-     * @param data
-     *            the data to view, using just lower 8 bits, ignoring the
-     *            others. It must not be {@code null}.
-     *
-     * @return the new instance
-     */
-    public static ByteSequence of(int... data) {
-        return ByteContainer.of(data);
-    }
-
-    /**
-     * Creates a new instance.
-     *
-     * @param data
-     *            the array to view. It must not be {@code null}.
-     * @param from
-     *            the starting offset of the view (inclusive)
-     * @param to
-     *            the ending offset of the view (exclusive)
-     *
-     * @return the new instance
-     *
-     * @throws IndexOutOfBoundsException
-     *             if an offset is out of the array's bounds
-     */
-    public static ByteSequence of(byte[] data, int from, int to) {
-        final int length = ByteSequences.length(from, to, data.length);
-        return (length == 0) ? ByteSequence.empty() : new ByteArrayView(data, from, length);
+    public static ByteSequence of(ByteBuffer data) {
+        final ByteBuffer buffer = data.slice();
+        return buffer.hasRemaining() ? new ByteBufferView(buffer) : ByteSequence.empty();
     }
 
     /**
@@ -127,37 +85,37 @@ public final class ByteArrayView implements ByteSequence {
      * @see net.yetamine.lang.containers.ByteSequence#length()
      */
     public int length() {
-        return length;
+        return buffer.remaining();
     }
 
     /**
      * @see net.yetamine.lang.containers.ByteSequence#valueAt(int)
      */
     public byte valueAt(int index) {
-        return array[origin + ByteSequences.index(index, (0 <= index) && (index < length))];
+        return buffer.get(index);
     }
 
     /**
      * @see net.yetamine.lang.containers.ByteSequence#copy(int, int)
      */
     public ByteContainer copy(int from, int to) {
-        return ByteContainer.of(array, origin + from, origin + to);
+        return ByteContainer.of(buffer(from, to));
     }
 
     /**
      * @see net.yetamine.lang.containers.ByteSequence#view(int, int)
      */
     public ByteSequence view(int from, int to) {
-        final int range = ByteSequences.length(from, to, length);
-        return (range == 0) ? ByteSequence.empty() : new ByteArrayView(array, origin + from, range);
+        return (from == to) ? ByteSequence.empty() : of(buffer(from, to));
     }
 
     /**
      * @see net.yetamine.lang.containers.ByteSequence#array()
      */
     public byte[] array() {
+        final int length = length();
         final byte[] result = new byte[length];
-        System.arraycopy(array, origin, result, 0, length);
+        buffer.duplicate().get(result);
         return result;
     }
 
@@ -165,14 +123,15 @@ public final class ByteArrayView implements ByteSequence {
      * @see net.yetamine.lang.containers.ByteSequence#array(int, int)
      */
     public byte[] array(int from, int to) {
-        final int range = ByteSequences.length(from, to, length);
+        final int range = ByteSequences.length(from, to, length());
 
         if (range == 0) {
             return ByteSequence.empty().array();
         }
 
+        final ByteBuffer slice = buffer(from, to);
         final byte[] result = new byte[range];
-        System.arraycopy(array, origin, result, 0, range);
+        slice.get(result);
         return result;
     }
 
@@ -180,27 +139,46 @@ public final class ByteArrayView implements ByteSequence {
      * @see net.yetamine.lang.containers.ByteSequence#string(java.nio.charset.Charset)
      */
     public String string(Charset encoding) {
-        return new String(array, origin, length, encoding);
+        return encoding.decode(buffer()).toString();
     }
 
     /**
      * @see net.yetamine.lang.containers.ByteSequence#buffer()
      */
     public ByteBuffer buffer() {
-        ByteBuffer result = buffer;
-
-        if (result == null) {
-            result = ByteBuffer.wrap(array, origin, length).slice();
-            buffer = result;
-        }
-
-        return result.asReadOnlyBuffer();
+        return buffer.asReadOnlyBuffer();
     }
 
     /**
      * @see net.yetamine.lang.containers.ByteSequence#stream()
      */
     public IntStream stream() {
-        return IntStream.range(origin, origin + length).map(i -> array[i]);
+        return IntStream.range(0, length()).map(this::valueAt);
+    }
+
+    /**
+     * Returns a buffer duplicate with position and limit set according to the
+     * given arguments.
+     *
+     * @param from
+     *            the start index, inclusive
+     * @param to
+     *            the end index, exclusive
+     *
+     * @return the buffer duplicaet
+     *
+     * @throws IndexOutOfBoundsException
+     *             if an index is out of bounds
+     */
+    private ByteBuffer buffer(int from, int to) {
+        final ByteBuffer result = buffer.duplicate();
+
+        try { // Get the view
+            result.position(from).limit(to);
+        } catch (IllegalArgumentException e) {
+            throw Throwables.init(new IndexOutOfBoundsException(), e);
+        }
+
+        return result;
     }
 }

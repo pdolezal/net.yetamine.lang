@@ -6,6 +6,7 @@ What can be found here:
 
 * Trivalent logic value type `Trivalent`.
 * Simple fix-sized containers like `Tuple2` and `Tuple3`.
+* An unmodifiable view of a byte sequence, `ByteSequence`, to represent binary constants.
 * A mutable `Box` for objects, which is useful for accumulators and for "out" method parameters.
 * Companions for `Optional`: `Choice` and `Single`. `Traversing` is notable as well.
 * Fluent collection interfaces and adapters to make some operations a bit easier.
@@ -244,6 +245,13 @@ final FluentMap<String, ? extends Collection<String>> n = m;
 n.let("sizes").addAll(Arrays.asList("XXS", "XS", "S", "M", "L", "XL", "XXL"));
 n.let("state", (k, l) -> l.add("good"));
 ```
+
+
+### Byte arrays? Why? ###
+
+Arrays are mutable. This becomes a nightmare when an array type appears as a parameter (or a part of). Defensive copying is expensive and often not possible (e.g., when the array is a part of another type that you can't control fully). There are collections for objects, but primitive types keep causing the pain.
+
+Here comes the `ByteSequence`. It can not only carry any binary data, but provides several ways to read them besides its own interface, which is similar to `CharSequence`, hence you can use `byte[]`, `ByteBuffer`, `IntStream` or a mixture of `InputStream` and `ReadableByteChannel`. As data sources, `byte[]` and `ByteBuffer` could be used besides a builder that provides a comfortable mixture of `OutputStream` and `WritableByteChannel`. Enjoy well-defined `equals` too!
 
 
 ### And there is more… ###
