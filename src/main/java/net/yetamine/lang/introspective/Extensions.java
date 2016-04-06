@@ -233,6 +233,21 @@ public final class Extensions {
     }
 
     /**
+     * Tests if the extension is known.
+     *
+     * <p>
+     * This method is a shortcut for {@code known().contains(extension)}.
+     *
+     * @param extension
+     *            the extension to check
+     *
+     * @return {@code true} if the extension is known
+     */
+    public boolean contains(Object extension) {
+        return known.contains(extension);
+    }
+
+    /**
      * Tests if the given extension is not present and runs the given action if
      * the extension is present.
      *
