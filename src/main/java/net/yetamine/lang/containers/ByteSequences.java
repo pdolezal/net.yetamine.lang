@@ -35,7 +35,7 @@ public final class ByteSequences {
      * @return {@code true} iff the given object argument is equal to the given
      *         instance
      */
-    static boolean equals(ByteSequence that, Object obj) {
+    public static boolean equals(ByteSequence that, Object obj) {
         if (that == obj) {
             return true;
         }
@@ -69,7 +69,7 @@ public final class ByteSequences {
      *
      * @return the hash code
      */
-    static int hashCode(ByteSequence that) {
+    public static int hashCode(ByteSequence that) {
         int result = 0;
 
         final int length = that.length();
