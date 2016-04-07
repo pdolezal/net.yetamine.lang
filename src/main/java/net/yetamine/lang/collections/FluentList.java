@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.NoSuchElementException;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Spliterator;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -148,6 +149,128 @@ public interface FluentList<E> extends FluentCollection<E>, List<E> {
     }
 
     /**
+     * Returns the element in the list at the given index as an {@link Optional}
+     * instance.
+     *
+     * <p>
+     * This method is a shortcut for {@code Optional.ofNullable(get(index))},
+     * including all the implications and requirements.
+     *
+     * @param index
+     *            the index of the element
+     *
+     * @return the element as an {@link Optional} instance
+     */
+    default Optional<E> see(int index) {
+        return Optional.ofNullable(get(index));
+    }
+
+    /**
+     * Returns the first element in the list as an {@link Optional} instance.
+     *
+     * <p>
+     * This method is a shortcut for {@code Optional.ofNullable(head())}.
+     *
+     * @return the element as an {@link Optional} instance
+     *
+     * @throws NoSuchElementException
+     *             if the list is empty
+     */
+    default Optional<E> seeHead() {
+        return Optional.ofNullable(head());
+    }
+
+    /**
+     * Returns the last element in the list as an {@link Optional} instance.
+     *
+     * <p>
+     * This method is a shortcut for {@code Optional.ofNullable(tail())}.
+     *
+     * @return the element as an {@link Optional} instance
+     *
+     * @throws NoSuchElementException
+     *             if the list is empty
+     */
+    default Optional<E> seeTail() {
+        return Optional.ofNullable(tail());
+    }
+
+    /**
+     * Returns the first element in the list as an {@link Optional} instance,
+     * while it returns an empty {@code Optional} if the list is empty.
+     *
+     * @return an {@link Optional} instance with the element (or empty if the
+     *         element actually is {@code null}), or an empty instance if the
+     *         list is empty
+     */
+    default Optional<E> peekAtHead() {
+        if (isEmpty()) { // Preliminary check to avoid unnecessary exceptions
+            return Optional.empty();
+        }
+
+        try {
+            return Optional.ofNullable(get(0));
+        } catch (IndexOutOfBoundsException e) {
+            // May happen despite of the preliminary check if a concurrent
+            // modification has occurred meanwhile
+            return Optional.empty();
+        }
+    }
+
+    /**
+     * Returns the last element in the list as an {@link Optional} instance,
+     * while it returns an empty {@code Optional} if the list is empty.
+     *
+     * @return an {@link Optional} instance with the element (or empty if the
+     *         element actually is {@code null}), or an empty instance if the
+     *         list is empty
+     */
+    default Optional<E> peekAtTail() {
+        for (int size; (size = size()) != 0;) {
+            try {
+                return Optional.ofNullable(get(size - 1));
+            } catch (IndexOutOfBoundsException e) {
+                // Try again: a concurrent modification occurred probably
+            }
+        }
+
+        return Optional.empty();
+    }
+
+    /**
+     * @see net.yetamine.lang.collections.FluentCollection#peekAtSome()
+     */
+    default Optional<E> peekAtSome() {
+        return peekAtHead();
+    }
+
+    /**
+     * Returns the element in the list at the given index as an {@link Optional}
+     * instance, while it returns an empty {@code Optional} if the index is out
+     * of bounds.
+     *
+     * @param index
+     *            the index of the element
+     *
+     * @return an {@link Optional} instance with the element (or empty if the
+     *         element actually is {@code null}), or an empty instance if the
+     *         index is invalid
+     */
+    default Optional<E> peekAt(int index) {
+        if ((index < 0) || (size() < index)) { // Preliminary check to avoid unnecessary exceptions
+            return Optional.empty();
+        }
+
+        try {
+            return see(index);
+        } catch (IndexOutOfBoundsException e) {
+            // May happen despite of the preliminary check if a concurrent
+            // modification has occurred meanwhile
+            return Optional.empty();
+        }
+    }
+
+    /**
      * Returns the first element in the list.
      *
      * @return the first element in the list
@@ -157,8 +280,14 @@ public interface FluentList<E> extends FluentCollection<E>, List<E> {
      */
     default E head() {
         try {
+            if (isEmpty()) { // Preliminary check to avoid unnecessary exceptions
+                throw new NoSuchElementException();
+            }
+
             return get(0);
         } catch (IndexOutOfBoundsException e) {
+            // May happen despite of the preliminary check if a concurrent
+            // modification has occurred meanwhile
             throw Throwables.init(new NoSuchElementException(), e);
         }
     }
@@ -183,11 +312,18 @@ public interface FluentList<E> extends FluentCollection<E>, List<E> {
             try {
                 return get(size - 1);
             } catch (IndexOutOfBoundsException e) {
-                // Try again
+                // Try again: a concurrent modification occurred probably
             }
         }
 
         throw new NoSuchElementException();
+    }
+
+    /**
+     * @see net.yetamine.lang.collections.FluentCollection#some()
+     */
+    default E some() {
+        return head();
     }
 
     /**

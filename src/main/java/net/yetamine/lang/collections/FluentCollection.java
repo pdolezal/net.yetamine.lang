@@ -20,7 +20,9 @@ import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Spliterator;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -99,6 +101,40 @@ public interface FluentCollection<E> extends Collection<E> {
     }
 
     // Fluent extensions for Collection
+
+    /**
+     * Returns an element of the collection.
+     *
+     * <p>
+     * The default implementation returns the first element provided by
+     * {@link #iterator()}, therefore the element should be the first element
+     * for ordered collections, but it may be any random element othewise. An
+     * alternative implementation should be consistent with this implementation
+     * if possible.
+     *
+     * @return an element of the collection
+     *
+     * @throws NoSuchElementException
+     *             if the collection is empty
+     */
+    default E some() {
+        return iterator().next();
+    }
+
+    /**
+     * Returns an element of the collection.
+     *
+     * <p>
+     * The implementation should be consistent with {@link #some()}, providing
+     * the same element.
+     *
+     * @return an element of the collection, or an empty {@link Optional} if the
+     *         element is {@code null} or the collection is empty
+     */
+    default Optional<E> peekAtSome() {
+        final Iterator<E> it = iterator();
+        return it.hasNext() ? Optional.ofNullable(it.next()) : Optional.empty();
+    }
 
     /**
      * Adds the given element.
