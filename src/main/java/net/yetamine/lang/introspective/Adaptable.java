@@ -59,4 +59,21 @@ public interface Adaptable {
     static <T> Optional<T> adapt(Class<? extends T> type, Adaptable o) {
         return (o != null) ? o.adapt(type) : Optional.empty();
     }
+
+    /**
+     * Adapts an instance to the given type if possible.
+     *
+     * @param <T>
+     *            the desired type
+     * @param type
+     *            the desired type. It must not be {@code null}.
+     * @param o
+     *            the instance to adapt
+     *
+     * @return the instance adapted to the given type, or an empty container if
+     *         not possible or the instance argument is {@code null}
+     */
+    static <T> Optional<T> adapt(Class<? extends T> type, Object o) {
+        return (o instanceof Adaptable) ? ((Adaptable) o).adapt(type) : Optional.empty();
+    }
 }
