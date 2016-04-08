@@ -35,9 +35,9 @@ public interface Extension {
      *
      * <p>
      * Implementations of this interface are required to provide a sensible
-     * definition of this method, so that the type can be used as an extension
-     * declarator. Of course, the {@link #hashCode()} method needs appropriate
-     * implementation as well.
+     * definition of this method, so that the type could be used as an extension
+     * declarator. Of course, {@link #hashCode()} implementation must provide an
+     * acceptable behavior then as well.
      *
      * @see java.lang.Object#equals(java.lang.Object)
      */
