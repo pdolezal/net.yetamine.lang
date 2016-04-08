@@ -10,11 +10,11 @@ What can be found here:
 * A mutable `Box` for objects, which is useful for accumulators and for "out" method parameters.
 * Companions for `Optional`: `Choice` and `Single`. `Traversing` is notable as well.
 * Fluent collection interfaces and adapters to make some operations a bit easier.
-* A pair of introspective interfaces (see `Adaptable` and `Introspection`).
 * Support for adapting arbitrary objects for use in try-with-resources.
 * Support for serializable singleton and multiton implementations.
 * `Cloneable` support: no more fiddling with reflection.
 * Some minor utilities for using functional interfaces.
+* Several introspective utilities.
 * Several formatting utilities.
 
 
@@ -206,7 +206,7 @@ boolean greet(String name) {
 
 ### Is Java Collections Framework fluent? ###
 
-When a title is a question, the answer usually is *No!* This is the case too. Everybody probably knows how verbose task is filling a constant `Map` with a bunch of constant values. It could have been much easier if the interface would be more fluent. Fortunately, there is a way now:
+When a title is a question, the answer usually is "No!" This is the case too. Everybody probably knows how verbose task is filling a constant `Map` with a bunch of constant values. It could have been much easier if the interface would be more fluent. Fortunately, there is a way now:
 
 ```{java}
 static final Map<TimeUnit, String> UNITS = FluentMap.adapt(new EnumMap<TimeUnit, String>(TimeUnit.class))
@@ -252,6 +252,27 @@ n.let("state", (k, l) -> l.add("good"));
 Arrays are mutable. This becomes a nightmare when an array type appears as a parameter (or a part of). Defensive copying is expensive and often not possible (e.g., when the array is a part of another type that you can't control fully). There are collections for objects, but primitive types keep causing the pain.
 
 Here comes the `ByteSequence`. It can not only carry any binary data, but provides several ways to read them besides its own interface, which is similar to `CharSequence`, hence you can use `byte[]`, `ByteBuffer`, `IntStream` or a mixture of `InputStream` and `ReadableByteChannel`. As data sources, `byte[]` and `ByteBuffer` could be used besides a builder that provides a comfortable mixture of `OutputStream` and `WritableByteChannel`. Enjoy well-defined `equals` too!
+
+
+### Making contracts more flexible ###
+
+Having too few contract conditions for an interface is bad: clients of the interface don't know what might happen and implementations must be more cautious as well and perhaps employ defensive copying and other measures to avoid legal, although not very clean behavior of their callers. Having too many contract conditions brings problems as well: it could restrict implementations too much, so that some desired functionality can't be implemented with sufficient efficiency or at all.
+
+Here comes `Extensible`: a mixin interface that allows an implementation to declare some extensions of its contract that are optional or not defined by the basic contract. Extension-aware clients may then leverage the extension to employ a more efficient use of the interface. Note that marker interfaces, like `RandomAccess`, could be used as well, but they have several disadvantages – for instance, the extension support can't vary and depends on a particular type, which is especially tricky when using wrappers. The best part comes at the end: you can use `Extensions` with any object. Here is an example:
+
+```{java}
+final Consumer<byte[]> operation = …;
+
+// The contract does not prevent the operand from being modified. A careful 
+// caller therefore must pass a copy of the data that may not be modified. But
+// if the implementation declares, with an extension, that it does not modify
+// the operand, the defensive copying can be avoided. A single expression can
+// deal basically with both cases, choosing the appropriate variant:
+
+if (Extensions.of(operation).notPresent(OperationExtension.SAFE, () -> operation.accept(data))) {
+    operation.accept(data.clone());
+});
+```
 
 
 ### And there is more… ###
