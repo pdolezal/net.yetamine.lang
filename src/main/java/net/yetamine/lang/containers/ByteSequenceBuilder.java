@@ -75,6 +75,18 @@ public final class ByteSequenceBuilder extends ByteArrayOutputStream implements 
     }
 
     /**
+     * Appends the given sequence.
+     *
+     * @param seq
+     *            the sequence to append. It must not be {@code null}.
+     *
+     * @return this instance
+     */
+    public ByteSequenceBuilder append(ByteSequence seq) {
+        return append(seq.buffer());
+    }
+
+    /**
      * Appends the given buffer like {@link #write(ByteBuffer)} does.
      *
      * @param src
