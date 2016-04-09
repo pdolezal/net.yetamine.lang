@@ -29,7 +29,7 @@ import java.util.stream.Stream;
  *            the type of the element
  */
 @FunctionalInterface
-public interface Source<T> extends Supplier<T> {
+public interface Producer<T> extends Supplier<T> {
 
     /**
      * Returns the result of the given function applied on the current value of
@@ -65,6 +65,6 @@ public interface Source<T> extends Supplier<T> {
      * @return a stream using this instance as the element source
      */
     default Stream<T> stream() {
-        return Stream.of(this).map(Source::get);
+        return Stream.of(this).map(Producer::get);
     }
 }

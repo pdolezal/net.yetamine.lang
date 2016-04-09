@@ -24,7 +24,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
-import net.yetamine.lang.functional.Source;
+import net.yetamine.lang.functional.Producer;
 
 /**
  * Represents a pointer to an element that allows to get and modify the element.
@@ -36,7 +36,7 @@ import net.yetamine.lang.functional.Source;
  * @param <T>
  *            the type of the element
  */
-public interface Pointer<T> extends Consumer<T>, Source<T> {
+public interface Pointer<T> extends Consumer<T>, Producer<T> {
 
     /**
      * Creates an instance that delegates {@link #get()} to the given
