@@ -23,6 +23,8 @@ import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+import net.yetamine.lang.functional.Acceptor;
+
 /**
  * A mutable container for holding a single value.
  *
@@ -89,6 +91,9 @@ public final class Box<T> implements Serializable, Pointer<T> {
      * the first non-{@code null} argument as a non-empty {@code Optional}, all
      * subsequent attempts to store anything are ignored as well.
      *
+     * <p>
+     * This method provides no concurrency guarantees.
+     *
      * @param <T>
      *            the type of the stored value
      * @param box
@@ -96,7 +101,7 @@ public final class Box<T> implements Serializable, Pointer<T> {
      *
      * @return a consumer storing the first non-{@code null} value only
      */
-    public static <T> Consumer<T> acceptingOnce(Box<Optional<T>> box) {
+    public static <T> Acceptor<T> acceptingOnce(Box<Optional<T>> box) {
         box.accept(Optional.empty());
 
         return o -> {
@@ -165,6 +170,17 @@ public final class Box<T> implements Serializable, Pointer<T> {
     public Box<T> set(T t) {
         value = t;
         return this;
+    }
+
+    /**
+     * Sets the element value to {@code null} and returns its original value.
+     *
+     * @return the original value
+     */
+    public T clear() {
+        final T result = value;
+        value = null;
+        return result;
     }
 
     /**

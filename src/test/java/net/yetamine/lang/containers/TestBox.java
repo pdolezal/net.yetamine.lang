@@ -84,6 +84,21 @@ public final class TestBox {
     }
 
     /**
+     * Tests {@link Box#clear()}.
+     */
+    @Test
+    public void testClear() {
+        final Box<?> b1 = Box.empty();
+        Assert.assertNull(b1.clear());
+        Assert.assertNull(b1.clear());
+
+        final Object o = new Object();
+        final Box<?> b2 = Box.of(o);
+        Assert.assertSame(b2.clear(), o);
+        Assert.assertNull(b2.clear());
+    }
+
+    /**
      * Tests {@link Box#equals(Object)} and {@link Box#hashCode()}.
      */
     @Test
