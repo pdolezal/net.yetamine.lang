@@ -34,7 +34,6 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import net.yetamine.lang.Trivalent;
-import net.yetamine.lang.containers.Box;
 import net.yetamine.lang.formatting.Quoting;
 
 /**
@@ -528,7 +527,7 @@ public final class Single<T> implements Supplier<T> {
          * @see Collector#accumulator()
          */
         public BiConsumer<Box<Single<T>>, T> accumulator() {
-            return (box, value) -> box.accept(accumulatorUpdate.apply(box.get(), value));
+            return (box, value) -> box.set(accumulatorUpdate.apply(box.get(), value));
         }
 
         /**
@@ -611,6 +610,83 @@ public final class Single<T> implements Supplier<T> {
          */
         public Function<Box<Single<T>>, Single<T>> finisher() {
             return Box::get;
+        }
+    }
+
+    /**
+     * A mutable container for holding a single value.
+     *
+     * <p>
+     * This implementation is a simplified version of the public version of the
+     * class. Although simplification makes it a bit more efficient, the reason
+     * for having a special implementation actually is avoiding the circular
+     * dependencies between the packages.
+     *
+     * @param <T>
+     *            the type of the stored value
+     *
+     * @see net.yetamine.lang.containers.Box
+     */
+    private static final class Box<T> {
+
+        /** Boxed value. */
+        private T value;
+
+        /**
+         * Creates a new instance.
+         *
+         * @param initial
+         *            the value to store
+         */
+        private Box(T initial) {
+            value = initial;
+        }
+
+        /**
+         * Creates a new instance.
+         *
+         * @param <T>
+         *            the type of the stored value
+         * @param value
+         *            the value to store
+         *
+         * @return the new instance
+         */
+        public static <T> Box<T> of(T value) {
+            return new Box<>(value);
+        }
+
+        /**
+         * Returns the value.
+         *
+         * @return the value
+         */
+        public T get() {
+            return value;
+        }
+
+        /**
+         * Sets the value
+         *
+         * @param t
+         *            the value to set
+         */
+        public void set(T t) {
+            value = t;
+        }
+
+        /**
+         * Computes the new value, updates this instance and returns it.
+         *
+         * @param mapping
+         *            the value mapping function to apply. It must not be
+         *            {@code null}.
+         *
+         * @return this instance
+         */
+        public Box<T> replace(Function<? super T, ? extends T> mapping) {
+            value = mapping.apply(value);
+            return this;
         }
     }
 }
