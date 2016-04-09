@@ -184,15 +184,15 @@ public interface FluentList<E> extends FluentCollection<E>, List<E> {
      * Returns the last element in the list as an {@link Optional} instance.
      *
      * <p>
-     * This method is a shortcut for {@code Optional.ofNullable(tail())}.
+     * This method is a shortcut for {@code Optional.ofNullable(last())}.
      *
      * @return the element as an {@link Optional} instance
      *
      * @throws NoSuchElementException
      *             if the list is empty
      */
-    default Optional<E> seeTail() {
-        return Optional.ofNullable(tail());
+    default Optional<E> seelast() {
+        return Optional.ofNullable(last());
     }
 
     /**
@@ -225,7 +225,7 @@ public interface FluentList<E> extends FluentCollection<E>, List<E> {
      *         element actually is {@code null}), or an empty instance if the
      *         list is empty
      */
-    default Optional<E> peekAtTail() {
+    default Optional<E> peekAtlast() {
         for (int size; (size = size()) != 0;) {
             try {
                 return Optional.ofNullable(get(size - 1));
@@ -307,7 +307,7 @@ public interface FluentList<E> extends FluentCollection<E>, List<E> {
      * @throws NoSuchElementException
      *             if the list is empty
      */
-    default E tail() {
+    default E last() {
         for (int size; (size = size()) != 0;) {
             try {
                 return get(size - 1);

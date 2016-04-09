@@ -51,7 +51,7 @@ public class TestListCursor {
         c.ifValid(o -> Assert.fail());
 
         Assert.assertEquals(c.head().index(), 0);
-        Assert.assertEquals(c.tail().index(), -1);
+        Assert.assertEquals(c.last().index(), -1);
         Assert.assertEquals(c.back().index(), -2);
 
         Assert.assertFalse(c.isValid());
@@ -64,11 +64,11 @@ public class TestListCursor {
         Assert.assertEquals(c.seek(5).index(), 5);
 
         Assert.expectThrows(IndexOutOfBoundsException.class, () -> c.head().get());
-        Assert.expectThrows(IndexOutOfBoundsException.class, () -> c.tail().accept(1));
+        Assert.expectThrows(IndexOutOfBoundsException.class, () -> c.last().accept(1));
     }
 
     /**
-     * Tests {@link Cursor#head()} and {@link Cursor#tail()}.
+     * Tests {@link Cursor#head()} and {@link Cursor#last()}.
      */
     @Test
     public void testEnds() {
@@ -78,7 +78,7 @@ public class TestListCursor {
         final Cursor<Integer> c = ListCursor.create(list);
 
         Assert.assertEquals(c.get(), Integer.valueOf(9));
-        Assert.assertSame(c.tail(), c);
+        Assert.assertSame(c.last(), c);
         Assert.assertEquals(c.get(), Integer.valueOf(6));
         Assert.assertSame(c.head(), c);
         Assert.assertEquals(c.get(), Integer.valueOf(9));
@@ -113,7 +113,7 @@ public class TestListCursor {
         final List<Integer> list = new ArrayList<>();
         list.addAll(Arrays.asList(9, 7, 8, 6));
 
-        final Cursor<Integer> c = ListCursor.create(list).tail();
+        final Cursor<Integer> c = ListCursor.create(list).last();
 
         for (int i = list.size(); 0 <= --i;) {
             Assert.assertEquals(c.index(), i);
@@ -174,7 +174,7 @@ public class TestListCursor {
 
         list.add(3);
         Assert.assertEquals(list, Arrays.asList(2, 3));
-        c.tail().accept(4);
+        c.last().accept(4);
         Assert.assertEquals(list, Arrays.asList(2, 4));
     }
 
@@ -210,11 +210,11 @@ public class TestListCursor {
         final List<Integer> list = new ArrayList<>();
         final Cursor<Integer> c = ListCursor.create(list);
 
-        c.tail().add(1);
+        c.last().add(1);
         Assert.assertEquals(list, Arrays.asList(1));
         c.add(2).add(3);
         Assert.assertEquals(list, Arrays.asList(3, 2, 1));
-        c.tail().add(4).head().add(5);
+        c.last().add(4).head().add(5);
         Assert.assertEquals(list, Arrays.asList(3, 5, 2, 1, 4));
 
         list.clear();
@@ -229,11 +229,11 @@ public class TestListCursor {
         final List<Integer> list = new ArrayList<>();
         final Cursor<Integer> c = ListCursor.create(list);
 
-        c.tail().append(1);
+        c.last().append(1);
         Assert.assertEquals(list, Arrays.asList(1));
         c.append(2).append(3);
         Assert.assertEquals(list, Arrays.asList(1, 2, 3));
-        c.tail().append(4).head().append(5).append(6);
+        c.last().append(4).head().append(5).append(6);
         Assert.assertEquals(list, Arrays.asList(1, 5, 6, 2, 3, 4));
 
         list.clear();
@@ -252,10 +252,10 @@ public class TestListCursor {
         Assert.assertEquals(list, Arrays.asList(1));
         c.insert(2).insert(3);
         Assert.assertEquals(list, Arrays.asList(3, 2, 1));
-        c.tail().insert(4).head().insert(5).insert(6);
+        c.last().insert(4).head().insert(5).insert(6);
         Assert.assertEquals(list, Arrays.asList(6, 5, 3, 2, 4, 1));
 
         list.clear();
-        Assert.expectThrows(IndexOutOfBoundsException.class, () -> c.tail().insert(0));
+        Assert.expectThrows(IndexOutOfBoundsException.class, () -> c.last().insert(0));
     }
 }

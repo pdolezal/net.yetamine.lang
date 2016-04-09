@@ -95,7 +95,7 @@ public interface Cursor<E> extends Pointer<E> {
      *
      * @return this instance
      */
-    default Cursor<E> tail() {
+    default Cursor<E> last() {
         return index(limit() - 1);
     }
 
