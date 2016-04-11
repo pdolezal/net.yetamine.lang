@@ -24,13 +24,21 @@ import net.yetamine.lang.Throwables;
 
 /**
  * An implementation of {@link ByteSequence} that provides a read-only view on a
- * byte array, but leaving the original reference to the array to the caller,
- * hence the content could be modified externally.
+ * buffer.
+ *
+ * <p>
+ * The view may refer to mutable data, but it is strongly discouraged, because
+ * the interface provides no locks to ensure atomicity of the changes. However,
+ * if the use of an instance is synchronized externally and {@code view()} is
+ * used for making the instance, the instance may work with non-constant data
+ * with a mild performance penalty for hash code computation.
  */
 public final class ByteBufferView implements ByteSequence {
 
     /** Source byte buffer. */
     private ByteBuffer buffer;
+    /** Cached hash code. */
+    private volatile int hashCode;
 
     /**
      * Creates a new instance.
@@ -45,7 +53,38 @@ public final class ByteBufferView implements ByteSequence {
     }
 
     /**
+     * Creates a new instance that works with a non-constant data.
+     *
+     * @param source
+     *            the source buffer. It must not be {@code null} and it may not
+     *            be empty.
+     * @param overload
+     *            overloading discriminator
+     */
+    private ByteBufferView(ByteBuffer source, Void overload) {
+        this(source);
+        hashCode = Integer.MIN_VALUE;
+    }
+
+    /**
+     * Creates a new instance that may point to non-constant data.
+     *
+     * @param data
+     *            the buffer to view. It must not be {@code null}.
+     *
+     * @return the new instance
+     */
+    public static ByteSequence view(ByteBuffer data) {
+        final ByteBuffer buffer = data.slice();
+        return buffer.hasRemaining() ? new ByteBufferView(buffer, null) : ByteSequence.empty();
+    }
+
+    /**
      * Creates a new instance.
+     *
+     * <p>
+     * Use this method if the source data won't be modified in the future, e.g.,
+     * when passing a dedicated copy of the array.
      *
      * @param data
      *            the buffer to view. It must not be {@code null}.
@@ -78,7 +117,18 @@ public final class ByteBufferView implements ByteSequence {
      */
     @Override
     public int hashCode() {
-        return ByteSequences.hashCode(this);
+        int result = hashCode;
+
+        if (result == Integer.MIN_VALUE) {
+            return ByteSequences.hashCode(this);
+        }
+
+        if (result == 0) {
+            result = ByteSequences.hashCode(this);
+            hashCode = result;
+        }
+
+        return result;
     }
 
     /**

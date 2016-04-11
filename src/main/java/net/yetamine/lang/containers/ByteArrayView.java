@@ -22,8 +22,14 @@ import java.util.stream.IntStream;
 
 /**
  * An implementation of {@link ByteSequence} that provides a read-only view on a
- * byte array, but leaving the original reference to the array to the caller,
- * hence the content could be modified externally.
+ * byte array.
+ *
+ * <p>
+ * The view may refer to mutable data, but it is strongly discouraged, because
+ * the interface provides no locks to ensure atomicity of the changes. However,
+ * if the use of an instance is synchronized externally and {@code view()} is
+ * used for making the instance, the instance may work with non-constant data
+ * with a mild performance penalty for hash code computation.
  */
 public final class ByteArrayView implements ByteSequence {
 
@@ -35,6 +41,8 @@ public final class ByteArrayView implements ByteSequence {
     private final int length;
     /** Cached byte buffer. */
     private ByteBuffer buffer;
+    /** Cached hash code. */
+    private volatile int hashCode;
 
     /**
      * Creates a new instance.
@@ -55,7 +63,73 @@ public final class ByteArrayView implements ByteSequence {
     }
 
     /**
+     * Creates a new instance that works with a non-constant data.
+     *
+     * @param data
+     *            the array to view. It must not be {@code null}.
+     * @param from
+     *            the start index, inclusive
+     * @param count
+     *            the number of array elements to view. It must be positive.
+     * @param overload
+     *            overloading discriminator
+     */
+    private ByteArrayView(byte[] data, int from, int count, Void overload) {
+        this(data, from, count);
+        hashCode = Integer.MIN_VALUE;
+    }
+
+    /**
+     * Creates a new instance that may point to non-constant data.
+     *
+     * @param data
+     *            the buffer to view. It must not be {@code null}.
+     *
+     * @return the new instance
+     */
+    public static ByteSequence view(byte... data) {
+        return (data.length == 0) ? ByteSequence.empty() : new ByteArrayView(data, 0, data.length, null);
+    }
+
+    /**
+     * Creates a new instance that may point to non-constant data.
+     *
+     * @param data
+     *            the array to view. It must not be {@code null}.
+     * @param from
+     *            the starting offset of the view (inclusive)
+     * @param to
+     *            the ending offset of the view (exclusive)
+     *
+     * @return the new instance
+     *
+     * @throws IndexOutOfBoundsException
+     *             if an offset is out of the array's bounds
+     */
+    public static ByteSequence view(byte[] data, int from, int to) {
+        final int length = ByteSequences.length(from, to, data.length);
+        return (length == 0) ? ByteSequence.empty() : new ByteArrayView(data, from, length, null);
+    }
+
+    /**
      * Creates a new instance.
+     *
+     * @param data
+     *            the data to view, using just lower 8 bits, ignoring the
+     *            others. It must not be {@code null}.
+     *
+     * @return the new instance
+     */
+    public static ByteSequence from(int... data) {
+        return ByteContainer.from(data);
+    }
+
+    /**
+     * Creates a new instance.
+     *
+     * <p>
+     * Use this method if the source data won't be modified in the future, e.g.,
+     * when passing a dedicated copy of the array.
      *
      * @param data
      *            the array to view. It must not be {@code null}.
@@ -69,18 +143,9 @@ public final class ByteArrayView implements ByteSequence {
     /**
      * Creates a new instance.
      *
-     * @param data
-     *            the data to view, using just lower 8 bits, ignoring the
-     *            others. It must not be {@code null}.
-     *
-     * @return the new instance
-     */
-    public static ByteSequence of(int... data) {
-        return ByteContainer.of(data);
-    }
-
-    /**
-     * Creates a new instance.
+     * <p>
+     * Use this method if the source data won't be modified in the future, e.g.,
+     * when working with a constant private copy of an array.
      *
      * @param data
      *            the array to view. It must not be {@code null}.
@@ -120,7 +185,18 @@ public final class ByteArrayView implements ByteSequence {
      */
     @Override
     public int hashCode() {
-        return ByteSequences.hashCode(this);
+        int result = hashCode;
+
+        if (result == Integer.MIN_VALUE) {
+            return ByteSequences.hashCode(this);
+        }
+
+        if (result == 0) {
+            result = ByteSequences.hashCode(this);
+            hashCode = result;
+        }
+
+        return result;
     }
 
     /**

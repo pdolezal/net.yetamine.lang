@@ -164,8 +164,8 @@ public final class TestByteSequence {
     @Test
     public void testToString() {
         Assert.assertEquals(ByteSequence.empty().toString(), "");
-        Assert.assertEquals(ByteArrayView.of(Byte.MAX_VALUE, Byte.MIN_VALUE, -1).toString(), "7f80ff");
-        Assert.assertEquals(ByteArrayView.of(10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0).toString(), "0a09080706050403020100");
+        Assert.assertEquals(ByteArrayView.from(Byte.MAX_VALUE, Byte.MIN_VALUE, -1).toString(), "7f80ff");
+        Assert.assertEquals(ByteArrayView.from(10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0).toString(), "0a09080706050403020100");
     }
 
     /**
@@ -237,5 +237,36 @@ public final class TestByteSequence {
             }
             // @formatter:on
         };
+    }
+
+    /**
+     * Tests views on non-constant data.
+     */
+    @Test
+    public void testNonConstant() {
+        final byte[] array = new byte[] { 10, 9, 8, 7, 6, 5, 4, 3, 2, 1  };
+
+        final ByteSequence arrayCopy = ByteContainer.of(array);
+        final ByteSequence arrayView = ByteArrayView.view(array);
+        final ByteSequence bufferView = ByteBufferView.view(ByteBuffer.wrap(array));
+
+        Assert.assertEquals(arrayView, arrayCopy);
+        Assert.assertEquals(arrayView.hashCode(), arrayCopy.hashCode());
+
+        Assert.assertEquals(bufferView, arrayCopy);
+        Assert.assertEquals(bufferView.hashCode(), arrayCopy.hashCode());
+
+        Assert.assertEquals(bufferView, arrayView);
+        Assert.assertEquals(bufferView.hashCode(), arrayView.hashCode());
+
+        ++array[0]; // Modify the array
+        Assert.assertNotEquals(arrayView, arrayCopy);
+        Assert.assertNotEquals(arrayView.hashCode(), arrayCopy.hashCode());
+
+        Assert.assertNotEquals(bufferView, arrayCopy);
+        Assert.assertNotEquals(bufferView.hashCode(), arrayCopy.hashCode());
+
+        Assert.assertEquals(bufferView, arrayView);
+        Assert.assertEquals(bufferView.hashCode(), arrayView.hashCode());
     }
 }

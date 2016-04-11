@@ -33,7 +33,7 @@ public final class ByteContainer implements ByteSequence {
     private static final ByteContainer EMPTY = new ByteContainer(new byte[0]);
 
     /** Data storage. */
-    final byte[] array;
+    private final byte[] array;
     /** Cached byte buffer. */
     private ByteBuffer buffer;
     /** Cached hash code. */
@@ -86,7 +86,7 @@ public final class ByteContainer implements ByteSequence {
      *
      * @return the new instance
      */
-    public static ByteContainer of(int... data) {
+    public static ByteContainer from(int... data) {
         if (data.length == 0) {
             return empty();
         }
