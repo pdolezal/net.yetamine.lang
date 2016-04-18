@@ -30,7 +30,7 @@ import net.yetamine.lang.containers.Box;
 /**
  * Tests {@link ListCursor}.
  */
-public class TestListCursor {
+public final class TestListCursor {
 
     /**
      * Tests core functionality of an empty cursor.
