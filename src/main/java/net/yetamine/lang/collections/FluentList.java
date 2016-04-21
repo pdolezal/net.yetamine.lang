@@ -191,7 +191,7 @@ public interface FluentList<E> extends FluentCollection<E>, List<E> {
      * @throws NoSuchElementException
      *             if the list is empty
      */
-    default Optional<E> seelast() {
+    default Optional<E> seeLast() {
         return Optional.ofNullable(last());
     }
 
@@ -225,7 +225,7 @@ public interface FluentList<E> extends FluentCollection<E>, List<E> {
      *         element actually is {@code null}), or an empty instance if the
      *         list is empty
      */
-    default Optional<E> peekAtlast() {
+    default Optional<E> peekAtLast() {
         for (int size; (size = size()) != 0;) {
             try {
                 return Optional.ofNullable(get(size - 1));
