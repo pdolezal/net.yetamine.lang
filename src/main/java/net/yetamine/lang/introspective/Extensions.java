@@ -19,11 +19,12 @@ package net.yetamine.lang.introspective;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import net.yetamine.lang.collections.Snapshots;
 
 /**
  * Declares additional abilities and traits extending the basic contract of an
@@ -139,7 +140,7 @@ public final class Extensions {
      * @return the new instance
      */
     public static Extensions declare(Collection<?> extensions) {
-        return using(new HashSet<>(extensions));
+        return new Extensions(Snapshots.set(extensions));
     }
 
     /**
@@ -169,7 +170,8 @@ public final class Extensions {
      * @return the new instance
      */
     public static Extensions using(Set<?> extensions) {
-        return new Extensions(Collections.unmodifiableSet(extensions));
+        final Set<?> set = Collections.unmodifiableSet(extensions);
+        return new Extensions((set.getClass() == extensions.getClass()) ? extensions : set);
     }
 
     /**
