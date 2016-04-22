@@ -76,7 +76,7 @@ Java is hostile towards tuples and therefore alternative solutions, often better
 // Usual construction pattern for such classes
 final Tuple2<String, String> t2 = Tuple2.of("red", "rot");
 // And for friends of static imports a more concise variant (here for Tuple3)
-final Tuple2<String, String, Locale> t3 = tuple3("red", "rot", Locale.GERMAN);
+final Tuple3<String, String, Locale> t3 = tuple3("red", "rot", Locale.GERMAN);
 ```
 
 But let's see something more appealing. What about zipping?
@@ -245,6 +245,11 @@ final FluentMap<String, ? extends Collection<String>> n = m;
 n.let("sizes").addAll(Arrays.asList("XXS", "XS", "S", "M", "L", "XL", "XXL"));
 n.let("state", (k, l) -> l.add("good"));
 ```
+
+
+### Making collection snapshots ###
+
+It is quite common to see code like `Collections.unmodifiableSet(new HashSet<>(source))` to make a copy of a collection, so that it could be stored for an object's needs and perhaps even passed elsewhere, avoiding the danger of unwanted modification. Great, but what if the source is empty? This code snippet makes always a couple of instances: the value holder and the unmodifiable wrapper, although for empty collections a singleton is available. So, `Snapshots.collection(source)` can be used instead; this method and its friends for other collections return an unmodifiable copy of the source, but take care not to create unnecessary instances or wrappers.
 
 
 ### Byte arrays? Why? ###
