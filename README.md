@@ -299,7 +299,7 @@ For using the built library is needed:
 
 ## Acknowledgments ##
 
-A special thanks belongs to [Atos](http://atos.net/). The development of this library would be much slower without their support which provided a great opportunity to verify the library practically and improve it according to the experience.
+A special thank belongs to [Atos](http://atos.net/). The development of this library would be much slower without their support which provided a great opportunity to verify the library practically and improve it according to the experience.
 
 
 ## Licensing ##
