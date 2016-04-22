@@ -37,7 +37,7 @@ import java.util.stream.Stream;
  * @param <E>
  *            the type of values
  */
-public interface FluentSet<E> extends FluentCollection<E> {
+public interface FluentSet<E> extends FluentCollection<E>, Set<E> {
 
     /**
      * Makes a new instance of the default adapter using {@link HashSet} as the
