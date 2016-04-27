@@ -16,6 +16,7 @@
 
 package net.yetamine.lang.introspective;
 
+import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -80,7 +81,7 @@ import net.yetamine.lang.collections.Snapshots;
  * be useful for more efficient constructions and for the cases when the set may
  * change over time, which is generally not recommended though.
  */
-public final class Extensions {
+public final class Extensions implements Serializable {
 
     /** Shared instance for an immutable empty extension set. */
     private static final Extensions EMPTY = new Extensions(Collections.emptySet());
@@ -94,7 +95,7 @@ public final class Extensions {
      * @param extensions
      *            the extensions set. It must not be {@code null}.
      */
-    private Extensions(Set<?> extensions) {
+    Extensions(Set<?> extensions) {
         known = extensions;
     }
 
@@ -401,5 +402,69 @@ public final class Extensions {
      */
     public <T> Optional<T> optional(T extension) {
         return known.contains(extension) ? Optional.of(extension) : Optional.empty();
+    }
+
+    // Serialization support
+
+    /** Serialization version: 1 */
+    private static final long serialVersionUID = 1L;
+
+    /**
+     * Makes the serialization proxy to resolve the empty singleton more
+     * efficiently.
+     *
+     * @return the serialization proxy
+     *
+     * @see Serializable
+     */
+    private Object writeReplace() {
+        return (this == EMPTY) ? new SerializationProxy() : new SerializationProxy(known);
+    }
+
+    /**
+     * Serialization proxy.
+     *
+     * <p>
+     * The proxy stores the set of known extensions, or {@code null} for the
+     * empty singleton.
+     */
+    private static final class SerializationProxy implements Serializable {
+
+        /** Class providing the singleton via an access point. */
+        private final Set<?> known;
+
+        /**
+         * Creates a new instance.
+         *
+         * @param set
+         *            the set to store. It must not be {@code null}.
+         */
+        public SerializationProxy(Set<?> set) {
+            assert (set != null);
+            known = set;
+        }
+
+        /**
+         * Creates a new instance for the empty singleton.
+         */
+        public SerializationProxy() {
+            known = null;
+        }
+
+        // Serialization support
+
+        /** Serialization version: 1 */
+        private static final long serialVersionUID = 1L;
+
+        /**
+         * Returns the resolved instance.
+         *
+         * @return the resolved instance
+         *
+         * @see Serializable
+         */
+        private Object readResolve() {
+            return (known != null) ? new Extensions(known) : Extensions.empty();
+        }
     }
 }

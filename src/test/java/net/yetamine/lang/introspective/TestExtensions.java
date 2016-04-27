@@ -16,8 +16,14 @@
 
 package net.yetamine.lang.introspective;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -266,5 +272,52 @@ public final class TestExtensions {
         Assert.assertSame(extensions.anyMissing(throwing, a, b), extensions);
         Assert.assertSame(extensions.anyMissing(throwing, a), extensions);
         Assert.assertSame(extensions.anyMissing(throwing, b), extensions);
+    }
+
+    /**
+     * Tests serialization of an empty instance.
+     *
+     * @throws IOException
+     *             if a write fails
+     * @throws ClassNotFoundException
+     *             if class resolution fails
+     */
+    @Test
+    public void testSerialization_Empty() throws IOException, ClassNotFoundException {
+        final ByteArrayOutputStream store = new ByteArrayOutputStream();
+        try (ObjectOutputStream os = new ObjectOutputStream(store)) {
+            os.writeObject(Extensions.empty());
+        }
+
+        try (ObjectInputStream is = new ObjectInputStream(new ByteArrayInputStream(store.toByteArray()))) {
+            Assert.assertSame(is.readObject(), Extensions.empty());
+        }
+    }
+
+    /**
+     * Tests serialization of an empty instance.
+     *
+     * @throws IOException
+     *             if a write fails
+     * @throws ClassNotFoundException
+     *             if class resolution fails
+     */
+    @Test
+    public void testSerialization_Some() throws IOException, ClassNotFoundException {
+        final ByteArrayOutputStream store = new ByteArrayOutputStream();
+        try (ObjectOutputStream os = new ObjectOutputStream(store)) {
+            os.writeObject(Extensions.using(EnumSet.allOf(TestingExtensions.class)));
+        }
+
+        try (ObjectInputStream is = new ObjectInputStream(new ByteArrayInputStream(store.toByteArray()))) {
+            Assert.assertEquals(is.readObject(), Extensions.declare(TestingExtensions.TEST1, TestingExtensions.TEST2));
+        }
+    }
+
+    /**
+     * Testing enum for serialization.
+     */
+    enum TestingExtensions {
+        TEST1, TEST2;
     }
 }

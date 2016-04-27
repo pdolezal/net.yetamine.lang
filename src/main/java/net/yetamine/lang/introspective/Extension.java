@@ -27,6 +27,11 @@ import java.util.function.Predicate;
  * {@link Extensible} types. The recommended pattern for implementing extension
  * declarators is to define them as enum constants and let the enum implement
  * this interface.
+ *
+ * <p>
+ * Another recommended feature to implement alongside with this interface is
+ * serializability, so that declaring an extension does not prevent its holder
+ * from serialization. Implementing this interface with enums solves this well.
  */
 public interface Extension {
 
