@@ -17,21 +17,23 @@
 package net.yetamine.lang.closeables;
 
 /**
- * A generic interface for adapting resource-like objects that do not implement
- * {@link SafeCloseable} (yet) and therefore try-with-resources can't manage
- * them, or require yet another catch block to deal with exceptions possibly
- * thrown from the {@link AutoCloseable#close()} method.
+ * The default implementation of {@link SafeResource} to adapt any resource-like
+ * object for use with try-with-resources.
  *
  * @param <T>
  *            the type of the adapted resource
  */
-public interface SafeCloseableResource<T> extends SafeCloseable, AutoCloseableResource<T, RuntimeException> {
+class SafeResourceAdapter<T> extends AutoResourceAdapter<T, RuntimeException> implements SafeResource<T> {
 
     /**
-     * Implementations should rather avoid throwing any exceptions, so that an
-     * exception shall be rather a programming error than an actual failure.
+     * Creates a new instance.
      *
-     * @see java.lang.AutoCloseable#close()
+     * @param object
+     *            the resource to manage. It must not be {@code null}.
+     * @param closing
+     *            the closing handler. It must not be {@code null}.
      */
-    void close();
+    public SafeResourceAdapter(T object, SafeResource.Handler<? super T> closing) {
+        super(object, closing);
+    }
 }
