@@ -129,7 +129,7 @@ public interface Pointer<T> extends Consumer<T>, Producer<T> {
      *
      * @return the value as an {@link Optional} instance
      */
-    default Optional<T> nonNull() {
+    default Optional<T> optional() {
         return Optional.ofNullable(get());
     }
 

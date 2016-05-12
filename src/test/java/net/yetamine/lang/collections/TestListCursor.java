@@ -148,7 +148,7 @@ public final class TestListCursor {
             c.ifValid(m -> out.accept(m.get()));
             Assert.assertEquals(out.get(), value);
 
-            c.nonNull().ifPresent(v -> out.accept(v * 2));
+            c.optional().ifPresent(v -> out.accept(v * 2));
             Assert.assertEquals(out.get(), Integer.valueOf(value * 2));
 
             Assert.assertEquals(c.map(v -> v.toString()), Integer.toString(value));

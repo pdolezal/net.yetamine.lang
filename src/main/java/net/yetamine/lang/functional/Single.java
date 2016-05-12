@@ -202,21 +202,21 @@ public final class Single<T> implements Supplier<T> {
     }
 
     /**
-     * Creates a stream of this instance as the only element of the stream.
-     *
-     * @return a stream of this instance
-     */
-    public Stream<Single<T>> stream() {
-        return Stream.of(this);
-    }
-
-    /**
      * Returns an {@link Optional} containing the represented value.
      *
      * @return an {@link Optional} containing the represented value
      */
     public Optional<T> optional() {
         return single.isTrue() ? Optional.ofNullable(value) : Optional.empty();
+    }
+
+    /**
+     * Creates a stream of this instance as the only element of the stream.
+     *
+     * @return a stream of this instance
+     */
+    public Stream<Single<T>> stream() {
+        return Stream.of(this);
     }
 
     /**
@@ -229,7 +229,7 @@ public final class Single<T> implements Supplier<T> {
      *
      * @return an updated instance
      */
-    public Single<T> accept(T update) {
+    public Single<T> revise(T update) {
         return single.isUnknown() ? single(update) : some(update);
     }
 
@@ -368,7 +368,7 @@ public final class Single<T> implements Supplier<T> {
     public static <T> Single<T> last(Iterator<? extends T> source) {
         Single<T> result = none();
         while (source.hasNext()) {
-            result = result.accept(source.next());
+            result = result.revise(source.next());
         }
 
         return result;
@@ -595,7 +595,7 @@ public final class Single<T> implements Supplier<T> {
          * @see Collector#accumulator()
          */
         public BiConsumer<Box<Single<T>>, T> accumulator() {
-            return (box, value) -> box.replace(unique -> unique.accept(value));
+            return (box, value) -> box.replace(unique -> unique.revise(value));
         }
 
         /**

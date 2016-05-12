@@ -51,11 +51,11 @@ public interface Producer<T> extends Supplier<T> {
      *
      * <p>
      * This method provides a bridge to the standard library and allows using
-     * patterns like {@code pointer.nonNull().orElse(fallback)}
+     * patterns like {@code pointer.optional().orElse(fallback)}
      *
      * @return the value as an {@link Optional} instance
      */
-    default Optional<T> nonNull() {
+    default Optional<T> optional() {
         return Optional.ofNullable(get());
     }
 

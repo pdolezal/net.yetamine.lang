@@ -129,16 +129,16 @@ public final class TestBox {
     }
 
     /**
-     * Tests {@link Box#nonNull()}.
+     * Tests {@link Box#optional()}.
      */
     @Test
-    public void testNonNull() {
-        Assert.assertFalse(Box.empty().nonNull().isPresent());
-        Assert.assertFalse(Box.of(null).nonNull().isPresent());
+    public void testOptional() {
+        Assert.assertFalse(Box.empty().optional().isPresent());
+        Assert.assertFalse(Box.of(null).optional().isPresent());
 
         final Object o = new Object();
-        Assert.assertTrue(Box.of(o).nonNull().isPresent());
-        Assert.assertEquals(Box.of(o).nonNull().get(), o);
+        Assert.assertTrue(Box.of(o).optional().isPresent());
+        Assert.assertEquals(Box.of(o).optional().get(), o);
     }
 
     /**

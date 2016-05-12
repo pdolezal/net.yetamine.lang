@@ -100,7 +100,7 @@ public final class TestSingle {
     }
 
     /**
-     * Tests {@link Single#accept(Object)}.
+     * Tests {@link Single#revise(Object)}.
      */
     @Test
     public void testAccept() {
@@ -108,12 +108,12 @@ public final class TestSingle {
         final Object o2 = new Object();
         final Object o3 = new Object();
 
-        final Single<Object> single = Single.none().accept(o1);
+        final Single<Object> single = Single.none().revise(o1);
         Assert.assertEquals(single, Single.single(o1));
 
-        final Single<Object> some = single.accept(o2);
+        final Single<Object> some = single.revise(o2);
         Assert.assertEquals(some, Single.some(o2));
-        Assert.assertEquals(some.accept(o3), Single.some(o3));
+        Assert.assertEquals(some.revise(o3), Single.some(o3));
     }
 
     /**
