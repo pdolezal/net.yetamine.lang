@@ -676,32 +676,32 @@ public interface FluentMap<K, V> extends Map<K, V> {
      * @see java.util.Map#compute(java.lang.Object,
      *      java.util.function.BiFunction)
      */
-    default V compute(K key, java.util.function.BiFunction<? super K, ? super V, ? extends V> remappingFunction) {
-        return container().compute(key, remappingFunction);
+    default V compute(K key, java.util.function.BiFunction<? super K, ? super V, ? extends V> remapping) {
+        return container().compute(key, remapping);
     }
 
     /**
      * @see java.util.Map#computeIfAbsent(java.lang.Object,
      *      java.util.function.Function)
      */
-    default V computeIfAbsent(K key, Function<? super K, ? extends V> mappingFunction) {
-        return container().computeIfAbsent(key, mappingFunction);
+    default V computeIfAbsent(K key, Function<? super K, ? extends V> mapping) {
+        return container().computeIfAbsent(key, mapping);
     }
 
     /**
      * @see java.util.Map#computeIfPresent(java.lang.Object,
      *      java.util.function.BiFunction)
      */
-    default V computeIfPresent(K key, BiFunction<? super K, ? super V, ? extends V> remappingFunction) {
-        return container().computeIfPresent(key, remappingFunction);
+    default V computeIfPresent(K key, BiFunction<? super K, ? super V, ? extends V> remapping) {
+        return container().computeIfPresent(key, remapping);
     }
 
     /**
      * @see java.util.Map#merge(java.lang.Object, java.lang.Object,
      *      java.util.function.BiFunction)
      */
-    default V merge(K key, V value, BiFunction<? super V, ? super V, ? extends V> remappingFunction) {
-        return container().merge(key, value, remappingFunction);
+    default V merge(K key, V value, BiFunction<? super V, ? super V, ? extends V> remapping) {
+        return container().merge(key, value, remapping);
     }
 
     /**
