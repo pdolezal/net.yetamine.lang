@@ -36,7 +36,7 @@ import net.yetamine.lang.Throwables;
 public final class ByteBufferView implements ByteSequence {
 
     /** Source byte buffer. */
-    private ByteBuffer buffer;
+    private final ByteBuffer buffer;
     /** Cached hash code. */
     private volatile int hashCode;
 
