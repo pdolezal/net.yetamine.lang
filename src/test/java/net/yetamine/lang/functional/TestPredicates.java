@@ -30,13 +30,13 @@ import org.testng.annotations.Test;
 public final class TestPredicates {
 
     /**
-     * Tests {@link Predicates#and(Iterable)}.
+     * Tests {@link Predicates#allOf(Iterable)}.
      *
      * @param predicates
      *            the predicates
      */
     @Test(dataProvider = "predicates")
-    public void testAnd(Iterable<? extends Predicate<Object>> predicates) {
+    public void testAllOf(Iterable<? extends Predicate<Object>> predicates) {
         Iterator<? extends Predicate<Object>> it = predicates.iterator();
         Predicate<Object> a = it.next();
         while (it.hasNext()) {
@@ -44,17 +44,17 @@ public final class TestPredicates {
         }
 
         final Object o = new Object();
-        Assert.assertEquals(Predicates.and(predicates).test(o), a.test(o));
+        Assert.assertEquals(Predicates.allOf(predicates).test(o), a.test(o));
     }
 
     /**
-     * Tests {@link Predicates#or(Iterable)}.
+     * Tests {@link Predicates#anyOf(Iterable)}.
      *
      * @param predicates
      *            the predicates
      */
     @Test(dataProvider = "predicates")
-    public void testOr(Iterable<? extends Predicate<Object>> predicates) {
+    public void testAnyOf(Iterable<? extends Predicate<Object>> predicates) {
         Iterator<? extends Predicate<Object>> it = predicates.iterator();
         Predicate<Object> a = it.next();
         while (it.hasNext()) {
@@ -62,7 +62,7 @@ public final class TestPredicates {
         }
 
         final Object o = new Object();
-        Assert.assertEquals(Predicates.or(predicates).test(o), a.test(o));
+        Assert.assertEquals(Predicates.anyOf(predicates).test(o), a.test(o));
     }
 
     @SuppressWarnings("javadoc")

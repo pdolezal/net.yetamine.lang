@@ -30,13 +30,13 @@ import org.testng.annotations.Test;
 public final class TestBiPredicates {
 
     /**
-     * Tests {@link BiPredicates#and(Iterable)}.
+     * Tests {@link BiPredicates#allOf(Iterable)}.
      *
      * @param predicates
      *            the predicates
      */
     @Test(dataProvider = "predicates")
-    public void testAnd(Iterable<? extends BiPredicate<Object, Object>> predicates) {
+    public void testAllOf(Iterable<? extends BiPredicate<Object, Object>> predicates) {
         Iterator<? extends BiPredicate<Object, Object>> it = predicates.iterator();
         BiPredicate<Object, Object> a = it.next();
         while (it.hasNext()) {
@@ -45,17 +45,17 @@ public final class TestBiPredicates {
 
         final Object o1 = new Object();
         final Object o2 = new Object();
-        Assert.assertEquals(BiPredicates.and(predicates).test(o1, o2), a.test(o1, o2));
+        Assert.assertEquals(BiPredicates.allOf(predicates).test(o1, o2), a.test(o1, o2));
     }
 
     /**
-     * Tests {@link BiPredicates#or(Iterable)}.
+     * Tests {@link BiPredicates#anyOf(Iterable)}.
      *
      * @param predicates
      *            the predicates
      */
     @Test(dataProvider = "predicates")
-    public void testOr(Iterable<? extends BiPredicate<Object, Object>> predicates) {
+    public void testAnyOf(Iterable<? extends BiPredicate<Object, Object>> predicates) {
         Iterator<? extends BiPredicate<Object, Object>> it = predicates.iterator();
         BiPredicate<Object, Object> a = it.next();
         while (it.hasNext()) {
@@ -64,7 +64,7 @@ public final class TestBiPredicates {
 
         final Object o1 = new Object();
         final Object o2 = new Object();
-        Assert.assertEquals(BiPredicates.and(predicates).test(o1, o2), a.test(o1, o2));
+        Assert.assertEquals(BiPredicates.allOf(predicates).test(o1, o2), a.test(o1, o2));
     }
 
     @SuppressWarnings("javadoc")

@@ -47,7 +47,7 @@ public final class Predicates {
      *
      * @return a predicate that computes a conjunction of all given predicates
      */
-    public static <T> Predicate<T> and(Iterable<? extends Predicate<? super T>> sequence) {
+    public static <T> Predicate<T> allOf(Iterable<? extends Predicate<? super T>> sequence) {
         Objects.requireNonNull(sequence);
 
         return t -> {
@@ -84,7 +84,7 @@ public final class Predicates {
      *
      * @return a predicate that computes a disjunction of all given predicates
      */
-    public static <T> Predicate<T> or(Iterable<? extends Predicate<? super T>> sequence) {
+    public static <T> Predicate<T> anyOf(Iterable<? extends Predicate<? super T>> sequence) {
         Objects.requireNonNull(sequence);
 
         return t -> {

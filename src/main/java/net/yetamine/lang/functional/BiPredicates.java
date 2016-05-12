@@ -49,7 +49,7 @@ public final class BiPredicates {
      *
      * @return a predicate that computes a conjunction of all given predicates
      */
-    public static <T, U> BiPredicate<T, U> and(Iterable<? extends BiPredicate<? super T, ? super U>> sequence) {
+    public static <T, U> BiPredicate<T, U> allOf(Iterable<? extends BiPredicate<? super T, ? super U>> sequence) {
         Objects.requireNonNull(sequence);
 
         return (t, u) -> {
@@ -88,7 +88,7 @@ public final class BiPredicates {
      *
      * @return a predicate that computes a disjunction of all given predicates
      */
-    public static <T, U> BiPredicate<T, U> or(Iterable<? extends BiPredicate<? super T, ? super U>> sequence) {
+    public static <T, U> BiPredicate<T, U> anyOf(Iterable<? extends BiPredicate<? super T, ? super U>> sequence) {
         Objects.requireNonNull(sequence);
 
         return (t, u) -> {
