@@ -16,13 +16,17 @@
 
 package net.yetamine.lang.creational;
 
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandleProxies;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
 import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Objects;
 import java.util.function.Function;
-import java.util.function.UnaryOperator;
 
 import net.yetamine.lang.Throwables;
+import net.yetamine.lang.Types;
 
 /**
  * Cloning support.
@@ -72,16 +76,9 @@ public final class Cloneables {
             return null;
         }
 
-        // This is safe due to contract of getClass()
-        @SuppressWarnings("unchecked")
-        final Class<? extends T> clazz = (Class<? extends T>) object.getClass();
-
-        if (clazz.isArray()) { // Surprisingly, arrays need special handling
-            final Class<?> component = clazz.getComponentType();
-            final int length = Array.getLength(object);
-            final Object result = Array.newInstance(component, length);
-            System.arraycopy(object, 0, result, 0, length);
-            return clazz.cast(result);
+        final Class<? extends T> clazz = Types.getClass(object);
+        if (clazz.isArray()) { // Arrays need special handling!
+            return cloneArray(object);
         }
 
         try {
@@ -107,8 +104,78 @@ public final class Cloneables {
      * @return a factory that clones the template
      */
     public static <T> Factory<T> prototype(T template) {
-        final UnaryOperator<T> clone = o -> clone(o, IllegalArgumentException::new);
-        return Factory.prototype(template, clone); // Use a temporary variable to avoid compiler failure
+        final Class<? extends T> clazz = Types.getClass(template);
+        if (clazz.isArray()) { // Optimize for the array case
+            return () -> cloneArray(template);
+        }
+
+        if (!(template instanceof Cloneable)) {
+            throw new IllegalArgumentException("Cloneable object required.");
+        }
+
+        try {
+            // Get the clone method; it must be public
+            final MethodHandle clone = MethodHandles.publicLookup().unreflect(clazz.getMethod("clone"));
+            final MethodHandle bound = clone.bindTo(template); // Bind the instance to get rid of all arguments
+
+            // Make the catch handler that must match the actual return type of the clone method
+            final MethodHandle never = MethodHandles.constant(clone.type().returnType(), null);
+            final MethodHandle catcher = MethodHandles.filterReturnValue(HANDLE_CLONE_NOT_SUPPORTED, never);
+            // Install the catch handler to wrap the checked exception according to the usual contract for the factory
+            final MethodHandle handler = MethodHandles.catchException(bound, CloneNotSupportedException.class, catcher);
+
+            @SuppressWarnings("unchecked") // As long as the contract of clone() holds, this is true
+            final Factory<T> result = MethodHandleProxies.asInterfaceInstance(Factory.class, handler);
+            // If the cast above was dubious, there is still the possibility to
+            // insert a return value check that throws an exception if the type
+            // of the result does not match the requirements
+            return result;
+        } catch (NoSuchMethodException e) {
+            throw new IllegalArgumentException(e);
+        } catch (IllegalAccessException e) {
+            throw new SecurityException(e);
+        }
+    }
+
+    /** Exception handler for {@link #prototype(Object)}. */
+    private static final MethodHandle HANDLE_CLONE_NOT_SUPPORTED;
+    static {
+        try {
+            final MethodHandles.Lookup lookup = MethodHandles.lookup();
+            final MethodType type = MethodType.methodType(void.class, CloneNotSupportedException.class);
+            HANDLE_CLONE_NOT_SUPPORTED = lookup.findStatic(Cloneables.class, "handleCloneNotSupported", type);
+        } catch (NoSuchMethodException | IllegalAccessException e) {
+            throw new ExceptionInInitializerError(e);
+        }
+    }
+
+    /**
+     * Throws an {@link UnsupportedOperationException} wrapping a
+     * {@link CloneNotSupportedException}.
+     *
+     * @param e
+     *            the exception to wrap. It must not be {@code null}.
+     */
+    @SuppressWarnings("unused")
+    private static void handleCloneNotSupported(CloneNotSupportedException e) {
+        throw new UnsupportedOperationException(e);
+    }
+
+    /**
+     * Clones an array.
+     *
+     * @param array
+     *            the array to clone. It must be a valid array.
+     *
+     * @return a clone of the array
+     */
+    private static <T> T cloneArray(T array) {
+        final Class<? extends T> clazz = Types.getClass(array);
+        final Class<?> component = clazz.getComponentType();
+        final int length = Array.getLength(array);
+        final Object result = Array.newInstance(component, length);
+        System.arraycopy(array, 0, result, 0, length);
+        return clazz.cast(result);
     }
 
     private Cloneables() {
