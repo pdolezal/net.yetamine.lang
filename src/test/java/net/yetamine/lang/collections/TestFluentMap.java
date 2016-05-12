@@ -166,7 +166,7 @@ public class TestFluentMap {
             final Integer l = key.length();
             Assert.assertNull(ff.get(key));
             Assert.assertEquals(ff.let(key, Function.identity()).get(key), l);
-            Assert.assertSame(ff.let(key, v -> {
+            Assert.assertEquals(ff.let(key, v -> {
                 Assert.fail();
                 return null;
             }).get(key), l);
