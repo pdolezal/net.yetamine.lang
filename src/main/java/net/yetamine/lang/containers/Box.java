@@ -173,14 +173,26 @@ public final class Box<T> implements Serializable, Pointer<T> {
     }
 
     /**
+     * Sets the element value.
+     *
+     * @param t
+     *            the value to set
+     *
+     * @return the previous value
+     */
+    public T put(T t) {
+        final T result = value;
+        value = t;
+        return result;
+    }
+
+    /**
      * Sets the element value to {@code null} and returns its original value.
      *
      * @return the original value
      */
     public T clear() {
-        final T result = value;
-        value = null;
-        return result;
+        return put(null);
     }
 
     /**
