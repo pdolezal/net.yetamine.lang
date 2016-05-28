@@ -101,7 +101,7 @@ public final class Box<T> implements Serializable, Pointer<T> {
      *
      * @return a consumer storing the first non-{@code null} value only
      */
-    public static <T> Acceptor<T> acceptingOnce(Box<Optional<T>> box) {
+    public static <T> Acceptor<T> once(Box<Optional<T>> box) {
         box.accept(Optional.empty());
 
         return o -> {
@@ -206,7 +206,7 @@ public final class Box<T> implements Serializable, Pointer<T> {
      *
      * @see #compute(Function)
      */
-    public Box<T> replace(Function<? super T, ? extends T> mapping) {
+    public Box<T> patch(Function<? super T, ? extends T> mapping) {
         value = mapping.apply(value);
         return this;
     }
@@ -227,7 +227,7 @@ public final class Box<T> implements Serializable, Pointer<T> {
      *
      * @see #compute(BiFunction, Object)
      */
-    public Box<T> replace(BiFunction<? super T, ? super T, ? extends T> mapping, T t) {
+    public Box<T> patch(BiFunction<? super T, ? super T, ? extends T> mapping, T t) {
         value = mapping.apply(t, value);
         return this;
     }
@@ -240,7 +240,7 @@ public final class Box<T> implements Serializable, Pointer<T> {
      *
      * @return this instance
      */
-    public Box<T> use(Consumer<? super T> consumer) {
+    public Box<T> pass(Consumer<? super T> consumer) {
         consumer.accept(value);
         return this;
     }

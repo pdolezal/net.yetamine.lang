@@ -35,7 +35,7 @@ public final class TestAcceptor {
     @Test
     public void testApply() {
         // This Acceptor increments the value in the given box
-        final Acceptor<Box<Integer>> acceptor = b -> b.replace(i -> i + 1);
+        final Acceptor<Box<Integer>> acceptor = b -> b.patch(i -> i + 1);
 
         final Box<Integer> value = Box.of(1);
         final Box<Integer> result = acceptor.apply(value);
@@ -48,7 +48,7 @@ public final class TestAcceptor {
      */
     @Test
     public void testAndThen() {
-        final Acceptor<Box<Integer>> acceptor = b -> b.replace(i -> i + 1);
+        final Acceptor<Box<Integer>> acceptor = b -> b.patch(i -> i + 1);
         final Acceptor<Box<Integer>> andThen = acceptor.andThen(acceptor);
 
         final Box<Integer> value = Box.of(1);
@@ -62,7 +62,7 @@ public final class TestAcceptor {
      */
     @Test
     public void testOnlyIf() {
-        final Acceptor<Box<Integer>> acceptor = b -> b.replace(i -> i + 1);
+        final Acceptor<Box<Integer>> acceptor = b -> b.patch(i -> i + 1);
 
         // Increments only even numbers
         final Acceptor<Box<Integer>> even = acceptor.onlyIf(b -> (b.get() % 2) == 0);
@@ -89,8 +89,8 @@ public final class TestAcceptor {
      */
     @Test
     public void testSequential() {
-        final Acceptor<Box<Integer>> a1 = b -> b.replace(i -> i + 1);
-        final Acceptor<Box<Integer>> a2 = b -> b.replace(i -> i * i);
+        final Acceptor<Box<Integer>> a1 = b -> b.patch(i -> i + 1);
+        final Acceptor<Box<Integer>> a2 = b -> b.patch(i -> i * i);
 
         final Acceptor<Box<Integer>> a = Acceptor.sequential(Arrays.asList(a1, a2));
         Assert.assertEquals(a.apply(Box.of(2)).get(), Integer.valueOf(9));

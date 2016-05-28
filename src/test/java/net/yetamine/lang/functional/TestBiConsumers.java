@@ -36,7 +36,7 @@ public final class TestBiConsumers {
     @Test
     public void testConditional() {
         final BiPredicate<Box<Integer>, Integer> notEqual = (b, i) -> !b.get().equals(i);
-        final BiConsumer<Box<Integer>, Integer> consumer = (b, i) -> b.replace(v -> v + i);
+        final BiConsumer<Box<Integer>, Integer> consumer = (b, i) -> b.patch(v -> v + i);
         final BiConsumer<Box<Integer>, Integer> conditional = BiConsumers.conditional(notEqual, consumer);
 
         final Box<Integer> value = Box.of(0);
@@ -53,8 +53,8 @@ public final class TestBiConsumers {
      */
     @Test
     public void testSequential() {
-        final BiConsumer<Box<Integer>, Integer> a1 = (b, i) -> b.replace(v -> v + i);
-        final BiConsumer<Box<Integer>, Integer> a2 = (b, i) -> b.replace(v -> v * i);
+        final BiConsumer<Box<Integer>, Integer> a1 = (b, i) -> b.patch(v -> v + i);
+        final BiConsumer<Box<Integer>, Integer> a2 = (b, i) -> b.patch(v -> v * i);
 
         final BiConsumer<Box<Integer>, Integer> a = BiConsumers.sequential(Arrays.asList(a1, a2));
 

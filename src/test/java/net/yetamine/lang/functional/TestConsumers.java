@@ -36,7 +36,7 @@ public final class TestConsumers {
     @Test
     public void testConditional() {
         final Predicate<Box<Integer>> even = b -> (b.get() % 2) == 0;
-        final Consumer<Box<Integer>> consumer = b -> b.replace(i -> i + 1);
+        final Consumer<Box<Integer>> consumer = b -> b.patch(i -> i + 1);
         final Consumer<Box<Integer>> conditional = Consumers.conditional(even, consumer);
 
         final Box<Integer> value = Box.of(0);
@@ -53,8 +53,8 @@ public final class TestConsumers {
      */
     @Test
     public void testSequential() {
-        final Consumer<Box<Integer>> a1 = b -> b.replace(i -> i + 1);
-        final Consumer<Box<Integer>> a2 = b -> b.replace(i -> i * i);
+        final Consumer<Box<Integer>> a1 = b -> b.patch(i -> i + 1);
+        final Consumer<Box<Integer>> a2 = b -> b.patch(i -> i * i);
 
         final Consumer<Box<Integer>> a = Consumers.sequential(Arrays.asList(a1, a2));
 

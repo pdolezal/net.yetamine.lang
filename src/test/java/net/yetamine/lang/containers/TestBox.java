@@ -58,17 +58,17 @@ public final class TestBox {
     }
 
     /**
-     * Tests {@link Box#acceptingOnce(Box)}.
+     * Tests {@link Box#once(Box)}.
      */
     @Test
-    public void testAcceptingOnce() {
+    public void testOnce() {
         final Object o1 = new Object();
         final Object o2 = new Object();
 
         final Box<Optional<Object>> box = Box.empty();
         Assert.assertNull(box.get());
 
-        final Consumer<Object> c = Box.acceptingOnce(box);
+        final Consumer<Object> c = Box.once(box);
         Assert.assertFalse(box.get().isPresent());
         c.accept(null);
         Assert.assertFalse(box.get().isPresent());
@@ -151,27 +151,27 @@ public final class TestBox {
     }
 
     /**
-     * Tests replacing methods.
+     * Tests patching methods.
      */
     @Test
-    public void testReplacing() {
+    public void testPatching() {
         final UnaryOperator<Integer> f1 = i -> i + 1;
-        Assert.assertEquals(Box.of(1).replace(f1), Box.of(2));
+        Assert.assertEquals(Box.of(1).patch(f1), Box.of(2));
         Assert.assertEquals(Box.of(1).compute(f1), Integer.valueOf(2));
 
         final BiFunction<Integer, Integer, Integer> f2 = (i, j) -> i + j;
-        Assert.assertEquals(Box.of(1).replace(f2, 2), Box.of(3));
+        Assert.assertEquals(Box.of(1).patch(f2, 2), Box.of(3));
         Assert.assertEquals(Box.of(1).compute(f2, 2), Integer.valueOf(3));
     }
 
     /**
-     * Tests {@link Box#use(Consumer)}.
+     * Tests {@link Box#pass(Consumer)}.
      */
     @Test
-    public void testUse() {
-        Box.empty().use(value -> Assert.assertNull(value));
+    public void testPass() {
+        Box.empty().pass(value -> Assert.assertNull(value));
 
         final Object o = new Object();
-        Box.of(o).use(value -> Assert.assertEquals(value, o));
+        Box.of(o).pass(value -> Assert.assertEquals(value, o));
     }
 }
