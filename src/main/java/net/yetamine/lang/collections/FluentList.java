@@ -247,15 +247,15 @@ public interface FluentList<E> extends FluentCollection<E>, List<E> {
      *         index is invalid
      */
     default Optional<E> peekAt(int index) {
-        if ((index < 0) || (size() < index)) { // Preliminary check to avoid unnecessary exceptions
-            return Optional.empty();
-        }
-
         try {
             return see(index);
         } catch (IndexOutOfBoundsException e) {
-            // May happen despite of the preliminary check if a concurrent
-            // modification has occurred meanwhile
+            // No preliminary check is done because:
+            //
+            // a) The check would not work for concurrent cases anyway.
+            // b) The check would be duplicated as the list must check anyway.
+            // c) The check needs consulting size() which may be an expensive
+            //    operation for some lists, making the overhead even higher.
             return Optional.empty();
         }
     }
