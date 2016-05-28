@@ -32,21 +32,6 @@ import java.util.stream.Stream;
 public interface Producer<T> extends Supplier<T> {
 
     /**
-     * Returns the result of the given function applied on the current value of
-     * the element.
-     *
-     * @param <V>
-     *            the type of the mapping result
-     * @param mapping
-     *            the mapping function to apply. It must not be {@code null}.
-     *
-     * @return the result of the mapping function
-     */
-    default <V> V map(Function<? super T, ? extends V> mapping) {
-        return mapping.apply(get());
-    }
-
-    /**
      * Returns the value of the element as an {@link Optional} instance.
      *
      * <p>
@@ -66,5 +51,20 @@ public interface Producer<T> extends Supplier<T> {
      */
     default Stream<T> stream() {
         return Stream.of(this).map(Producer::get);
+    }
+
+    /**
+     * Returns the result of the given function applied on the current value of
+     * the element.
+     *
+     * @param <V>
+     *            the type of the mapping result
+     * @param mapping
+     *            the mapping function to apply. It must not be {@code null}.
+     *
+     * @return the result of the mapping function
+     */
+    default <V> V map(Function<? super T, ? extends V> mapping) {
+        return mapping.apply(get());
     }
 }

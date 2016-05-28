@@ -17,12 +17,10 @@
 package net.yetamine.lang.containers;
 
 import java.util.Objects;
-import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import java.util.stream.Stream;
 
 import net.yetamine.lang.functional.Producer;
 
@@ -103,43 +101,6 @@ public interface Pointer<T> extends Consumer<T>, Producer<T> {
         final T result = mapping.apply(value, get());
         accept(result);
         return result;
-    }
-
-    /**
-     * Returns the result of the given function applied on the current value of
-     * the element.
-     *
-     * @param <V>
-     *            the type of the mapping result
-     * @param mapping
-     *            the mapping function to apply. It must not be {@code null}.
-     *
-     * @return the result of the mapping function
-     */
-    default <V> V map(Function<? super T, ? extends V> mapping) {
-        return mapping.apply(get());
-    }
-
-    /**
-     * Returns the value of the element as an {@link Optional} instance.
-     *
-     * <p>
-     * This method provides a bridge to the standard library and allows using
-     * patterns like {@code pointer.nonNull().orElse(fallback)}
-     *
-     * @return the value as an {@link Optional} instance
-     */
-    default Optional<T> optional() {
-        return Optional.ofNullable(get());
-    }
-
-    /**
-     * Returns a stream using this instance as the element source.
-     *
-     * @return a stream using this instance as the element source
-     */
-    default Stream<T> stream() {
-        return Stream.of(this).map(Pointer::get);
     }
 }
 

@@ -207,7 +207,7 @@ public interface Cursor<E> extends Pointer<E> {
      *
      * @see #compute(Function)
      */
-    default Cursor<E> replace(Function<? super E, ? extends E> mapping) {
+    default Cursor<E> patch(Function<? super E, ? extends E> mapping) {
         accept(mapping.apply(get()));
         return this;
     }
@@ -228,7 +228,7 @@ public interface Cursor<E> extends Pointer<E> {
      *
      * @see #compute(BiFunction, Object)
      */
-    default Cursor<E> replace(BiFunction<? super E, ? super E, ? extends E> mapping, E value) {
+    default Cursor<E> patch(BiFunction<? super E, ? super E, ? extends E> mapping, E value) {
         accept(mapping.apply(value, get()));
         return this;
     }
@@ -267,6 +267,8 @@ public interface Cursor<E> extends Pointer<E> {
      * @return this instance
      */
     Cursor<E> append(E value);
+
+    // Element removal
 
     /**
      * Removes the element at the current position.
