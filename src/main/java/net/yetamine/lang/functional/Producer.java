@@ -18,6 +18,7 @@ package net.yetamine.lang.functional;
 
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -66,5 +67,22 @@ public interface Producer<T> extends Supplier<T> {
      */
     default <V> V map(Function<? super T, ? extends V> mapping) {
         return mapping.apply(get());
+    }
+
+    /**
+     * Returns an {@link Optional} representing the value under the given
+     * condition.
+     *
+     * <p>
+     * This method is a shortcut for {@code optional().filter(condition)}.
+     *
+     * @param condition
+     *            the condition to apply. It must not be {@code null}.
+     *
+     * @return an {@link Optional} representing the value under the given
+     *         condition
+     */
+    default Optional<T> filter(Predicate<? super T> condition) {
+        return optional().filter(condition);
     }
 }
