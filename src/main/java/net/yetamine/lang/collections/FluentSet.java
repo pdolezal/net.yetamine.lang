@@ -26,9 +26,10 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.Spliterator;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
+
+import net.yetamine.lang.functional.Producer;
 
 /**
  * An extension of the {@link Set} interface providing more fluent programming
@@ -90,25 +91,17 @@ public interface FluentSet<E> extends FluentCollection<E>, Set<E> {
     Set<E> container();
 
     /**
-     * @see net.yetamine.lang.collections.FluentCollection#self()
+     * @see net.yetamine.lang.collections.FluentCollection#that()
      */
-    default Stream<? extends FluentSet<E>> self() {
-        return Stream.of(this);
+    default Producer<? extends Set<E>> that() {
+        return this::container;
     }
 
     /**
-     * Applies the given function to {@link #container()}.
-     *
-     * @param <U>
-     *            the type of the result
-     * @param mapping
-     *            the function which is supposed to remap {@link #container()}
-     *            to the result to return. It must not be {@code null}.
-     *
-     * @return the result of the mapping function
+     * @see net.yetamine.lang.collections.FluentCollection#self()
      */
-    default <U> U withSet(Function<? super Set<E>, ? extends U> mapping) {
-        return mapping.apply(container());
+    default Producer<? extends FluentSet<E>> self() {
+        return () -> this;
     }
 
     // Fluent extensions for Set

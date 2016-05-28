@@ -52,10 +52,10 @@ public class TestFluentList extends TestFluentCollection {
         final FluentList<Object> f = FluentList.adapt(c);
         Assert.assertEquals(f.container(), c);
         Assert.assertEquals(f, c);
-        Assert.assertEquals(Collections.singleton(f), f.self().collect(Collectors.toSet()));
+        Assert.assertEquals(Collections.singleton(f), f.self().stream().collect(Collectors.toSet()));
 
-        Assert.assertSame(c, f.withList(Function.identity()));
-        Assert.assertSame(f, f.withList(o -> f));
+        Assert.assertSame(c, f.that().map(Function.identity()));
+        Assert.assertSame(f, f.that().map(o -> f));
     }
 
     /**

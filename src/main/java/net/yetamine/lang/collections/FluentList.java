@@ -35,6 +35,7 @@ import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
 
 import net.yetamine.lang.Throwables;
+import net.yetamine.lang.functional.Producer;
 
 /**
  * An extension of the {@link List} interface providing more fluent programming
@@ -96,28 +97,17 @@ public interface FluentList<E> extends FluentCollection<E>, List<E> {
     List<E> container();
 
     /**
-     * Returns a {@link Stream} providing this instance which can be used for
-     * pipeline-like processing of this instance then.
-     *
-     * @return a stream providing this instance
+     * @see net.yetamine.lang.collections.FluentCollection#that()
      */
-    default Stream<? extends FluentList<E>> self() {
-        return Stream.of(this);
+    default Producer<? extends List<E>> that() {
+        return this::container;
     }
 
     /**
-     * Applies the given function to {@link #container()}.
-     *
-     * @param <U>
-     *            the type of the result
-     * @param mapping
-     *            the function which is supposed to remap {@link #container()}
-     *            to the result to return. It must not be {@code null}.
-     *
-     * @return the result of the mapping function
+     * @see net.yetamine.lang.collections.FluentCollection#self()
      */
-    default <U> U withList(Function<? super List<E>, ? extends U> mapping) {
-        return mapping.apply(container());
+    default Producer<? extends FluentCollection<E>> self() {
+        return () -> this;
     }
 
     // Fluent extensions for List

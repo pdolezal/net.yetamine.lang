@@ -25,9 +25,10 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Spliterator;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
+
+import net.yetamine.lang.functional.Producer;
 
 /**
  * An extension of the {@link Collection} interface providing more fluent
@@ -52,7 +53,7 @@ public interface FluentCollection<E> extends Collection<E> {
         return new FluentCollectionAdapter<>(collection);
     }
 
-    // Common fluent extensions support
+    // Core support for extensions
 
     /**
      * Returns the pure {@link Collection} interface for this instance.
@@ -75,29 +76,24 @@ public interface FluentCollection<E> extends Collection<E> {
     Collection<E> container();
 
     /**
-     * Returns a {@link Stream} providing this instance which can be used for
-     * pipeline-like processing of this instance then.
+     * Returns a {@link Producer} providing {@link #container()}, which can be
+     * used for subsequent monadic processing (like filtering, mapping and
+     * consuming it).
      *
-     * @return a stream providing this instance
+     * @return an {@link Producer} providing {@link #container()}
      */
-    default Stream<? extends FluentCollection<E>> self() {
-        return Stream.of(this);
+    default Producer<? extends Collection<E>> that() {
+        return this::container;
     }
 
     /**
-     * Applies the given function to {@link #container()} interpreting it as a
-     * collection.
+     * Returns a {@link Producer} providing this instance, which can be used for
+     * subsequent monadic processing (like filtering, mapping and consuming it).
      *
-     * @param <U>
-     *            the type of the result
-     * @param mapping
-     *            the function which is supposed to remap {@link #container()}
-     *            to the result to return. It must not be {@code null}.
-     *
-     * @return the result of the mapping function
+     * @return an {@link Producer} providing this instance
      */
-    default <U> U withCollection(Function<? super Collection<E>, ? extends U> mapping) {
-        return mapping.apply(container());
+    default Producer<? extends FluentCollection<E>> self() {
+        return () -> this;
     }
 
     // Fluent extensions for Collection

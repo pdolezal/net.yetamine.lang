@@ -26,7 +26,8 @@ import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import java.util.stream.Stream;
+
+import net.yetamine.lang.functional.Producer;
 
 /**
  * An extension of the {@link Map} interface providing more fluent programming
@@ -45,7 +46,7 @@ import java.util.stream.Stream;
  *         .add(TimeUnit.MINUTES, "min")
  *         .add(TimeUnit.HOURS, "h")
  *         .add(TimeUnit.DAYS, "d")
- *         .withMap(Collections::unmodifiableMap);
+ *         .that().map(Collections::unmodifiableMap);
  * </pre>
  *
  * Another example allows easier work with multimaps:
@@ -154,6 +155,27 @@ public interface FluentMap<K, V> extends Map<K, V> {
     Map<K, V> container();
 
     /**
+     * Returns a {@link Producer} providing {@link #container()}, which can be
+     * used for subsequent monadic processing (like filtering, mapping and
+     * consuming it).
+     *
+     * @return an {@link Producer} providing {@link #container()}
+     */
+    default Producer<? extends Map<K, V>> that() {
+        return this::container;
+    }
+
+    /**
+     * Returns a {@link Producer} providing this instance, which can be used for
+     * subsequent monadic processing (like filtering, mapping and consuming it).
+     *
+     * @return an {@link Producer} providing this instance
+     */
+    default Producer<? extends FluentMap<K, V>> self() {
+        return () -> this;
+    }
+
+    /**
      * Provides the function for making new values.
      *
      * <p>
@@ -196,31 +218,6 @@ public interface FluentMap<K, V> extends Map<K, V> {
      */
     default FluentMap<K, V> defaults(Supplier<? extends V> factory) {
         return defaults((factory != null) ? o -> factory.get() : null);
-    }
-
-    /**
-     * Returns a {@link Stream} providing this instance which can be used for
-     * pipeline-like processing of this instance then.
-     *
-     * @return a stream providing this instance
-     */
-    default Stream<? extends FluentMap<K, V>> self() {
-        return Stream.of(this);
-    }
-
-    /**
-     * Applies the given function to {@link #container()}.
-     *
-     * @param <U>
-     *            the type of the result
-     * @param mapping
-     *            the function which is supposed to remap {@link #container()}
-     *            to the result to return. It must not be {@code null}.
-     *
-     * @return the result of the mapping function
-     */
-    default <U> U withMap(Function<? super Map<K, V>, ? extends U> mapping) {
-        return mapping.apply(container());
     }
 
     // Fluent extensions for Map

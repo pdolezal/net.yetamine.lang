@@ -68,10 +68,10 @@ public class TestFluentMap {
         final FluentMap<Object, Object> f = FluentMap.adapt(c);
         Assert.assertEquals(f.container(), c);
         Assert.assertEquals(f, c);
-        Assert.assertEquals(Collections.singleton(f), f.self().collect(Collectors.toSet()));
+        Assert.assertEquals(Collections.singleton(f), f.self().stream().collect(Collectors.toSet()));
 
-        Assert.assertSame(c, f.withMap(Function.identity()));
-        Assert.assertSame(f, f.withMap(o -> f));
+        Assert.assertSame(c, f.that().map(Function.identity()));
+        Assert.assertSame(f, f.that().map(o -> f));
     }
 
     /**

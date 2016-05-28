@@ -48,9 +48,9 @@ public class TestFluentSet extends TestFluentCollection {
         final FluentSet<Object> f = FluentSet.adapt(c);
         Assert.assertEquals(f.container(), c);
         Assert.assertEquals(f, c);
-        Assert.assertEquals(Collections.singleton(f), f.self().collect(Collectors.toSet()));
+        Assert.assertEquals(Collections.singleton(f), f.self().stream().collect(Collectors.toSet()));
 
-        Assert.assertSame(c, f.withSet(Function.identity()));
-        Assert.assertSame(f, f.withSet(o -> f));
+        Assert.assertSame(c, f.that().map(Function.identity()));
+        Assert.assertSame(f, f.that().map(o -> f));
     }
 }

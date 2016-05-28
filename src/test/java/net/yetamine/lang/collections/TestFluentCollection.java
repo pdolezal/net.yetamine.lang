@@ -64,10 +64,10 @@ public class TestFluentCollection {
         final FluentCollection<Object> f = FluentCollection.adapt(c);
         Assert.assertEquals(f.container(), c);
         Assert.assertEquals(f, c);
-        Assert.assertEquals(Collections.singleton(f), f.self().collect(Collectors.toSet()));
+        Assert.assertEquals(Collections.singleton(f), f.self().stream().collect(Collectors.toSet()));
 
-        Assert.assertSame(c, f.withCollection(Function.identity()));
-        Assert.assertSame(f, f.withCollection(o -> f));
+        Assert.assertSame(c, f.that().map(Function.identity()));
+        Assert.assertSame(f, f.that().map(o -> f));
     }
 
     /**
