@@ -314,14 +314,17 @@ public final class Tuple2<T1, T2> {
     }
 
     /**
-     * Passes the elements of this tuple to the given {@link Consumer}.
+     * Passes the elements of this tuple to the given {@link BiConsumer}.
      *
      * @param consumer
      *            the consumer to apply on the elements. It must not be
      *            {@code null}.
+     *
+     * @return this instance
      */
-    public void accept(BiConsumer<? super T1, ? super T2> consumer) {
+    public Tuple2<T1, T2> use(BiConsumer<? super T1, ? super T2> consumer) {
         consumer.accept(value1, value2);
+        return this;
     }
 
     /**

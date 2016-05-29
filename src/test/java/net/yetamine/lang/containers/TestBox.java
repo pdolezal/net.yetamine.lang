@@ -165,13 +165,13 @@ public final class TestBox {
     }
 
     /**
-     * Tests {@link Box#pass(Consumer)}.
+     * Tests {@link Box#use(Consumer)}.
      */
     @Test
-    public void testPass() {
-        Box.empty().pass(value -> Assert.assertNull(value));
+    public void testUse() {
+        Box.empty().use(value -> Assert.assertNull(value));
 
         final Object o = new Object();
-        Box.of(o).pass(value -> Assert.assertEquals(value, o));
+        Box.of(o).use(value -> Assert.assertEquals(value, o));
     }
 }

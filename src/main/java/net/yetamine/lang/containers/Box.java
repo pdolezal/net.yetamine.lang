@@ -240,7 +240,7 @@ public final class Box<T> implements Serializable, Pointer<T> {
      *
      * @return this instance
      */
-    public Box<T> pass(Consumer<? super T> consumer) {
+    public Box<T> use(Consumer<? super T> consumer) {
         consumer.accept(value);
         return this;
     }
