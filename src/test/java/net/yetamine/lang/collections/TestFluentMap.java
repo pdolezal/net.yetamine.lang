@@ -90,22 +90,22 @@ public class TestFluentMap {
     }
 
     /**
-     * Tests {@link FluentMap#let(Object)}.
+     * Tests {@link FluentMap#supply(Object)}.
      */
     @Test
-    public void testLet() {
+    public void testSupply() {
         final FluentMap<String, Object> f = createFluent();
 
         { // Using a supplier
             final String key = "Hello";
             final Object o = new Object();
-            final FluentMap<String, Object> sf = f.defaults(() -> o);
+            final FluentMap<String, Object> sf = f.factory(() -> o);
             Assert.assertNull(sf.get(key));
-            Assert.assertSame(sf.let(key), o);
+            Assert.assertSame(sf.supply(key), o);
             Assert.assertSame(sf.get(key), o);
 
             Assert.expectThrows(UnsupportedOperationException.class, () -> {
-                sf.defaults((Supplier<?>) null).let("Dolly");
+                sf.factory((Supplier<?>) null).supply("Dolly");
             });
 
             Assert.assertNull(sf.get("Dolly"));
@@ -114,15 +114,15 @@ public class TestFluentMap {
 
         { // Using a function
             final String key = "World";
-            final FluentMap<String, Object> ff = f.defaults(String::length);
+            final FluentMap<String, Object> ff = f.factory(String::length);
 
             final Integer l = key.length();
             Assert.assertNull(ff.get(key));
-            Assert.assertEquals(ff.let(key), l);
+            Assert.assertEquals(ff.supply(key), l);
             Assert.assertEquals(ff.get(key), l);
 
             Assert.expectThrows(UnsupportedOperationException.class, () -> {
-                ff.defaults((Function<Object, ?>) null).let("Dolly");
+                ff.factory((Function<Object, ?>) null).supply("Dolly");
             });
 
             Assert.assertNull(ff.get("Dolly"));
@@ -130,29 +130,29 @@ public class TestFluentMap {
     }
 
     /**
-     * Tests {@link FluentMap#let(Object, Function)}.
+     * Tests {@link FluentMap#make(Object, Function)}.
      */
     @Test
-    public void testLet_Function() {
+    public void testMake_Function() {
         final FluentMap<String, Integer> f = createFluent();
 
         { // Using a supplier
             final String key = "Hello";
             final Integer o = 10;
-            final FluentMap<String, Integer> sf = f.defaults(() -> o);
+            final FluentMap<String, Integer> sf = f.factory(() -> o);
 
             Assert.assertNull(sf.get(key));
-            Assert.assertEquals(sf.let(key, Function.identity()).get(key), o);
-            Assert.assertEquals(sf.let(key, v -> {
+            Assert.assertEquals(sf.make(key, Function.identity()).get(key), o);
+            Assert.assertEquals(sf.make(key, v -> {
                 Assert.fail();
                 return null;
             }).get(key), o);
 
             Assert.assertNull(sf.discard(key).get(key));
-            Assert.assertEquals(sf.let(key, i -> i + 1).get(key), Integer.valueOf(o + 1));
+            Assert.assertEquals(sf.make(key, i -> i + 1).get(key), Integer.valueOf(o + 1));
 
             Assert.expectThrows(UnsupportedOperationException.class, () -> {
-                sf.defaults((Supplier<Integer>) null).let("Dolly", Function.identity());
+                sf.factory((Supplier<Integer>) null).make("Dolly", Function.identity());
             });
 
             Assert.assertNull(sf.get("Dolly"));
@@ -161,21 +161,21 @@ public class TestFluentMap {
 
         { // Using a function
             final String key = "World";
-            final FluentMap<String, Integer> ff = f.defaults(String::length);
+            final FluentMap<String, Integer> ff = f.factory(String::length);
 
             final Integer l = key.length();
             Assert.assertNull(ff.get(key));
-            Assert.assertEquals(ff.let(key, Function.identity()).get(key), l);
-            Assert.assertEquals(ff.let(key, v -> {
+            Assert.assertEquals(ff.make(key, Function.identity()).get(key), l);
+            Assert.assertEquals(ff.make(key, v -> {
                 Assert.fail();
                 return null;
             }).get(key), l);
 
             Assert.assertNull(ff.discard(key).get(key));
-            Assert.assertEquals(ff.let(key, i -> i + 1).get(key), Integer.valueOf(l + 1));
+            Assert.assertEquals(ff.make(key, i -> i + 1).get(key), Integer.valueOf(l + 1));
 
             Assert.expectThrows(UnsupportedOperationException.class, () -> {
-                ff.defaults((Function<Object, Integer>) null).let("Dolly", Function.identity());
+                ff.factory((Function<Object, Integer>) null).make("Dolly", Function.identity());
             });
 
             Assert.assertNull(ff.get("Dolly"));
@@ -183,25 +183,25 @@ public class TestFluentMap {
     }
 
     /**
-     * Tests {@link FluentMap#let(Object, BiConsumer)}.
+     * Tests {@link FluentMap#make(Object, BiConsumer)}.
      */
     @Test
-    public void testLet_BiConsumer() {
+    public void testMake_BiConsumer() {
         final FluentMap<String, AtomicInteger> f = createFluent();
 
         { // Using a supplier
             final String key = "Hello";
-            final FluentMap<String, AtomicInteger> sf = f.defaults(() -> new AtomicInteger());
+            final FluentMap<String, AtomicInteger> sf = f.factory(() -> new AtomicInteger());
 
             Assert.assertNull(sf.get(key));
-            Assert.assertEquals(sf.let(key, BiConsumers.ignoring()).get(key).get(), 0);
-            Assert.assertEquals(sf.let(key, (k, v) -> Assert.fail()).get(key).get(), 0);
+            Assert.assertEquals(sf.make(key, BiConsumers.ignoring()).get(key).get(), 0);
+            Assert.assertEquals(sf.make(key, (k, v) -> Assert.fail()).get(key).get(), 0);
 
             Assert.assertNull(sf.discard(key).get(key));
-            Assert.assertEquals(sf.let(key, (k, v) -> v.set(k.length())).get(key).get(), key.length());
+            Assert.assertEquals(sf.make(key, (k, v) -> v.set(k.length())).get(key).get(), key.length());
 
             Assert.expectThrows(UnsupportedOperationException.class, () -> {
-                sf.defaults((Supplier<AtomicInteger>) null).let("Dolly", BiConsumers.ignoring());
+                sf.factory((Supplier<AtomicInteger>) null).make("Dolly", BiConsumers.ignoring());
             });
 
             Assert.assertNull(sf.get("Dolly"));
@@ -210,18 +210,18 @@ public class TestFluentMap {
 
         { // Using a function
             final String key = "World";
-            final FluentMap<String, AtomicInteger> ff = f.defaults(k -> new AtomicInteger(k.length()));
+            final FluentMap<String, AtomicInteger> ff = f.factory(k -> new AtomicInteger(k.length()));
 
             final int l = key.length();
             Assert.assertNull(ff.get(key));
-            Assert.assertEquals(ff.let(key, BiConsumers.ignoring()).get(key).get(), l);
-            Assert.assertEquals(ff.let(key, (k, v) -> Assert.fail()).get(key).get(), l);
+            Assert.assertEquals(ff.make(key, BiConsumers.ignoring()).get(key).get(), l);
+            Assert.assertEquals(ff.make(key, (k, v) -> Assert.fail()).get(key).get(), l);
 
             Assert.assertNull(ff.discard(key).get(key));
-            Assert.assertEquals(ff.let(key, (k, v) -> v.incrementAndGet()).get(key).get(), key.length() + 1);
+            Assert.assertEquals(ff.make(key, (k, v) -> v.incrementAndGet()).get(key).get(), key.length() + 1);
 
             Assert.expectThrows(UnsupportedOperationException.class, () -> {
-                ff.defaults((Function<Object, AtomicInteger>) null).let("Dolly", Function.identity());
+                ff.factory((Function<Object, AtomicInteger>) null).make("Dolly", Function.identity());
             });
 
             Assert.assertNull(ff.get("Dolly"));
@@ -238,23 +238,23 @@ public class TestFluentMap {
         { // Using a supplier
             final String key = "Hello";
             final Object o = new Object();
-            final FluentMap<String, Object> sf = f.defaults(() -> o);
+            final FluentMap<String, Object> sf = f.factory(() -> o);
             Assert.assertNull(sf.get(key));
             Assert.assertSame(sf.have(key).get(), o);
             Assert.assertSame(sf.get(key), o);
-            Assert.assertFalse(sf.defaults((Supplier<?>) null).have("Dolly").isPresent());
+            Assert.assertFalse(sf.factory((Supplier<?>) null).have("Dolly").isPresent());
             Assert.assertNull(sf.get("Dolly"));
         }
 
         { // Using a function
             final String key = "World";
-            final FluentMap<String, Object> ff = f.defaults(String::length);
+            final FluentMap<String, Object> ff = f.factory(String::length);
 
             final Integer l = key.length();
             Assert.assertNull(ff.get(key));
             Assert.assertEquals(ff.have(key).get(), l);
             Assert.assertEquals(ff.get(key), l);
-            Assert.assertFalse(ff.defaults((Function<Object, ?>) null).have("Dolly").isPresent());
+            Assert.assertFalse(ff.factory((Function<Object, ?>) null).have("Dolly").isPresent());
             Assert.assertNull(ff.get("Dolly"));
         }
     }
@@ -277,7 +277,7 @@ public class TestFluentMap {
     }
 
     /**
-     * Tests {@link FluentMap#supplyIfAbsent(Object, Supplier)}.
+     * Tests {@link FluentMap#supplyIfPresent(Object, Supplier)}.
      */
     @Test
     public void testSupplyIfPresent() {

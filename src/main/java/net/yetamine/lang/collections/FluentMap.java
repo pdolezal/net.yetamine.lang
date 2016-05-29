@@ -101,7 +101,7 @@ public interface FluentMap<K, V> extends Map<K, V> {
      *            the map to adapt. It must not be {@code null}.
      * @param defaults
      *            the factory function to be used for making new values, see
-     *            {@link #defaults()}
+     *            {@link #factory()}
      *
      * @return a new instance of the default adapter implementation
      */
@@ -124,7 +124,7 @@ public interface FluentMap<K, V> extends Map<K, V> {
      *            the map to adapt. It must not be {@code null}.
      * @param defaults
      *            the supplier to be used for making new values, see
-     *            {@link #defaults()}
+     *            {@link #factory()}
      *
      * @return a new instance of the default adapter implementation
      */
@@ -176,22 +176,23 @@ public interface FluentMap<K, V> extends Map<K, V> {
     }
 
     /**
-     * Provides the function for making new values.
+     * Provides a factory function for making new values.
      *
      * <p>
-     * The {@link #let(Object)} implementation should use this method for making
-     * new values when needed. Note that this method may return {@code null} and
-     * the clients are supposed to check that.
+     * The methods, like {@link #supply(Object)}, that need a strategy to make
+     * new values on demand should use this method to employ the strategy.
+     * However, this method may return {@code null} and its users are supposed
+     * to check that.
      *
-     * @return the function for making new values, or {@code null} if no
+     * @return the function for making new values, or {@code null} if no such
      *         strategy is defined
      */
-    Function<? super K, ? extends V> defaults();
+    Function<? super K, ? extends V> factory();
 
     /**
      * Sets the function for making new values.
      *
-     * @param factory
+     * @param method
      *            the function to use. It may be {@code null} if no definition
      *            is requested and the feature of making new values should not
      *            be available
@@ -201,12 +202,12 @@ public interface FluentMap<K, V> extends Map<K, V> {
      *         e.g., when the implementation wraps another instance and uses
      *         {@code final} fields, so that it may be even immutable
      */
-    FluentMap<K, V> defaults(Function<? super K, ? extends V> factory);
+    FluentMap<K, V> factory(Function<? super K, ? extends V> method);
 
     /**
      * Sets the supplier for making new values.
      *
-     * @param factory
+     * @param method
      *            the supplier to use. It may be {@code null} if no definition
      *            is requested and the feature of making new values should not
      *            be available
@@ -216,11 +217,33 @@ public interface FluentMap<K, V> extends Map<K, V> {
      *         e.g., when the implementation wraps another instance and uses
      *         {@code final} fields, so that it may be even immutable
      */
-    default FluentMap<K, V> defaults(Supplier<? extends V> factory) {
-        return defaults((factory != null) ? o -> factory.get() : null);
+    default FluentMap<K, V> factory(Supplier<? extends V> method) {
+        return factory((method != null) ? o -> method.get() : null);
     }
 
-    // Fluent extensions for Map
+    // Generic extensions for Map
+
+    /**
+     * Returns the value to which the specified key is mapped, or uses the given
+     * provider to provide the result instead.
+     *
+     * <p>
+     * This method is a convenient equivalent (which may be more efficient) for
+     * {@code find(key).orElseGet(supplier)}. The {@link #find(Object)} version
+     * might be more descriptive though.
+     *
+     * @param key
+     *            the key whose associated value is to be returned
+     * @param provider
+     *            the default value provider. It must not be {@code null}.
+     *
+     * @return the value to which the specified key is mapped, or the result of
+     *         the given provider if this map contains no mapping for the key
+     */
+    default V getOrProvide(Object key, Supplier<? extends V> provider) {
+        final V result = container().get(key);
+        return (result != null) ? result : provider.get();
+    }
 
     /**
      * Returns the value associated with the given key.
@@ -259,8 +282,8 @@ public interface FluentMap<K, V> extends Map<K, V> {
      *             on demand or the key does not comply the strategy to apply,
      *             or if the instance does not support inserting (the value)
      */
-    default V let(K key) {
-        final Function<? super K, ? extends V> factory = defaults();
+    default V supply(K key) {
+        final Function<? super K, ? extends V> factory = factory();
         if (factory == null) { // No factory available!
             throw new UnsupportedOperationException();
         }
@@ -269,82 +292,82 @@ public interface FluentMap<K, V> extends Map<K, V> {
     }
 
     /**
-     * Ensures that an association with the given key exists by creating a new
-     * value if no value is associated at this moment.
-     *
-     * <p>
-     * This method behaves like {@link #let(Object)}, but when it creates a new
-     * value, it uses the given function to perform any actions on the value and
-     * uses its result as the actual value to set up. This allows, e.g.,
-     * remapping the blank value with a better one or filling it with custom
-     * content. If the function returns {@code null}, the association is not
-     * established.
+     * Returns the value associated with the given key, or create a new value,
+     * if no value is associated at this moment, and associate it. Rather than
+     * failing due to a missing strategy to create the new value, it returns an
+     * empty container.
      *
      * @param key
-     *            the key to use for looking up the value and optionally
-     *            defining the association
-     * @param function
-     *            the function which gets the newly created value and should
-     *            return the value to actually apply. It must not be
-     *            {@code null}.
+     *            the key defining the mapping
      *
-     * @return this instance
+     * @return the value associated with the given key (possibly the new one),
+     *         or an empty container if the value could not be made
      *
      * @throws UnsupportedOperationException
-     *             if this instance does not define any way to make new values
-     *             on demand or the key does not comply the strategy to apply,
-     *             or if the instance does not support inserting (the value)
+     *             if the value could not be associated with the specified key,
+     *             e.g., because the instance does not allow it or storing any
+     *             values. The reason for this exception is not the inability to
+     *             create a new value.
      */
-    default FluentMap<K, V> let(K key, Function<? super V, ? extends V> function) {
-        final Function<? super K, ? extends V> factory = defaults();
+    default Optional<V> have(K key) {
+        final Function<? super K, ? extends V> factory = factory();
         if (factory == null) { // No factory available!
-            throw new UnsupportedOperationException();
+            return Optional.empty();
         }
 
-        compute(key, (k, v) -> (v != null) ? v : function.apply(factory.apply(k)));
-        return this;
+        return Optional.ofNullable(computeIfAbsent(key, factory));
     }
 
     /**
-     * Ensures that an association with the given key exists by creating a new
-     * value if no value is associated at this moment.
+     * Associates the specified value with the specified key, or removes the
+     * existing associations if the value is {@code null}.
      *
      * <p>
-     * This method behaves like {@link #let(Object)}, but when it creates a new
-     * value, it uses the given consumer to mutate the value before adding it.
+     * This method calls {@link #put(Object, Object)} or {@link #remove(Object)}
+     * depending on the value, which makes easy to use {@code null} values even
+     * with maps that do not support them if used in "no mapping" meaning.
      *
      * @param key
-     *            the key to use for looking up the value and optionally
-     *            defining the association
-     * @param mutator
-     *            the consumer which gets the newly created value. It must not
-     *            be {@code null}.
+     *            the key with which the specified value is to be associated
+     * @param value
+     *            the value to be associated with the specified key, or
+     *            {@code null} for removing the association for the key
      *
-     * @return this instance
-     *
-     * @throws UnsupportedOperationException
-     *             if this instance does not define any way to make new values
-     *             on demand or the key does not comply the strategy to apply,
-     *             or if the instance does not support inserting (the value)
+     * @return the value of the previous association
      */
-    default FluentMap<K, V> let(K key, BiConsumer<? super K, ? super V> mutator) {
-        final Function<? super K, ? extends V> factory = defaults();
-        if (factory == null) { // No factory available!
-            throw new UnsupportedOperationException();
-        }
-
-        compute(key, (k, v) -> {
-            if (v != null) {
-                return v;
-            }
-
-            final V result = factory.apply(k);
-            mutator.accept(k, result);
-            return result;
-        });
-
-        return this;
+    default V let(K key, V value) {
+        return (value != null) ? put(key, value) : remove(key);
     }
+
+    /**
+     * Sets the value if the mapping is absent using a supplier.
+     *
+     * @param key
+     *            the key of the association to compute
+     * @param valueSupplier
+     *            the supplier to provide the value
+     *
+     * @return the computed value
+     */
+    default V supplyIfAbsent(K key, Supplier<? extends V> valueSupplier) {
+        return container().computeIfAbsent(key, k -> valueSupplier.get());
+    }
+
+    /**
+     * Sets the value if the mapping is present using a supplier.
+     *
+     * @param key
+     *            the key of the association to compute
+     * @param valueSupplier
+     *            the supplier to provide the value
+     *
+     * @return the computed value
+     */
+    default V supplyIfPresent(K key, Supplier<? extends V> valueSupplier) {
+        return container().computeIfPresent(key, (k, v) -> valueSupplier.get());
+    }
+
+    // Fluent extensions for Map
 
     /**
      * Merges the current and given values for the given key using the provided
@@ -418,30 +441,82 @@ public interface FluentMap<K, V> extends Map<K, V> {
     }
 
     /**
-     * Returns the value associated with the given key, or create a new value,
-     * if no value is associated at this moment, and associate it. Rather than
-     * failing due to a missing strategy to create the new value, it returns an
-     * empty container.
+     * Ensures that an association with the given key exists by creating a new
+     * value if no value is associated at this moment.
+     *
+     * <p>
+     * This method behaves like {@link #supply(Object)}, but when it creates a
+     * new value, it uses the given function to perform any actions on the value
+     * and uses its result as the actual value to set up. This allows, e.g.,
+     * remapping the blank value with a better one or filling it with custom
+     * content. If the function returns {@code null}, the association is not
+     * established.
      *
      * @param key
-     *            the key defining the mapping
+     *            the key to use for looking up the value and optionally
+     *            defining the association
+     * @param function
+     *            the function which gets the newly created value and should
+     *            return the value to actually apply. It must not be
+     *            {@code null}.
      *
-     * @return the value associated with the given key (possibly the new one),
-     *         or an empty container if the value could not be made
+     * @return this instance
      *
      * @throws UnsupportedOperationException
-     *             if the value could not be associated with the specified key,
-     *             e.g., because the instance does not allow it or storing any
-     *             values. The reason for this exception is not the inability to
-     *             create a new value.
+     *             if this instance does not define any way to make new values
+     *             on demand or the key does not comply the strategy to apply,
+     *             or if the instance does not support inserting (the value)
      */
-    default Optional<V> have(K key) {
-        final Function<? super K, ? extends V> factory = defaults();
+    default FluentMap<K, V> make(K key, Function<? super V, ? extends V> function) {
+        final Function<? super K, ? extends V> factory = factory();
         if (factory == null) { // No factory available!
-            return Optional.empty();
+            throw new UnsupportedOperationException();
         }
 
-        return Optional.ofNullable(computeIfAbsent(key, factory));
+        compute(key, (k, v) -> (v != null) ? v : function.apply(factory.apply(k)));
+        return this;
+    }
+
+    /**
+     * Ensures that an association with the given key exists by creating a new
+     * value if no value is associated at this moment.
+     *
+     * <p>
+     * This method behaves like {@link #supply(Object)}, but when it creates a
+     * new value, it uses the given consumer to mutate the value before adding
+     * it.
+     *
+     * @param key
+     *            the key to use for looking up the value and optionally
+     *            defining the association
+     * @param mutator
+     *            the consumer which gets the newly created value. It must not
+     *            be {@code null}.
+     *
+     * @return this instance
+     *
+     * @throws UnsupportedOperationException
+     *             if this instance does not define any way to make new values
+     *             on demand or the key does not comply the strategy to apply,
+     *             or if the instance does not support inserting (the value)
+     */
+    default FluentMap<K, V> make(K key, BiConsumer<? super K, ? super V> mutator) {
+        final Function<? super K, ? extends V> factory = factory();
+        if (factory == null) { // No factory available!
+            throw new UnsupportedOperationException();
+        }
+
+        compute(key, (k, v) -> {
+            if (v != null) {
+                return v;
+            }
+
+            final V result = factory.apply(k);
+            mutator.accept(k, result);
+            return result;
+        });
+
+        return this;
     }
 
     /**
@@ -547,34 +622,6 @@ public interface FluentMap<K, V> extends Map<K, V> {
         return this;
     }
 
-    /**
-     * Sets the value if the mapping is absent using a supplier.
-     *
-     * @param key
-     *            the key of the association to compute
-     * @param valueSupplier
-     *            the supplier to provide the value
-     *
-     * @return the computed value
-     */
-    default V supplyIfAbsent(K key, Supplier<? extends V> valueSupplier) {
-        return container().computeIfAbsent(key, k -> valueSupplier.get());
-    }
-
-    /**
-     * Sets the value if the mapping is present using a supplier.
-     *
-     * @param key
-     *            the key of the association to compute
-     * @param valueSupplier
-     *            the supplier to provide the value
-     *
-     * @return the computed value
-     */
-    default V supplyIfPresent(K key, Supplier<? extends V> valueSupplier) {
-        return container().computeIfPresent(key, (k, v) -> valueSupplier.get());
-    }
-
     // Map interface default implementation
 
     /**
@@ -613,10 +660,32 @@ public interface FluentMap<K, V> extends Map<K, V> {
     }
 
     /**
+     * Returns the value to which the specified key is mapped, or the given
+     * default value if this map contains no mapping for the key.
+     *
+     * <p>
+     * This method is a convenient equivalent (which may be more efficient) for
+     * {@code find(key).orElse(value)}. The {@link #find(Object)} version might
+     * be more descriptive though.
+     *
+     * @see java.util.Map#getOrDefault(java.lang.Object, java.lang.Object)
+     */
+    default V getOrDefault(Object key, V defaultValue) {
+        return container().getOrDefault(key, defaultValue);
+    }
+
+    /**
      * @see java.util.Map#put(java.lang.Object, java.lang.Object)
      */
     default V put(K key, V value) {
         return container().put(key, value);
+    }
+
+    /**
+     * @see java.util.Map#putIfAbsent(java.lang.Object, java.lang.Object)
+     */
+    default V putIfAbsent(K key, V value) {
+        return container().putIfAbsent(key, value);
     }
 
     /**
@@ -646,27 +715,6 @@ public interface FluentMap<K, V> extends Map<K, V> {
      */
     default boolean replace(K key, V oldValue, V newValue) {
         return container().replace(key, oldValue, newValue);
-    }
-
-    /**
-     * @see java.util.Map#replaceAll(java.util.function.BiFunction)
-     */
-    default void replaceAll(BiFunction<? super K, ? super V, ? extends V> function) {
-        container().replaceAll(function);
-    }
-
-    /**
-     * @see java.util.Map#getOrDefault(java.lang.Object, java.lang.Object)
-     */
-    default V getOrDefault(Object key, V defaultValue) {
-        return container().getOrDefault(key, defaultValue);
-    }
-
-    /**
-     * @see java.util.Map#putIfAbsent(java.lang.Object, java.lang.Object)
-     */
-    default V putIfAbsent(K key, V value) {
-        return container().putIfAbsent(key, value);
     }
 
     /**
@@ -713,6 +761,13 @@ public interface FluentMap<K, V> extends Map<K, V> {
      */
     default void putAll(Map<? extends K, ? extends V> m) {
         container().putAll(m);
+    }
+
+    /**
+     * @see java.util.Map#replaceAll(java.util.function.BiFunction)
+     */
+    default void replaceAll(BiFunction<? super K, ? super V, ? extends V> function) {
+        container().replaceAll(function);
     }
 
     /**
@@ -769,7 +824,7 @@ final class FluentMapAdapter<K, V> implements Serializable, FluentMap<K, V> {
     private final Function<? super K, ? extends V> defaults;
 
     /**
-     * Creates a new instance with no {@link #defaults()}.
+     * Creates a new instance with no {@link #factory()}.
      *
      * @param storage
      *            the backing instance. It must not be {@code null}.
@@ -837,16 +892,16 @@ final class FluentMapAdapter<K, V> implements Serializable, FluentMap<K, V> {
     }
 
     /**
-     * @see net.yetamine.lang.collections.FluentMap#defaults()
+     * @see net.yetamine.lang.collections.FluentMap#factory()
      */
-    public Function<? super K, ? extends V> defaults() {
+    public Function<? super K, ? extends V> factory() {
         return defaults;
     }
 
     /**
-     * @see net.yetamine.lang.collections.FluentMap#defaults(java.util.function.Function)
+     * @see net.yetamine.lang.collections.FluentMap#factory(java.util.function.Function)
      */
-    public FluentMap<K, V> defaults(Function<? super K, ? extends V> factory) {
+    public FluentMap<K, V> factory(Function<? super K, ? extends V> factory) {
         return Objects.equals(factory, defaults) ? this : new FluentMapAdapter<>(container, factory);
     }
 }
