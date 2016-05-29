@@ -88,7 +88,7 @@ final List<String> de = Arrays.asList("rot", "grün", "blau");
 
 // And we want a map like this: {red=rot, green=grün, blue=blau}
 final Map<String, String> colors = new LinkedHashMap<>();
-Tuple2.zip(en, de).forEach(t -> t.accept(colors::put));
+Tuple2.zip(en, de).forEach(t -> t.use(colors::put));
 // Here it is!
 ```
 
@@ -217,7 +217,7 @@ static final Map<TimeUnit, String> UNITS = FluentMap.adapt(new EnumMap<TimeUnit,
          .add(TimeUnit.MINUTES, "min")
          .add(TimeUnit.HOURS, "h")
          .add(TimeUnit.DAYS, "d")
-         .withMap(Collections::unmodifiableMap);
+         .that().map(Collections::unmodifiableMap);
 ```
 
 If you like this, you might like following as well. `Map` interface has been upgraded much with Java 8 release and its `compute*` methods made it usable for multimaps, but still… do you really want to write the appropriate lambda at all places where you possibly need to compute the default value? And what if you have something like `Map<String, ? extends Collection<String>>` while you'd like to retain defaults? Well, the fluent adapter for a map can incorporate even constructors for default values:
@@ -226,14 +226,14 @@ If you like this, you might like following as well. `Map` interface has been upg
 // Let's make a map which binds a supplier to get/make default values
 final FluentMap<String, List<String>> m = FluentMap.adapt(new HashMap<>(), ArrayList::new);
 
-// The 'let' method inserts the default provided by the supplier for missing
+// The 'supply' method inserts the default provided by the supplier for missing
 // values and returns the value, so that can be processed then
-m.let("titles").addAll(Arrays.asList("Mr.", "Ms.", "Mrs.", "Miss"));
+m.supply("titles").addAll(Arrays.asList("Mr.", "Ms.", "Mrs.", "Miss"));
 
-// Another overload of the 'let' method accepts a function for initializing the
+// A companion of the 'supply' method accepts a function for initializing the
 // newly added default values and it supports chaining, so that you can do this
 // (here using yet FluentCollection as a fluent adapter for the map's values):
-m.let("colors", (k, l) -> FluentCollection.adapt(l).includeMore("red", "green", "blue"));
+m.make("colors", (k, l) -> FluentCollection.adapt(l).includeMore("red", "green", "blue"));
 
 // Here we have:
 // {titles=[Mr., Ms., Mrs., Miss], colors=[red, green, blue]}
@@ -242,8 +242,8 @@ m.let("colors", (k, l) -> FluentCollection.adapt(l).includeMore("red", "green", 
 final FluentMap<String, ? extends Collection<String>> n = m;
 
 // Still we can add values, but just using the allowed defaults:
-n.let("sizes").addAll(Arrays.asList("XXS", "XS", "S", "M", "L", "XL", "XXL"));
-n.let("state", (k, l) -> l.add("good"));
+n.supply("sizes").addAll(Arrays.asList("XXS", "XS", "S", "M", "L", "XL", "XXL"));
+n.make("state", (k, l) -> l.add("good"));
 ```
 
 
