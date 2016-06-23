@@ -11,7 +11,6 @@ What can be found here:
 * Companions for `Optional`: `Choice` and `Single`. `Traversing` is notable as well.
 * Fluent collection interfaces and adapters to make some operations a bit easier.
 * Support for adapting arbitrary objects for use in try-with-resources.
-* Support for serializable singleton and multiton implementations.
 * `Cloneable` support: no more fiddling with reflection.
 * Some minor utilities for using functional interfaces.
 * Several introspective utilities.
