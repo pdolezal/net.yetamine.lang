@@ -34,9 +34,6 @@ public final class TestSerialized {
 
         Assert.assertNotSame(serialized.build(), source);
         Assert.assertEquals(serialized.build(), source);
-
-        Assert.assertNotSame(serialized.get(), source);
-        Assert.assertEquals(serialized.get(), source);
     }
 
     /**

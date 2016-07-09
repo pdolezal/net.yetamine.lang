@@ -18,20 +18,15 @@ package net.yetamine.lang.creational;
 
 import java.util.Objects;
 import java.util.function.Function;
-import java.util.function.Supplier;
 
 /**
  * An interface for factories and builders.
- *
- * <p>
- * For convenience this interface inherits from {@link Supplier} and the
- * inherited {@link #get()} method should be an alias to {@link #build()}.
  *
  * @param <T>
  *            the type of the product
  */
 @FunctionalInterface
-public interface Factory<T> extends Supplier<T> {
+public interface Factory<T> {
 
     /**
      * Provides a new instance of the product.
@@ -40,19 +35,11 @@ public interface Factory<T> extends Supplier<T> {
      * Technically, the result does not have to be a brand new instance if the
      * result is immutable and may be shared. However, the result must be such
      * an instance that it can be used by multiple clients without their mutual
-     * interference. This is an additional requirement that the {@link #get()}
-     * method does not impose.
+     * interference.
      *
      * @return a new instance of the product
      */
     T build();
-
-    /**
-     * @see java.util.function.Supplier#get()
-     */
-    default T get() {
-        return build();
-    }
 
     /**
      * Makes a factory which uses a template object as the prototype for making
