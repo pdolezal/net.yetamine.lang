@@ -18,6 +18,7 @@ package net.yetamine.lang.containers;
 
 import java.util.Objects;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 import net.yetamine.lang.functional.Producer;
 
@@ -37,18 +38,25 @@ import net.yetamine.lang.functional.Producer;
 public final class Concealment<T> implements Producer<T> {
 
     /** Common shared empty instance. */
-    private static final Concealment<?> EMPTY = new Concealment<>(null);
+    private static final Concealment<?> EMPTY = new Concealment<>(null, Concealment::toString);
 
     /** Boxed value. */
     private final T value;
+    /** Custom {@link #toString()}. */
+    private final Function<? super T, String> toString;
 
     /**
      * Creates a new instance representing the given value.
      *
      * @param object
      *            the value to represent
+     * @param formatter
+     *            the {@link #toString} implementation. It must not be
+     *            {@code null}.
      */
-    private Concealment(T object) {
+    private Concealment(T object, Function<? super T, String> formatter) {
+        assert (formatter != null);
+        toString = formatter;
         value = object;
     }
 
@@ -66,7 +74,7 @@ public final class Concealment<T> implements Producer<T> {
     }
 
     /**
-     * Returns an representing the given value.
+     * Returns an instance representing the given value.
      *
      * @param <T>
      *            the type of the represented value
@@ -76,7 +84,40 @@ public final class Concealment<T> implements Producer<T> {
      * @return the new instance
      */
     public static <T> Concealment<T> of(T object) {
-        return (object != null) ? new Concealment<>(object) : empty();
+        return (object != null) ? new Concealment<>(object, Concealment::toString) : empty();
+    }
+
+    /**
+     * Returns an instance representing the given value.
+     *
+     * @param <T>
+     *            the type of the represented value
+     * @param object
+     *            the value to represent
+     * @param toString
+     *            the custom {@link #toString} implementation. It must not be
+     *            {@code null}.
+     *
+     * @return the new instance
+     */
+    public static <T> Concealment<T> custom(T object, Function<? super T, String> toString) {
+        return new Concealment<>(object, Objects.requireNonNull(toString));
+    }
+
+    /**
+     * Formats a value with the default formatter.
+     *
+     * @param o
+     *            the value to format
+     *
+     * @return the default formatting
+     */
+    public static String toString(Object o) {
+        if (o == null) {
+            return "concealment[empty]";
+        }
+
+        return String.format("concealment[%s@%08x]", o.getClass().getTypeName(), System.identityHashCode(o));
     }
 
     /**
@@ -84,11 +125,7 @@ public final class Concealment<T> implements Producer<T> {
      */
     @Override
     public String toString() {
-        if (value == null) {
-            return "concealment[empty]";
-        }
-
-        return String.format("concealment[%s@%08x]", value.getClass().getTypeName(), System.identityHashCode(value));
+        return toString.apply(value);
     }
 
     /**

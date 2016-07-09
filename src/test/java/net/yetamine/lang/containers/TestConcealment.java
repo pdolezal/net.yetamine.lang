@@ -79,4 +79,17 @@ public final class TestConcealment {
         Assert.assertEquals(ca.hashCode(), ct.hashCode());
         Assert.assertNotEquals(ca, cb);
     }
+
+
+    /**
+     * Tests {@link Concealment#toString()}.
+     */
+    @Test
+    public void testToString() {
+        final String v = "Hello";
+
+        Assert.assertNotEquals(Concealment.of(v).toString(), v);
+        Assert.assertEquals(Concealment.custom(v, o -> "World").toString(), "World");
+        Assert.assertEquals(Concealment.custom(v, o -> v).toString(), v);
+    }
 }
