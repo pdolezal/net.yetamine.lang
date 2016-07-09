@@ -21,11 +21,7 @@ import java.util.Map;
 
 /**
  * Indicates support for retrieving additional information of an instance to aid
- * debugging, logging and other kind of introspective processing.
- *
- * <p>
- * The values provided as the introspection data should provide human-friendly
- * implementation of the {@link Object#toString()} method to achieve the goal.
+ * debugging, logging and other kinds of introspective processing.
  */
 public interface Introspection {
 
@@ -34,11 +30,12 @@ public interface Introspection {
      * instance.
      *
      * <p>
-     * The default implementation returns an empty set. Implementations are
-     * supposed to override this method and provide a set of actual values.
+     * The default implementation returns an empty map. Implementations are
+     * supposed to override this method and provide actual values. The result
+     * must be thread-safe and it may be immutable.
      *
-     * @return the set of introspective descriptions; never {@code null}, but
-     *         possibly unmodifiable
+     * @return the introspective description; never {@code null}, but possibly
+     *         unmodifiable
      */
     default Map<?, ?> introspect() {
         return Collections.emptyMap();
