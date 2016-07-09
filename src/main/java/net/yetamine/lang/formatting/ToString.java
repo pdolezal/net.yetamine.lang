@@ -21,23 +21,34 @@ import java.util.function.Supplier;
 
 /**
  * A proxy for an object that has no suitable {@link Object#toString()} method
- * override. For {@link net.yetamine.lang.introspective.Introspection}, this
- * class could be useful as well for representing the keys of the values that
- * are designated for human-friendly representation of a property.
+ * override.
  */
 public final class ToString implements Supplier<String> {
 
-    /** Identifier to display. */
-    private final String value;
+    /** Strategy for {@link #toString()}. */
+    private final Supplier<String> value;
 
     /**
      * Creates a new instance.
      *
      * @param representation
-     *            the identifier to present. It must not be {@code null}.
+     *            the value to present. It must not be {@code null}.
      */
     public ToString(String representation) {
-        value = Objects.requireNonNull(representation);
+        Objects.requireNonNull(representation);
+        value = () -> representation;
+    }
+
+    /**
+     * Creates a new instance.
+     *
+     * @param implementation
+     *            the implementation of {@link #toString()}. It must not be
+     *            {@code null} and it should behave as {@link Object#toString()}
+     *            specifies.
+     */
+    public ToString(Supplier<String> implementation) {
+        value = Objects.requireNonNull(implementation);
     }
 
     /**
@@ -45,7 +56,7 @@ public final class ToString implements Supplier<String> {
      */
     @Override
     public String toString() {
-        return value;
+        return value.get();
     }
 
     /**
