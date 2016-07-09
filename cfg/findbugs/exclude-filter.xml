@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FindBugsFilter>
+    <Match>
+        <!-- Non-serializable field: depending on the actual instance -->
+        <Class name="net.yetamine.lang.collections.FluentMapAdapter" />
+        <Bug pattern="SE_BAD_FIELD" />
+    </Match>
+
+    <Match>
+        <!-- Looks like a FindBugs bug: side effect (running a Runnable) not detected -->
+        <Class name="net.yetamine.lang.introspective.Extensions" />
+        
+        <Or>
+            <Method name="ifMissing" />
+            <Method name="ifPresent" />
+        </Or>
+        
+        <Bug pattern="RV_RETURN_VALUE_IGNORED_NO_SIDE_EFFECT" />
+    </Match>
+</FindBugsFilter>
