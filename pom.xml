@@ -52,19 +52,23 @@
 
     <properties>
         <findbugs.excludeFilterFile>${project.basedir}/cfg/findbugs/exclude-filter.xml</findbugs.excludeFilterFile>
+        <pet4bnd.output>${project.build.directory}/exports.bnd</pet4bnd.output>
     </properties>
 
     <build>
         <plugins>
+            <plugin>
+                <groupId>net.yetamine</groupId>
+                <artifactId>pet4bnd-maven-plugin</artifactId>
+            </plugin>
+
             <plugin>
                 <groupId>org.apache.felix</groupId>
                 <artifactId>maven-bundle-plugin</artifactId>
 
                 <configuration>
                     <instructions>
-                        <Export-Package>
-                            net.yetamine.lang.*
-                        </Export-Package>
+                        <_include>${pet4bnd.output}</_include>
                     </instructions>
                 </configuration>
             </plugin>
