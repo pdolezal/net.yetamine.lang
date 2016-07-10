@@ -69,6 +69,25 @@ public interface Pointer<T> extends Consumer<T>, Producer<T> {
     void accept(T t);
 
     /**
+     * Swaps the element value with the value of a different instance.
+     *
+     * <p>
+     * This method is not atomic and it does not even have to be failure-atomic:
+     * if this or the other instance fails to get or set an element (because of
+     * an exception), the state after the operation is undefined; the exception
+     * that caused the failure shall be relayed to the caller.
+     *
+     * @param other
+     *            the other instance to swap the value with. It must not be
+     *            {@code null}.
+     */
+    default void swap(Pointer<T> other) {
+        final T t = other.get();
+        other.accept(get());
+        accept(t);
+    }
+
+    /**
      * Computes the new value of the element, updates the element and returns
      * its new value.
      *
