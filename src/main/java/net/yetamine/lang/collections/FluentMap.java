@@ -68,7 +68,7 @@ import net.yetamine.lang.functional.Producer;
  * @param <V>
  *            the type of values
  */
-public interface FluentMap<K, V> extends Map<K, V> {
+public interface FluentMap<K, V> extends Map<K, V>, MappingStorage<K, V> {
 
     /**
      * Makes a new instance of the default adapter implementation.
@@ -224,21 +224,8 @@ public interface FluentMap<K, V> extends Map<K, V> {
     // Generic extensions for Map
 
     /**
-     * Returns the value to which the specified key is mapped, or uses the given
-     * provider to provide the result instead.
-     *
-     * <p>
-     * This method is a convenient equivalent (which may be more efficient) for
-     * {@code find(key).orElseGet(supplier)}. The {@link #find(Object)} version
-     * might be more descriptive though.
-     *
-     * @param key
-     *            the key whose associated value is to be returned
-     * @param provider
-     *            the default value provider. It must not be {@code null}.
-     *
-     * @return the value to which the specified key is mapped, or the result of
-     *         the given provider if this map contains no mapping for the key
+     * @see net.yetamine.lang.collections.MappingStorage#getOrProvide(java.lang.Object,
+     *      java.util.function.Supplier)
      */
     default V getOrProvide(Object key, Supplier<? extends V> provider) {
         final V result = container().get(key);
@@ -246,19 +233,7 @@ public interface FluentMap<K, V> extends Map<K, V> {
     }
 
     /**
-     * Returns the value associated with the given key.
-     *
-     * <p>
-     * This method is a shortcut for {@code Optional.ofNullable(map.get(key))}.
-     * It therefore does not work very well for actual {@code null} values, but
-     * it is great for simple actions on valid objects using following pattern:
-     * {@code map.find(key).ifPresent(consumer)}.
-     *
-     * @param key
-     *            the key to use for looking up the value
-     *
-     * @return the value associated with the given key, or an empty container if
-     *         no such value exists
+     * @see net.yetamine.lang.collections.MappingStorage#find(java.lang.Object)
      */
     default Optional<V> find(Object key) {
         return Optional.ofNullable(get(key));
@@ -319,49 +294,24 @@ public interface FluentMap<K, V> extends Map<K, V> {
     }
 
     /**
-     * Associates the specified value with the specified key, or removes the
-     * existing associations if the value is {@code null}.
-     *
-     * <p>
-     * This method calls {@link #put(Object, Object)} or {@link #remove(Object)}
-     * depending on the value, which makes easy to use {@code null} values even
-     * with maps that do not support them if used in "no mapping" meaning.
-     *
-     * @param key
-     *            the key with which the specified value is to be associated
-     * @param value
-     *            the value to be associated with the specified key, or
-     *            {@code null} for removing the association for the key
-     *
-     * @return the value of the previous association
+     * @see net.yetamine.lang.collections.MappingStorage#let(java.lang.Object,
+     *      java.lang.Object)
      */
     default V let(K key, V value) {
         return (value != null) ? put(key, value) : remove(key);
     }
 
     /**
-     * Sets the value if the mapping is absent using a supplier.
-     *
-     * @param key
-     *            the key of the association to compute
-     * @param valueSupplier
-     *            the supplier to provide the value
-     *
-     * @return the computed value
+     * @see net.yetamine.lang.collections.MappingStorage#supplyIfAbsent(java.lang.Object,
+     *      java.util.function.Supplier)
      */
     default V supplyIfAbsent(K key, Supplier<? extends V> valueSupplier) {
         return container().computeIfAbsent(key, k -> valueSupplier.get());
     }
 
     /**
-     * Sets the value if the mapping is present using a supplier.
-     *
-     * @param key
-     *            the key of the association to compute
-     * @param valueSupplier
-     *            the supplier to provide the value
-     *
-     * @return the computed value
+     * @see net.yetamine.lang.collections.MappingStorage#supplyIfPresent(java.lang.Object,
+     *      java.util.function.Supplier)
      */
     default V supplyIfPresent(K key, Supplier<? extends V> valueSupplier) {
         return container().computeIfPresent(key, (k, v) -> valueSupplier.get());
@@ -721,7 +671,7 @@ public interface FluentMap<K, V> extends Map<K, V> {
      * @see java.util.Map#compute(java.lang.Object,
      *      java.util.function.BiFunction)
      */
-    default V compute(K key, java.util.function.BiFunction<? super K, ? super V, ? extends V> remapping) {
+    default V compute(K key, BiFunction<? super K, ? super V, ? extends V> remapping) {
         return container().compute(key, remapping);
     }
 
@@ -734,7 +684,7 @@ public interface FluentMap<K, V> extends Map<K, V> {
     }
 
     /**
-     * @see java.util.Map#computeIfPresent(java.lang.Object,
+     * @see net.yetamine.lang.collections.MappingStorage#computeIfPresent(java.lang.Object,
      *      java.util.function.BiFunction)
      */
     default V computeIfPresent(K key, BiFunction<? super K, ? super V, ? extends V> remapping) {

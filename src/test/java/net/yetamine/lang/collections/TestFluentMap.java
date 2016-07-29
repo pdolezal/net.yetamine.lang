@@ -36,25 +36,15 @@ import net.yetamine.lang.functional.BiConsumers;
  * <p>
  * The implementation is written, so it could be used for both lists and sets if
  * the underlying set respects the insertion order. To run the original tests as
- * a part of the new test set, override {@link #createFluent()}.
+ * a part of the new test set, override {@link #create()}.
  */
-public class TestFluentMap {
+public class TestFluentMap extends TestMappingStorage {
 
     /**
-     * Creates a new blank (mutable) map.
-     *
-     * <p>
-     * The default implementation uses {@link HashMap} as the underlying
-     * implementation.
-     *
-     * @param <K>
-     *            the type of keys
-     * @param <V>
-     *            the type of values
-     *
-     * @return the map adapter
+     * @see net.yetamine.lang.collections.TestMappingStorage#create()
      */
-    protected <K, V> FluentMap<K, V> createFluent() {
+    @Override
+    protected <K, V> FluentMap<K, V> create() {
         return FluentMap.adapt(new HashMap<>());
     }
 
@@ -75,26 +65,11 @@ public class TestFluentMap {
     }
 
     /**
-     * Tests {@link FluentMap#find(Object)}.
-     */
-    @Test
-    public void testFind() {
-        final FluentMap<Object, Object> f = createFluent();
-
-        final Object k = new Object();
-        Assert.assertFalse(f.find(k).isPresent());
-
-        final Object v = new Object();
-        f.put(k, v);
-        Assert.assertSame(f.find(k).get(), v);
-    }
-
-    /**
      * Tests {@link FluentMap#supply(Object)}.
      */
     @Test
     public void testSupply() {
-        final FluentMap<String, Object> f = createFluent();
+        final FluentMap<String, Object> f = create();
 
         { // Using a supplier
             final String key = "Hello";
@@ -134,7 +109,7 @@ public class TestFluentMap {
      */
     @Test
     public void testMake_Function() {
-        final FluentMap<String, Integer> f = createFluent();
+        final FluentMap<String, Integer> f = create();
 
         { // Using a supplier
             final String key = "Hello";
@@ -187,7 +162,7 @@ public class TestFluentMap {
      */
     @Test
     public void testMake_BiConsumer() {
-        final FluentMap<String, AtomicInteger> f = createFluent();
+        final FluentMap<String, AtomicInteger> f = create();
 
         { // Using a supplier
             final String key = "Hello";
@@ -233,7 +208,7 @@ public class TestFluentMap {
      */
     @Test
     public void testHave() {
-        final FluentMap<String, Object> f = createFluent();
+        final FluentMap<String, Object> f = create();
 
         { // Using a supplier
             final String key = "Hello";
@@ -257,40 +232,5 @@ public class TestFluentMap {
             Assert.assertFalse(ff.factory((Function<Object, ?>) null).have("Dolly").isPresent());
             Assert.assertNull(ff.get("Dolly"));
         }
-    }
-
-    /**
-     * Tests {@link FluentMap#supplyIfAbsent(Object, Supplier)}.
-     */
-    @Test
-    public void testSupplyIfAbsent() {
-        final FluentMap<String, Object> f = createFluent();
-
-        final Object o = new Object();
-        Assert.assertSame(f.supplyIfAbsent("Hello", () -> o), o);
-        Assert.assertSame(f.supplyIfAbsent("Hello", () -> {
-            Assert.fail();
-            return null;
-        }), o);
-
-        Assert.assertSame(f.get("Hello"), o);
-    }
-
-    /**
-     * Tests {@link FluentMap#supplyIfPresent(Object, Supplier)}.
-     */
-    @Test
-    public void testSupplyIfPresent() {
-        final FluentMap<String, Object> f = createFluent();
-
-        final Object o = new Object();
-        Assert.assertNull(f.supplyIfPresent("Hello", () -> {
-            Assert.fail();
-            return null;
-        }));
-
-        f.put("Hello", new Object());
-        Assert.assertSame(f.supplyIfPresent("Hello", () -> o), o);
-        Assert.assertSame(f.get("Hello"), o);
     }
 }
