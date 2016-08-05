@@ -22,7 +22,7 @@ What can be found here:
 Let's have a look at a few code snippets demonstrating some of the functionality that this library provides.
 
 
-### Error messages ###
+### Error handling ###
 
 Error messages should contain the values that indicate the root of the problem. It is nice to have the actual values quoted in a way, so that they do not blend with the rest of the message, but when the value could be `null`, a problem comes.
 
@@ -41,6 +41,25 @@ try {
 }
 ```
 
+By the way, when talking about exceptions, have you ever had to solve problem like wrapping and unwrapping an exception or analyzing a cause of an exception to throw a more proper exception than offered? What about this:
+
+```{java}
+final Callable<String> action = () -> {
+    // Here run something what may fail with a valuable IOException
+    return result;
+}
+
+// Let's execute the action with a Future somewhere else
+try {
+    System.out.println(future.get());
+} catch (ExecutionException e) {
+    // Well, great: we would like to throw the valuable IOException rather than
+    // something else, but only if the execution failed due to an I/O error
+    Throwing.cause(e).throwIf(IOException.class);
+    
+    throw new RuntimeException(e); // Just pass the others, not so interesting 
+}
+```
 
 ### Sometimes Boolean is not good enough ###
 
