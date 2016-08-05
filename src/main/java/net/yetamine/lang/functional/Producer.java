@@ -37,7 +37,7 @@ public interface Producer<T> extends Supplier<T> {
      *
      * <p>
      * This method provides a bridge to the standard library and allows using
-     * patterns like {@code pointer.optional().orElse(fallback)}
+     * patterns like {@code producer.optional().orElse(fallback)}
      *
      * @return the value as an {@link Optional} instance
      */
