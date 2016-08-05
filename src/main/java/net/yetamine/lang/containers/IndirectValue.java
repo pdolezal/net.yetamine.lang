@@ -68,6 +68,7 @@ public final class IndirectValue<T> implements Producer<T> {
     public IndirectValue(Supplier<? extends T> compute, Function<? super T, ? extends Supplier<? extends T>> customize) {
         factory = Objects.requireNonNull(customize);
         supplier = Objects.requireNonNull(compute);
+        invalidate(); // Set an invalid reference
     }
 
     /**
@@ -83,26 +84,15 @@ public final class IndirectValue<T> implements Producer<T> {
      * @see java.util.function.Supplier#get()
      */
     public T get() {
-        { // Fetch the value from the reference assuming that the reference exists
-            final Supplier<? extends T> current = reference;
-
-            if (current != null) {
-                final T result = current.get();
-
-                if (result != null) {
-                    return result;
-                }
-            }
+        final T current = reference.get();
+        if (current != null) {
+            return current;
         }
 
         synchronized (this) { // Well, no valid result retrieved, try to compute it
-            final Supplier<? extends T> current = reference;
-
-            if (current != null) { // Repeat the retrieval under the lock now
-                final T result = current.get();
-                if (result != null) {
-                    return result;
-                }
+            final T retry = reference.get();
+            if (retry != null) {
+                return retry;
             }
 
             // No success, so recompute it
@@ -117,6 +107,6 @@ public final class IndirectValue<T> implements Producer<T> {
      * {@link #get()} invocation triggers the computation again.
      */
     public void invalidate() {
-        reference = null;
+        reference = () -> null;
     }
 }
