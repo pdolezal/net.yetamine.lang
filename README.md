@@ -9,6 +9,7 @@ What can be found here:
 * An unmodifiable view of a byte sequence, `ByteSequence`, to represent binary constants.
 * A mutable `Box` for objects, which is useful for accumulators and for "out" method parameters.
 * Companions for `Optional`: `Choice` and `Single`. `Traversing` is notable as well.
+* Containers for deferred and cached values: `DeferredValue` and `IndirectValue`.
 * Fluent collection interfaces and adapters to make some operations a bit easier.
 * Support for adapting arbitrary objects for use in try-with-resources.
 * `Cloneable` support: no more fiddling with reflection.
@@ -220,6 +221,35 @@ boolean greet(String name) {
     return Choice.of(greeting(name)).ifTrue(System.out::println).isTrue();
 }
 ```
+
+
+### Deferred computation and caching ###
+
+Performing a demanding value computation on demand can be often useful. Here are two decorators for `Supplier` that provide such a functionality easily:
+
+```{java}
+// Find the answer to the Ultimate Question of Life, the Universe, and Everything
+final Supplier<?> answer = () -> {
+    try { // This could take maybe a lot of time
+        Thread.currentThread().sleep(Math.abs((long) new Random().nextInt()));
+    } catch (InterruptedException e) {
+        throw new RuntimeException(e);
+    }
+    
+    return 42;
+}
+
+final Supplier<?> supplier = new DeferredValue<>(answer); 
+
+System.out.println(supplier.get()); // Invokes the computation
+System.out.println(supplier.get()); // Uses the computed value, answers immediately
+
+// When the answer could be too large, let's cache it with WeakReference
+final Supplier<?> weak = new IndirectValue<>(answer, v -> new WeakReference<>(v)::get);
+
+System.out.println(weak.get()); // Invokes the computation
+System.out.println(weak.get()); // Well, depends on the garbage collection. Maybe answers immediately.
+``` 
 
 
 ### Is Java Collections Framework fluent? ###
