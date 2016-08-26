@@ -23,7 +23,7 @@ package net.yetamine.lang.closeables;
  * Implementations of this interface should avoid throwing any exceptions if
  * possible. Invoking this method on a closed instance should have no effect.
  */
-public interface SafeCloseable extends AutoCloseable {
+public interface SafeCloseable extends PureCloseable<RuntimeException> {
 
     /**
      * @see java.lang.AutoCloseable#close()
