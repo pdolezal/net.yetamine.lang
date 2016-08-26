@@ -17,6 +17,7 @@
 package net.yetamine.lang;
 
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
@@ -183,5 +184,14 @@ public final class Throwing<T extends Throwable> {
         if (throwable != null) {
             throw throwable;
         }
+    }
+
+    /**
+     * Returns the exception provided by this instance.
+     *
+     * @return the exception provided by this instance
+     */
+    public Optional<T> throwable() {
+        return Optional.ofNullable(throwable);
     }
 }
