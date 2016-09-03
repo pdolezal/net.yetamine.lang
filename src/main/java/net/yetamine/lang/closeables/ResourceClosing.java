@@ -42,4 +42,21 @@ public interface ResourceClosing<R, X extends Exception> {
      *             if the operation fails
      */
     void close(R object) throws X;
+
+    /**
+     * Returns an instance that does nothing.
+     *
+     * @param <R>
+     *            the type of the resource
+     * @param <X>
+     *            the type of the exception that the attempt to close the
+     *            resource may throw
+     *
+     * @return an instance that does nothing
+     */
+    static <R, X extends Exception> ResourceClosing<R, X> none() {
+        return r -> {
+            // Do nothing
+        };
+    }
 }

@@ -18,6 +18,7 @@ package net.yetamine.lang.closeables;
 
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Supplier;
 
 /**
  * Represents a strategy that opens a resource.
@@ -56,10 +57,6 @@ public interface ResourceOpening<R, X extends Exception> {
      * Returns an instance that creates a resource with the given instance once
      * only.
      *
-     * <p>
-     * The returned instance throws {@link IllegalStateException} if used more
-     * than once.
-     *
      * @param <R>
      *            the type of the resource
      * @param <X>
@@ -67,11 +64,15 @@ public interface ResourceOpening<R, X extends Exception> {
      *            resource may throw
      * @param opening
      *            the actual resource constructor. It must not be {@code null}.
+     * @param exception
+     *            the supplier of the exception to throw if the resource has
+     *            been required once than more. It must not be {@code null}.
      *
      * @return an instance that creates a resource with the given instance once
      *         only
      */
-    static <R, X extends Exception> ResourceOpening<R, X> unique(ResourceOpening<? extends R, ? extends X> opening) {
+    static <R, X extends Exception> ResourceOpening<R, X> unique(ResourceOpening<? extends R, ? extends X> opening, Supplier<? extends X> exception) {
+        Objects.requireNonNull(exception);
         Objects.requireNonNull(opening);
 
         // Make a flag to ensure single use only
@@ -82,7 +83,7 @@ public interface ResourceOpening<R, X extends Exception> {
                 return opening.open();
             }
 
-            throw new IllegalStateException();
+            throw exception.get();
         };
     }
 }

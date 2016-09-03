@@ -12,6 +12,7 @@ What can be found here:
 * Containers for deferred and cached values: `DeferredValue` and `IndirectValue`.
 * Fluent collection interfaces and adapters to make some operations a bit easier.
 * Support for adapting arbitrary objects for use in try-with-resources.
+* On-demand allocated and freed resource-like objects.
 * `Cloneable` support: no more fiddling with reflection.
 * Some minor utilities for using functional interfaces.
 * Several introspective utilities.

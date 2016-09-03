@@ -15,7 +15,17 @@
  */
 
 /**
- * Provides extensions to {@link java.lang.AutoCloseable} and support for better
- * exploiting try-with-resources.
+ * Extensions and tools for managing resources.
+ *
+ * <p>
+ * A <i>resource</i> is an object which needs explicit release when not needed
+ * anymore in order to conserve system resources or even in order to something
+ * happen (e.g., changes are reflected in the outer world). While the language
+ * supports resources by <i>try-with-resources</i> statement, it does not care
+ * about resources created on demand or legacy resources that do not inherit
+ * from {@link java.lang.AutoCloseable}. This package aims to address both
+ * problems, i.e., it provides adapting any resource to be usable with the
+ * built-in <i>try-with-resources</i> statement and to create resources on
+ * demand.
  */
 package net.yetamine.lang.closeables;
