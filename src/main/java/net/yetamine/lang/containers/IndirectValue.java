@@ -55,7 +55,7 @@ public final class IndirectValue<T> implements Producer<T> {
      * for caching the value in a smart way:
      *
      * <pre>
-     * new IndirectValue<T>(compute, t -> new WeakReference<>(t)::get)
+     * new IndirectValue&lt;T&gt;(compute, t -&gt; new WeakReference&lt;&gt;(t)::get)
      * </pre>
      *
      * @param compute
