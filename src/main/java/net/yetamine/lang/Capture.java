@@ -322,7 +322,7 @@ public final class Capture {
      * @return an unmodifiable instance with result of the transformation of the
      *         source map
      */
-    public static <K, V, M extends SortedMap<? extends K, ? extends V>> SortedMap<K, V> navigableMap(M source, Function<? super M, ? extends SortedMap<K, V>> transformation) {
+    public static <K, V, M extends SortedMap<? extends K, ? extends V>> SortedMap<K, V> sortedMap(M source, Function<? super M, ? extends SortedMap<K, V>> transformation) {
         if (source.isEmpty()) { // Return the usual empty collection
             return Collections.emptySortedMap();
         }
