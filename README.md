@@ -254,7 +254,7 @@ System.out.println(weak.get()); // Well, depends on the garbage collection. Mayb
 
 ### Making collection snapshots ###
 
-It is quite common to see code like `Collections.unmodifiableSet(new HashSet<>(source))` to make a copy of a collection, so that it could be stored for an object's needs and perhaps even passed elsewhere, avoiding the danger of unwanted modification. Great, but what if the source is empty? This code snippet makes always a couple of instances: the value holder and the unmodifiable wrapper, although for empty collections a singleton is available. So, `Snapshots.collection(source)` can be used instead; this method and its friends for other collections return an unmodifiable copy of the source, but take care not to create unnecessary instances or wrappers.
+It is quite common to see code like `Collections.unmodifiableSet(new HashSet<>(source))` to make a copy of a collection, so that it could be stored for an object's needs and perhaps even passed elsewhere, avoiding the danger of unwanted modification. Great, but what if the source is empty? This code snippet makes always a couple of instances: the value holder and the unmodifiable wrapper, although for empty collections a singleton is available. So, `Capture.collection(source)` can be used instead; this method and its friends for other collections return an unmodifiable copy of the source, but take care not to create unnecessary instances or wrappers.
 
 
 ### Byte arrays? Why? ###
