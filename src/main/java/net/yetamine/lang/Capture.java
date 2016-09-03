@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.yetamine.lang.collections;
+package net.yetamine.lang;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -39,7 +39,7 @@ import java.util.function.Function;
  * provides a common strategy for making a snapshot while avoiding making empty
  * copies or layering multiple unmodifiable wrappers.
  */
-public final class Snapshots {
+public final class Capture {
 
     /**
      * Returns an unmodifiable instance that wraps the result returned by the
@@ -336,7 +336,7 @@ public final class Snapshots {
         return (result.getClass() == unmodifiable.getClass()) ? result : unmodifiable;
     }
 
-    private Snapshots() {
+    private Capture() {
         throw new AssertionError();
     }
 }

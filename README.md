@@ -10,7 +10,6 @@ What can be found here:
 * A mutable `Box` for objects, which is useful for accumulators and for "out" method parameters.
 * Companions for `Optional`: `Choice` and `Single`. `Traversing` is notable as well.
 * Containers for deferred and cached values: `DeferredValue` and `IndirectValue`.
-* Fluent collection interfaces and adapters to make some operations a bit easier.
 * Support for adapting arbitrary objects for use in try-with-resources.
 * On-demand allocated and freed resource-like objects.
 * `Cloneable` support: no more fiddling with reflection.
@@ -251,49 +250,6 @@ final Supplier<?> weak = new IndirectValue<>(answer, v -> new WeakReference<>(v)
 System.out.println(weak.get()); // Invokes the computation
 System.out.println(weak.get()); // Well, depends on the garbage collection. Maybe answers immediately.
 ``` 
-
-
-### Is Java Collections Framework fluent? ###
-
-When a title is a question, the answer usually is "No!" This is the case too. Everybody probably knows how verbose task is filling a constant `Map` with a bunch of constant values. It could have been much easier if the interface would be more fluent. Fortunately, there is a way now:
-
-```{java}
-static final Map<TimeUnit, String> UNITS = FluentMap.adapt(new EnumMap<TimeUnit, String>(TimeUnit.class))
-         .add(TimeUnit.NANOSECONDS, "ns")
-         .add(TimeUnit.MICROSECONDS, "μs")
-         .add(TimeUnit.MILLISECONDS, "ms")
-         .add(TimeUnit.SECONDS, "s")
-         .add(TimeUnit.MINUTES, "min")
-         .add(TimeUnit.HOURS, "h")
-         .add(TimeUnit.DAYS, "d")
-         .that().map(Collections::unmodifiableMap);
-```
-
-If you like this, you might like following as well. `Map` interface has been upgraded much with Java 8 release and its `compute*` methods made it usable for multimaps, but still… do you really want to write the appropriate lambda at all places where you possibly need to compute the default value? And what if you have something like `Map<String, ? extends Collection<String>>` while you'd like to retain defaults? Well, the fluent adapter for a map can incorporate even constructors for default values:
-
-```{java}
-// Let's make a map which binds a supplier to get/make default values
-final FluentMap<String, List<String>> m = FluentMap.adapt(new HashMap<>(), ArrayList::new);
-
-// The 'supply' method inserts the default provided by the supplier for missing
-// values and returns the value, so that can be processed then
-m.supply("titles").addAll(Arrays.asList("Mr.", "Ms.", "Mrs.", "Miss"));
-
-// A companion of the 'supply' method accepts a function for initializing the
-// newly added default values and it supports chaining, so that you can do this
-// (here using yet FluentCollection as a fluent adapter for the map's values):
-m.make("colors", (k, l) -> FluentCollection.adapt(l).includeMore("red", "green", "blue"));
-
-// Here we have:
-// {titles=[Mr., Ms., Mrs., Miss], colors=[red, green, blue]}
-
-// And what if we get somewhere a more restricted map?
-final FluentMap<String, ? extends Collection<String>> n = m;
-
-// Still we can add values, but just using the allowed defaults:
-n.supply("sizes").addAll(Arrays.asList("XXS", "XS", "S", "M", "L", "XL", "XXL"));
-n.make("state", (k, l) -> l.add("good"));
-```
 
 
 ### Making collection snapshots ###

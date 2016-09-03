@@ -25,7 +25,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import net.yetamine.lang.collections.Snapshots;
+import net.yetamine.lang.Capture;
 
 /**
  * Declares additional abilities and traits extending the basic contract of an
@@ -141,7 +141,7 @@ public final class Extensions implements Serializable {
      * @return the new instance
      */
     public static Extensions declare(Collection<?> extensions) {
-        return new Extensions(Snapshots.set(extensions));
+        return new Extensions(Capture.set(extensions));
     }
 
     /**
