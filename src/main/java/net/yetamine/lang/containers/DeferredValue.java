@@ -19,8 +19,6 @@ package net.yetamine.lang.containers;
 import java.util.Objects;
 import java.util.function.Supplier;
 
-import net.yetamine.lang.functional.Producer;
-
 /**
  * A value supplier that defers the computation of the value.
  *
@@ -32,7 +30,7 @@ import net.yetamine.lang.functional.Producer;
  * @param <T>
  *            the type of the element
  */
-public final class DeferredValue<T> implements Producer<T> {
+public final class DeferredValue<T> implements InvalidableValue<T> {
 
     /** Supplier to compute the result on demand. */
     private final Supplier<? extends T> supplier;
@@ -86,6 +84,8 @@ public final class DeferredValue<T> implements Producer<T> {
     /**
      * Invalidates the value held by this instance, hence subsequent
      * {@link #get()} invocation triggers the computation again.
+     *
+     * @see net.yetamine.lang.concurrent.Invalidable#invalidate()
      */
     public void invalidate() {
         valid = false;
