@@ -72,35 +72,35 @@ public final class TestSingle {
     }
 
     /**
-     * Tests {@link Single#update(Object)}.
+     * Tests {@link Single#updated(Object)}.
      */
     @Test
     public void testUpdateValue() {
         final Object o = new Object();
 
-        final Single<Object> single = Single.none().update(o);
+        final Single<Object> single = Single.none().updated(o);
         Assert.assertEquals(single, Single.single(o));
 
-        final Single<Object> some = single.update(new Object());
+        final Single<Object> some = single.updated(new Object());
         Assert.assertEquals(some, Single.some(o));
-        Assert.assertEquals(some.update(new Object()), Single.some(o));
+        Assert.assertEquals(some.updated(new Object()), Single.some(o));
     }
 
     /**
-     * Tests {@link Single#update()}.
+     * Tests {@link Single#updated()}.
      */
     @Test
     public void testUpdate() {
-        final Single<Object> single = Single.none().update();
+        final Single<Object> single = Single.none().updated();
         Assert.assertEquals(single, Single.single(null));
 
-        final Single<Object> some = single.update();
+        final Single<Object> some = single.updated();
         Assert.assertEquals(some, Single.some(null));
-        Assert.assertEquals(some.update(), Single.some(null));
+        Assert.assertEquals(some.updated(), Single.some(null));
     }
 
     /**
-     * Tests {@link Single#revise(Object)}.
+     * Tests {@link Single#revised(Object)}.
      */
     @Test
     public void testAccept() {
@@ -108,16 +108,16 @@ public final class TestSingle {
         final Object o2 = new Object();
         final Object o3 = new Object();
 
-        final Single<Object> single = Single.none().revise(o1);
+        final Single<Object> single = Single.none().revised(o1);
         Assert.assertEquals(single, Single.single(o1));
 
-        final Single<Object> some = single.revise(o2);
+        final Single<Object> some = single.revised(o2);
         Assert.assertEquals(some, Single.some(o2));
-        Assert.assertEquals(some.revise(o3), Single.some(o3));
+        Assert.assertEquals(some.revised(o3), Single.some(o3));
     }
 
     /**
-     * Tests {@link Single#merge(Single)}.
+     * Tests {@link Single#merged(Single)}.
      *
      * @param that
      *            the object to merge. It must not be {@code null}.
@@ -128,7 +128,7 @@ public final class TestSingle {
      */
     @Test(dataProvider = "merging")
     public void testMerge(Single<Object> that, Single<?> operand, Single<Object> expected) {
-        Assert.assertEquals(that.merge(operand), expected);
+        Assert.assertEquals(that.merged(operand), expected);
     }
 
     @SuppressWarnings("javadoc")
@@ -228,7 +228,7 @@ public final class TestSingle {
     public <T extends Comparable<T>> void testCollector(Collection<T> source, Single<T> expected) {
         final BiFunction<Single<T>, T, Single<T>> max = Single.optimum(Comparator.<T> naturalOrder());
         Assert.assertEquals(source.stream().collect(Single.collector(max)), expected);
-        Assert.assertEquals(source.stream().reduce(Single.none(), max, Single::merge), expected);
+        Assert.assertEquals(source.stream().reduce(Single.none(), max, Single::merged), expected);
     }
 
     @SuppressWarnings("javadoc")

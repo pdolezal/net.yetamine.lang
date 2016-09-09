@@ -35,12 +35,10 @@ public final class TestAcceptor {
     @Test
     public void testApply() {
         // This Acceptor increments the value in the given box
-        final Acceptor<Box<Integer>> acceptor = b -> b.patch(i -> i + 1);
-
         final Box<Integer> value = Box.of(1);
-        final Box<Integer> result = acceptor.apply(value);
+        final Box<Integer> result = Acceptor.from((Box<Integer> b) -> b.patch(i -> i + 1)).apply(value);
         Assert.assertSame(result, value);
-        Assert.assertEquals(Integer.valueOf(2), result.get());
+        Assert.assertEquals(result.get(), Integer.valueOf(2));
     }
 
     /**
@@ -54,7 +52,7 @@ public final class TestAcceptor {
         final Box<Integer> value = Box.of(1);
         final Box<Integer> result = andThen.apply(value);
         Assert.assertSame(result, value);
-        Assert.assertEquals(Integer.valueOf(3), result.get());
+        Assert.assertEquals(result.get(), Integer.valueOf(3));
     }
 
     /**

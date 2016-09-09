@@ -64,6 +64,29 @@ public interface UnaryOperation<T> extends UnaryOperator<T> {
     }
 
     /**
+     * Makes an instance from the given function.
+     *
+     * <p>
+     * This method is a convenient factory method for adapting a function into
+     * this smarter interface with fluent chaining with no casting-like steps,
+     * or intermediate variables:
+     *
+     * <pre>
+     * UnaryOperation.from(MyUtilities::someOperation).onlyIf(MyUtilities::someTest)
+     * </pre>
+     *
+     * @param <T>
+     *            the type of the argument
+     * @param operator
+     *            the operator to adapt. It must not be {@code null}.
+     *
+     * @return the adapted operator
+     */
+    static <T> UnaryOperation<T> from(Function<? super T, ? extends T> operator) {
+        return operator::apply;
+    }
+
+    /**
      * Returns an operation that always returns its input argument.
      *
      * @param <T>
@@ -86,6 +109,12 @@ public interface UnaryOperation<T> extends UnaryOperator<T> {
      * is responsible for thread safety of the sequence, so that another thread
      * may iterate through the sequence, having a consistent snapshot.
      *
+     *
+     * <p>
+     * This method may be useful in the cases of a dynamic chain or when simply
+     * the sequence is long and chaining composition causes too deep call
+     * nesting.
+     *
      * @param <T>
      *            the type of the input and output of the operation
      * @param sequence
@@ -95,7 +124,16 @@ public interface UnaryOperation<T> extends UnaryOperator<T> {
      * @return a consumer that applies, in sequence, all given consumers
      */
     static <T> UnaryOperation<T> sequential(Iterable<? extends Function<? super T, ? extends T>> sequence) {
-        final UnaryOperator<T> result = UnaryOperators.sequential(sequence);
-        return result::apply;
+        Objects.requireNonNull(sequence);
+
+        return t -> {
+            T result = t;
+
+            for (Function<? super T, ? extends T> function : sequence) {
+                result = function.apply(result);
+            }
+
+            return result;
+        };
     }
 }

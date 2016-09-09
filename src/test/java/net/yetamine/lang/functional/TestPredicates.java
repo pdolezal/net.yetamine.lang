@@ -48,6 +48,24 @@ public final class TestPredicates {
     }
 
     /**
+     * Tests {@link Predicates#noneOf(Iterable)}.
+     *
+     * @param predicates
+     *            the predicates
+     */
+    @Test(dataProvider = "predicates")
+    public void testNoneOf(Iterable<? extends Predicate<Object>> predicates) {
+        Iterator<? extends Predicate<Object>> it = predicates.iterator();
+        Predicate<Object> a = it.next().negate();
+        while (it.hasNext()) {
+            a = a.and(it.next().negate());
+        }
+
+        final Object o = new Object();
+        Assert.assertEquals(Predicates.noneOf(predicates).test(o), a.test(o));
+    }
+
+    /**
      * Tests {@link Predicates#anyOf(Iterable)}.
      *
      * @param predicates
@@ -68,8 +86,11 @@ public final class TestPredicates {
     @SuppressWarnings("javadoc")
     @DataProvider(name = "predicates")
     public static Object[][] predicate() {
-        final Predicate<Object> t = o -> true;
-        final Predicate<Object> f = o -> false;
+        final Predicate<Object> t = Predicates.alwaysTrue();
+        Assert.assertTrue(t.test(null));
+
+        final Predicate<Object> f = Predicates.alwaysFalse();
+        Assert.assertFalse(f.test(null));
 
         return new Object[][] {
             // @formatter:off

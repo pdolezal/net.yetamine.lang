@@ -124,7 +124,7 @@ public final class Choice<T> implements Supplier<T> {
      */
     @Override
     public String toString() {
-        return String.format("Choice[%s: %s]", valid, value);
+        return String.format("choice[%s: %s]", valid, value);
     }
 
     /**
@@ -294,7 +294,7 @@ public final class Choice<T> implements Supplier<T> {
      *
      * @return this instance
      */
-    public Choice<T> consume(Consumer<? super T> whenTrue, Consumer<? super T> whenFalse) {
+    public Choice<T> accept(Consumer<? super T> whenTrue, Consumer<? super T> whenFalse) {
         if (isTrue()) {
             whenTrue.accept(get());
         } else {

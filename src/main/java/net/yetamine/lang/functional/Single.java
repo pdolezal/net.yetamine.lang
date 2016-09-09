@@ -229,7 +229,7 @@ public final class Single<T> implements Supplier<T> {
      *
      * @return an updated instance
      */
-    public Single<T> revise(T update) {
+    public Single<T> revised(T update) {
         return single.isUnknown() ? single(update) : some(update);
     }
 
@@ -243,7 +243,7 @@ public final class Single<T> implements Supplier<T> {
      *
      * @return an updated instance
      */
-    public Single<T> update(T update) {
+    public Single<T> updated(T update) {
         switch (single) {
             case UNKNOWN:
                 return single(update);
@@ -265,7 +265,7 @@ public final class Single<T> implements Supplier<T> {
      *
      * @return an updated instance
      */
-    public Single<T> update() {
+    public Single<T> updated() {
         return single.isTrue() ? some(value) : this;
     }
 
@@ -284,7 +284,7 @@ public final class Single<T> implements Supplier<T> {
      *
      * @return a merged instance
      */
-    public Single<T> merge(Single<? extends T> other) {
+    public Single<T> merged(Single<? extends T> other) {
         Objects.requireNonNull(other);
 
         if (single.isFalse()) {
@@ -315,7 +315,7 @@ public final class Single<T> implements Supplier<T> {
     public static <T> Single<T> head(Iterator<? extends T> source) {
         if (source.hasNext()) {
             final Single<T> result = single(source.next());
-            return source.hasNext() ? result.update() : result;
+            return source.hasNext() ? result.updated() : result;
         }
 
         return none();
@@ -368,7 +368,7 @@ public final class Single<T> implements Supplier<T> {
     public static <T> Single<T> last(Iterator<? extends T> source) {
         Single<T> result = none();
         while (source.hasNext()) {
-            result = result.revise(source.next());
+            result = result.revised(source.next());
         }
 
         return result;
@@ -407,7 +407,7 @@ public final class Single<T> implements Supplier<T> {
 
         if (it.hasPrevious()) {
             final Single<T> result = single(it.previous());
-            return it.hasPrevious() ? result.update() : result;
+            return it.hasPrevious() ? result.updated() : result;
         }
 
         return none();
@@ -455,7 +455,7 @@ public final class Single<T> implements Supplier<T> {
                 return Single.single(i);
             }
 
-            return (compare == 0) ? s.update() : s;
+            return (compare == 0) ? s.updated() : s;
         };
     };
 
@@ -534,7 +534,7 @@ public final class Single<T> implements Supplier<T> {
          * @see Collector#combiner()
          */
         public BinaryOperator<Box<Single<T>>> combiner() {
-            return (box1, box2) -> Box.of(box2.get().merge(box1.get()));
+            return (box1, box2) -> Box.of(box2.get().merged(box1.get()));
         }
 
         /**
@@ -595,14 +595,14 @@ public final class Single<T> implements Supplier<T> {
          * @see Collector#accumulator()
          */
         public BiConsumer<Box<Single<T>>, T> accumulator() {
-            return (box, value) -> box.replace(unique -> unique.revise(value));
+            return (box, value) -> box.replace(unique -> unique.revised(value));
         }
 
         /**
          * @see Collector#combiner()
          */
         public BinaryOperator<Box<Single<T>>> combiner() {
-            return (box1, box2) -> Box.of(box2.get().merge(box1.get()));
+            return (box1, box2) -> Box.of(box2.get().merged(box1.get()));
         }
 
         /**

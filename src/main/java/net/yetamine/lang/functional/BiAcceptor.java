@@ -17,47 +17,31 @@
 package net.yetamine.lang.functional;
 
 import java.util.Objects;
+import java.util.function.BiConsumer;
+import java.util.function.BiPredicate;
 import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.Predicate;
 
 /**
  * A generic operation interface which is a convenient extension of the common
  * {@link Consumer} interface.
  *
  * @param <T>
- *            the type of the input to the operation
+ *            the type of the first argument of the operation
+ * @param <U>
+ *            the type of the second argument of the operation
  */
 @FunctionalInterface
-public interface Acceptor<T> extends Consumer<T> {
+public interface BiAcceptor<T, U> extends BiConsumer<T, U> {
 
     /**
-     * Performs this operation on the given argument.
-     *
-     * <p>
-     * This method provides a direct bridge to {@link Function}, but this
-     * interface intentionally does not inherit from it, because it has a
-     * different role and function composition is not well-suited for it.
-     *
-     * @param t
-     *            the input argument
-     *
-     * @return the input argument
+     * @see java.util.function.BiConsumer#andThen(java.util.function.BiConsumer)
      */
-    default T apply(T t) {
-        accept(t);
-        return t;
-    }
-
-    /**
-     * @see java.util.function.Consumer#andThen(Consumer)
-     */
-    default Acceptor<T> andThen(Consumer<? super T> after) {
+    default BiAcceptor<T, U> andThen(BiConsumer<? super T, ? super U> after) {
         Objects.requireNonNull(after);
 
-        return t -> {
-            accept(t);
-            after.accept(t);
+        return (t, u) -> {
+            accept(t, u);
+            after.accept(t, u);
         };
     }
 
@@ -71,34 +55,14 @@ public interface Acceptor<T> extends Consumer<T> {
      *
      * @return a consumer guarded by the predicate
      */
-    default Acceptor<T> onlyIf(Predicate<? super T> predicate) {
+    default BiAcceptor<T, U> onlyIf(BiPredicate<? super T, ? super U> predicate) {
         Objects.requireNonNull(predicate);
 
-        return t -> {
-            if (predicate.test(t)) {
-                accept(t);
+        return (t, u) -> {
+            if (predicate.test(t, u)) {
+                accept(t, u);
             }
         };
-    }
-
-    /**
-     * Returns a function that performs, in sequence, this operation followed
-     * applying the specified mapping function on the argument.
-     *
-     * <p>
-     * To turn this instance in an usual {@link Function} instance without any
-     * change of the result, use {@link Function#identity()} as the argument.
-     *
-     * @param <V>
-     *            the type of the mapping result
-     * @param mapping
-     *            the mapping function to apply. It must not be {@code null}.
-     *
-     * @return the composed function
-     */
-    default <V> Function<T, V> finish(Function<? super T, ? extends V> mapping) {
-        Objects.requireNonNull(mapping);
-        return t -> mapping.apply(apply(t));
     }
 
     /**
@@ -110,17 +74,19 @@ public interface Acceptor<T> extends Consumer<T> {
      * or intermediate variables:
      *
      * <pre>
-     * Acceptor.from(MyUtilities::someOperation).onlyIf(MyUtilities::someTest)
+     * BiAcceptor.from(MyUtilities::someOperation).onlyIf(MyUtilities::someTest)
      * </pre>
      *
      * @param <T>
-     *            the type of the argument
+     *            the type of the first argument of the operation
+     * @param <U>
+     *            the type of the second argument of the operation
      * @param consumer
      *            the consumer to adapt. It must not be {@code null}.
      *
      * @return the adapted consumer
      */
-    static <T> Acceptor<T> from(Consumer<? super T> consumer) {
+    static <T, U> BiAcceptor<T, U> from(BiConsumer<? super T, ? super U> consumer) {
         return consumer::accept;
     }
 
@@ -128,11 +94,13 @@ public interface Acceptor<T> extends Consumer<T> {
      * Returns a nothing-doing instance.
      *
      * @param <T>
-     *            the type of the argument
+     *            the type of the first argument of the operation
+     * @param <U>
+     *            the type of the second argument of the operation
      *
      * @return the nothing-doing instance
      */
-    static <T> Acceptor<T> nil() {
+    static <T, U> BiAcceptor<T, U> nil() {
         return NoOperation::execute;
     }
 
@@ -151,19 +119,21 @@ public interface Acceptor<T> extends Consumer<T> {
      * causes too deep call nesting.
      *
      * @param <T>
-     *            the type of the input to the operation
+     *            the type of the first argument of the operation
+     * @param <U>
+     *            the type of the second argument of the operation
      * @param sequence
      *            the sequence of the consumers to apply. It must not be
      *            {@code null} and it must not provide {@code null} elements.
      *
      * @return a consumer that applies, in sequence, all given consumers
      */
-    static <T> Acceptor<T> sequential(Iterable<? extends Consumer<? super T>> sequence) {
+    static <T, U> BiAcceptor<T, U> sequential(Iterable<? extends BiConsumer<? super T, ? super U>> sequence) {
         Objects.requireNonNull(sequence);
 
-        return t -> {
-            for (Consumer<? super T> consumer : sequence) {
-                consumer.accept(t);
+        return (t, u) -> {
+            for (BiConsumer<? super T, ? super U> consumer : sequence) {
+                consumer.accept(t, u);
             }
         };
     }

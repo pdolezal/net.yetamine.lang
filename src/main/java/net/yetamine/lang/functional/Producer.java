@@ -85,4 +85,41 @@ public interface Producer<T> extends Supplier<T> {
     default Optional<T> filter(Predicate<? super T> condition) {
         return optional().filter(condition);
     }
+
+    /**
+     * Makes an instance from the given supplier.
+     *
+     * <p>
+     * This method is a convenient factory method for adapting a supplier into
+     * this smarter interface with fluent chaining with no casting-like steps,
+     * or intermediate variables:
+     *
+     * <pre>
+     * Producer.from(map::get).optional()
+     * </pre>
+     *
+     * @param <T>
+     *            the type of the argument
+     * @param supplier
+     *            the supplier to adapt. It must not be {@code null}.
+     *
+     * @return the adapted supplier
+     */
+    static <T> Producer<T> from(Supplier<? extends T> supplier) {
+        return supplier::get;
+    }
+
+    /**
+     * Returns a producer of the given value.
+     *
+     * @param <T>
+     *            the type of the argument
+     * @param value
+     *            the value to return
+     *
+     * @return a producer of the given value
+     */
+    static <T> Producer<T> value(T value) {
+        return () -> value;
+    }
 }

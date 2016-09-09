@@ -117,7 +117,7 @@ public final class TestChoice {
         final Object o1 = new Object();
         final Object o2 = new Object();
 
-        choice.consume(value -> {
+        choice.accept(value -> {
             Assert.assertSame(value, o);
             box.set(o1);
         }, value -> {
