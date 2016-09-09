@@ -44,6 +44,6 @@ public final class TestExtensible implements Extensible {
      * @see net.yetamine.lang.introspective.Extensible#extensions()
      */
     public Extensions extensions() {
-        return Extensions.declare(EXTENSION);
+        return Extensions.list(EXTENSION);
     }
 }

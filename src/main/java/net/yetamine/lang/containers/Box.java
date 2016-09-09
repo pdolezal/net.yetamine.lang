@@ -18,12 +18,9 @@ package net.yetamine.lang.containers;
 
 import java.io.Serializable;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
-
-import net.yetamine.lang.functional.Acceptor;
 
 /**
  * A mutable container for holding a single value.
@@ -80,37 +77,6 @@ public final class Box<T> implements Serializable, Pointer<T> {
      */
     public static <T> Box<T> empty() {
         return new Box<>();
-    }
-
-    /**
-     * Makes a box that accepts a value only once.
-     *
-     * <p>
-     * This method fills the given box with an empty {@link Optional}; the
-     * returned consumer then ignores {@code null} arguments and once it stores
-     * the first non-{@code null} argument as a non-empty {@code Optional}, all
-     * subsequent attempts to store anything are ignored as well.
-     *
-     * <p>
-     * This method provides no concurrency guarantees.
-     *
-     * @param <T>
-     *            the type of the stored value
-     * @param box
-     *            the box to use. It must not be {@code null}.
-     *
-     * @return a consumer storing the first non-{@code null} value only
-     */
-    public static <T> Acceptor<T> once(Box<Optional<T>> box) {
-        box.accept(Optional.empty());
-
-        return o -> {
-            if ((o == null) || box.get().isPresent()) {
-                return;
-            }
-
-            box.accept(Optional.ofNullable(o));
-        };
     }
 
     /**

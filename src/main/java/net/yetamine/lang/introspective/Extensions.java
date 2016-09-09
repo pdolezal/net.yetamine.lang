@@ -116,7 +116,7 @@ public final class Extensions implements Serializable {
      *
      * @return the new instance
      */
-    public static Extensions declare(Object extension) {
+    public static Extensions list(Object extension) {
         return new Extensions(Collections.singleton(extension));
     }
 
@@ -128,8 +128,8 @@ public final class Extensions implements Serializable {
      *
      * @return the new instance
      */
-    public static Extensions declare(Object... extensions) {
-        return declare(Arrays.asList(extensions));
+    public static Extensions list(Object... extensions) {
+        return from(Arrays.asList(extensions));
     }
 
     /**
@@ -140,7 +140,7 @@ public final class Extensions implements Serializable {
      *
      * @return the new instance
      */
-    public static Extensions declare(Collection<?> extensions) {
+    public static Extensions from(Collection<?> extensions) {
         return new Extensions(Capture.set(extensions));
     }
 
@@ -160,7 +160,7 @@ public final class Extensions implements Serializable {
      * Creates a new instance.
      *
      * <p>
-     * Unlike {@link #declare(Collection)}, this method does not make an
+     * Unlike {@link #from(Collection)}, this method does not make an
      * immutable copy of the collection, it rather uses it as it is, therefore
      * the caller may influence the content of the instance through the original
      * reference. It is strongly recommended to use a concurrent set then.
@@ -172,6 +172,7 @@ public final class Extensions implements Serializable {
      */
     public static Extensions using(Set<?> extensions) {
         final Set<?> set = Collections.unmodifiableSet(extensions);
+        // Not using Capture intentionally, keeping the possibility to modify the original
         return new Extensions((set.getClass() == extensions.getClass()) ? extensions : set);
     }
 

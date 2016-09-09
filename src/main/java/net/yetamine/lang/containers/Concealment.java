@@ -61,16 +61,20 @@ public final class Concealment<T> implements Producer<T> {
     }
 
     /**
-     * Returns an instance representing {@code null}.
+     * Returns an instance representing the given value.
      *
      * @param <T>
      *            the type of the represented value
+     * @param object
+     *            the value to represent
+     * @param toString
+     *            the custom {@link #toString} implementation. It must not be
+     *            {@code null}.
      *
-     * @return the instance
+     * @return the new instance
      */
-    @SuppressWarnings("unchecked")
-    public static <T> Concealment<T> empty() {
-        return (Concealment<T>) EMPTY;
+    public static <T> Concealment<T> of(T object, Function<? super T, String> toString) {
+        return new Concealment<>(object, Objects.requireNonNull(toString));
     }
 
     /**
@@ -88,20 +92,16 @@ public final class Concealment<T> implements Producer<T> {
     }
 
     /**
-     * Returns an instance representing the given value.
+     * Returns an instance representing {@code null}.
      *
      * @param <T>
      *            the type of the represented value
-     * @param object
-     *            the value to represent
-     * @param toString
-     *            the custom {@link #toString} implementation. It must not be
-     *            {@code null}.
      *
-     * @return the new instance
+     * @return the instance
      */
-    public static <T> Concealment<T> custom(T object, Function<? super T, String> toString) {
-        return new Concealment<>(object, Objects.requireNonNull(toString));
+    @SuppressWarnings("unchecked")
+    public static <T> Concealment<T> empty() {
+        return (Concealment<T>) EMPTY;
     }
 
     /**

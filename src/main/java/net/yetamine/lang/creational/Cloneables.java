@@ -76,9 +76,9 @@ public final class Cloneables {
             return null;
         }
 
-        final Class<? extends T> clazz = Types.getClass(object);
+        final Class<? extends T> clazz = Types.classOf(object);
         if (clazz.isArray()) { // Arrays need special handling!
-            return cloneArray(object);
+            return arrayClone(object);
         }
 
         try {
@@ -104,9 +104,9 @@ public final class Cloneables {
      * @return a factory that clones the template
      */
     public static <T> Factory<T> prototype(T template) {
-        final Class<? extends T> clazz = Types.getClass(template);
+        final Class<? extends T> clazz = Types.classOf(template);
         if (clazz.isArray()) { // Optimize for the array case
-            return () -> cloneArray(template);
+            return () -> arrayClone(template);
         }
 
         if (!(template instanceof Cloneable)) {
@@ -169,8 +169,8 @@ public final class Cloneables {
      *
      * @return a clone of the array
      */
-    private static <T> T cloneArray(T array) {
-        final Class<? extends T> clazz = Types.getClass(array);
+    private static <T> T arrayClone(T array) {
+        final Class<? extends T> clazz = Types.classOf(array);
         final Class<?> component = clazz.getComponentType();
         final int length = Array.getLength(array);
         final Object result = Array.newInstance(component, length);

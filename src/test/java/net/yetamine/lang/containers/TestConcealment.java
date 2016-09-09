@@ -89,7 +89,7 @@ public final class TestConcealment {
         final String v = "Hello";
 
         Assert.assertNotEquals(Concealment.of(v).toString(), v);
-        Assert.assertEquals(Concealment.custom(v, o -> "World").toString(), "World");
-        Assert.assertEquals(Concealment.custom(v, o -> v).toString(), v);
+        Assert.assertEquals(Concealment.of(v, o -> "World").toString(), "World");
+        Assert.assertEquals(Concealment.of(v, o -> v).toString(), v);
     }
 }

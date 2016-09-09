@@ -426,7 +426,7 @@ public final class Single<T> implements Supplier<T> {
      * @return the representation of the first element
      */
     public static <T> Single<T> last(Stream<? extends T> source) {
-        return source.collect(LastCollector.getInstance());
+        return source.collect(LastCollector.instance());
     }
 
     /**
@@ -471,7 +471,7 @@ public final class Single<T> implements Supplier<T> {
      * <pre>
      * // Single item wanted, but if multiple are present, remember the last one
      * // which is greater than zero (useful for, e.g., warnings when more given)
-     * singlePositive = stream.collect(Single.collector((s, v) -&gt; (v &gt; 0) ? s.accept(v) : s.update()));
+     * singlePositive = stream.collect(Single.collector((s, v) -&gt; (v &gt; 0) ? s.revised(v) : s.updated()));
      * </pre>
      *
      * @param <T>
@@ -573,7 +573,7 @@ public final class Single<T> implements Supplier<T> {
          * @return an instance of this class
          */
         @SuppressWarnings("unchecked")
-        public static <T> Collector<T, ?, Single<T>> getInstance() {
+        public static <T> Collector<T, ?, Single<T>> instance() {
             return (Collector<T, Box<Single<T>>, Single<T>>) (Collector<?, ?, ?>) INSTANCE;
         }
 

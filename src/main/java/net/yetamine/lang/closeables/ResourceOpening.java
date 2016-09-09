@@ -71,7 +71,7 @@ public interface ResourceOpening<R, X extends Exception> {
      * @return an instance that creates a resource with the given instance once
      *         only
      */
-    static <R, X extends Exception> ResourceOpening<R, X> unique(ResourceOpening<? extends R, ? extends X> opening, Supplier<? extends X> exception) {
+    static <R, X extends Exception> ResourceOpening<R, X> once(ResourceOpening<? extends R, ? extends X> opening, Supplier<? extends X> exception) {
         Objects.requireNonNull(exception);
         Objects.requireNonNull(opening);
 

@@ -32,7 +32,7 @@ public final class Types {
      * @return the class of the object
      */
     @SuppressWarnings("unchecked")
-    public static <T> Class<? extends T> getClass(T object) {
+    public static <T> Class<? extends T> classOf(T object) {
         return (Class<? extends T>) object.getClass();
     }
 

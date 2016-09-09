@@ -17,7 +17,6 @@
 package net.yetamine.lang.containers;
 
 import java.util.Arrays;
-import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -55,32 +54,6 @@ public final class TestBox {
         final Box<Object> box = Box.empty();
         box.accept(o);
         Assert.assertEquals(box.get(), o);
-    }
-
-    /**
-     * Tests {@link Box#once(Box)}.
-     */
-    @Test
-    public void testOnce() {
-        final Object o1 = new Object();
-        final Object o2 = new Object();
-
-        final Box<Optional<Object>> box = Box.empty();
-        Assert.assertNull(box.get());
-
-        final Consumer<Object> c = Box.once(box);
-        Assert.assertFalse(box.get().isPresent());
-        c.accept(null);
-        Assert.assertFalse(box.get().isPresent());
-
-        c.accept(o1);
-        Assert.assertEquals(box.get().get(), o1);
-
-        c.accept(o2);
-        Assert.assertEquals(box.get().get(), o1);
-
-        c.accept(null);
-        Assert.assertEquals(box.get().get(), o1);
     }
 
     /**

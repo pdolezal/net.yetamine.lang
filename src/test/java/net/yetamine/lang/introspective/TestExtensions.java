@@ -71,13 +71,13 @@ public final class TestExtensions {
      */
     @Test
     public void testEquals() {
-        final Extensions ab = Extensions.declare(a, b);
-        Assert.assertEquals(Extensions.declare(a, b), ab);
-        Assert.assertEquals(Extensions.declare(a, b).hashCode(), ab.hashCode());
+        final Extensions ab = Extensions.list(a, b);
+        Assert.assertEquals(Extensions.list(a, b), ab);
+        Assert.assertEquals(Extensions.list(a, b).hashCode(), ab.hashCode());
 
-        final Extensions ao = Extensions.declare(a);
-        Assert.assertEquals(Extensions.declare(a, a), ao);
-        Assert.assertEquals(Extensions.declare(a, a).hashCode(), ao.hashCode());
+        final Extensions ao = Extensions.list(a);
+        Assert.assertEquals(Extensions.list(a, a), ao);
+        Assert.assertEquals(Extensions.list(a, a).hashCode(), ao.hashCode());
 
         Assert.assertNotEquals(ao, ab);
         Assert.assertNotEquals(ao, Extensions.empty());
@@ -89,11 +89,11 @@ public final class TestExtensions {
      */
     @Test
     public void testConstruction() {
-        Assert.assertEquals(Extensions.declare(a), Extensions.from(Stream.of(a)));
-        Assert.assertEquals(Extensions.declare(a, b), Extensions.from(Stream.of(a, b)));
+        Assert.assertEquals(Extensions.list(a), Extensions.from(Stream.of(a)));
+        Assert.assertEquals(Extensions.list(a, b), Extensions.from(Stream.of(a, b)));
 
-        Assert.assertEquals(Extensions.declare(a), Extensions.declare(Arrays.asList(a)));
-        Assert.assertEquals(Extensions.declare(a, b), Extensions.declare(Arrays.asList(a, b)));
+        Assert.assertEquals(Extensions.list(a), Extensions.from(Arrays.asList(a)));
+        Assert.assertEquals(Extensions.list(a, b), Extensions.from(Arrays.asList(a, b)));
 
         final Set<Object> set = new HashSet<>(Arrays.asList(a, b));
         final Extensions extensions = Extensions.using(set);
@@ -107,7 +107,7 @@ public final class TestExtensions {
      */
     @Test
     public void testConditionals() {
-        final Extensions extensions = Extensions.declare(a);
+        final Extensions extensions = Extensions.list(a);
 
         final Runnable noop = () -> {
             // Do nothing
@@ -151,7 +151,7 @@ public final class TestExtensions {
      */
     @Test
     public void testOptional() {
-        final Extensions extensions = Extensions.declare(a);
+        final Extensions extensions = Extensions.list(a);
         Assert.assertFalse(extensions.optional(b).isPresent());
         Assert.assertEquals(extensions.optional(a).get(), a);
     }
@@ -161,7 +161,7 @@ public final class TestExtensions {
      */
     @Test
     public void testAllPresent() {
-        final Extensions extensions = Extensions.declare(a, b);
+        final Extensions extensions = Extensions.list(a, b);
 
         final Runnable throwing = () -> {
             throw new ConfirmingException();
@@ -189,7 +189,7 @@ public final class TestExtensions {
      */
     @Test
     public void testAnyPresent() {
-        final Extensions extensions = Extensions.declare(a, b);
+        final Extensions extensions = Extensions.list(a, b);
 
         final Runnable throwing = () -> {
             throw new ConfirmingException();
@@ -219,7 +219,7 @@ public final class TestExtensions {
      */
     @Test
     public void testAllMissing() {
-        final Extensions extensions = Extensions.declare(a);
+        final Extensions extensions = Extensions.list(a);
 
         final Runnable throwing = () -> {
             throw new ConfirmingException();
@@ -247,7 +247,7 @@ public final class TestExtensions {
      */
     @Test
     public void testAnyMissing() {
-        final Extensions extensions = Extensions.declare(a, b);
+        final Extensions extensions = Extensions.list(a, b);
 
         final Runnable throwing = () -> {
             throw new ConfirmingException();
@@ -310,7 +310,7 @@ public final class TestExtensions {
         }
 
         try (ObjectInputStream is = new ObjectInputStream(new ByteArrayInputStream(store.toByteArray()))) {
-            Assert.assertEquals(is.readObject(), Extensions.declare(TestingExtensions.TEST1, TestingExtensions.TEST2));
+            Assert.assertEquals(is.readObject(), Extensions.list(TestingExtensions.TEST1, TestingExtensions.TEST2));
         }
     }
 

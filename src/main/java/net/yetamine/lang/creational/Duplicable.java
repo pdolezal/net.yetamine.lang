@@ -68,6 +68,6 @@ public interface Duplicable {
      */
     static <T extends Duplicable> Factory<T> factory(T template) {
         Objects.requireNonNull(template);
-        return () -> Types.getClass(template).cast(template.duplicate());
+        return () -> Types.classOf(template).cast(template.duplicate());
     }
 }

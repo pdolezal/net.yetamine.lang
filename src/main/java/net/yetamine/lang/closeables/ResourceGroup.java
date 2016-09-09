@@ -17,7 +17,7 @@
 package net.yetamine.lang.closeables;
 
 /**
- * A resource group providing means for collective and individual resource
+ * A resource group providing means for both collective and individual resource
  * management.
  *
  * <p>

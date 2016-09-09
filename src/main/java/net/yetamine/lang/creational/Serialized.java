@@ -40,6 +40,9 @@ public final class Serialized<T> implements Factory<T> {
      *
      * @param source
      *            the source object to serialize. It must not be {@code null}.
+     *
+     * @throws UnsupportedOperationException
+     *             if the source can't be serialized
      */
     public Serialized(T source) {
         Objects.requireNonNull(source);

@@ -43,6 +43,17 @@ import net.yetamine.lang.closeables.SafeCloseable;
  *     lock.unlock();
  * }
  * </pre>
+ *
+ * <p>
+ * One of the main advantages of this resource-like emulation of try-finally is
+ * easier use of dynamically ordered locks (that is a technique when lock order
+ * is determined dynamically by such a key that prevents deadlock due to wrong
+ * lock order) together with {@link net.yetamine.lang.closeables.ResourceGroup}.
+ *
+ * <p>
+ * Note that instances of this class are meant to be used within the scope of
+ * the creating thread, therefore this class is not thread-safe, which can be
+ * confusing with the respect to its purpose, i.e., ensuring thread safety.
  */
 public final class LockRegion implements SafeCloseable {
 
