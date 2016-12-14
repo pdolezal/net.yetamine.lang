@@ -124,7 +124,6 @@ public final class Cloneables {
             // Install the catch handler to wrap the checked exception according to the usual contract for the factory
             final MethodHandle handler = MethodHandles.catchException(bound, CloneNotSupportedException.class, catcher);
 
-            @SuppressWarnings("unchecked") // As long as the contract of clone() holds, this is true
             final Factory<T> result = MethodHandleProxies.asInterfaceInstance(Factory.class, handler);
             // If the cast above was dubious, there is still the possibility to
             // insert a return value check that throws an exception if the type
