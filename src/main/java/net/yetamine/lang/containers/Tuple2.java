@@ -16,8 +16,10 @@
 
 package net.yetamine.lang.containers;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Objects;
@@ -39,7 +41,7 @@ import java.util.stream.StreamSupport;
  * @param <T2>
  *            the type of element #2
  */
-public final class Tuple2<T1, T2> {
+public final class Tuple2<T1, T2> implements Tuple {
 
     /** Common shared empty tuple. */
     private static final Tuple2<?, ?> EMPTY = new Tuple2<>(null, null);
@@ -119,6 +121,24 @@ public final class Tuple2<T1, T2> {
         return (Tuple2<T1, T2>) EMPTY;
     }
 
+    /**
+     * Narrows a widened type performing a safe type cast (thanks to the safe
+     * covariant changes for immutable types).
+     *
+     * @param <T1>
+     *            the type of element #1
+     * @param <T2>
+     *            the type of element #2
+     * @param instance
+     *            the instance to narrow
+     *
+     * @return the narrowed instance
+     */
+    @SuppressWarnings("unchecked")
+    public static <T1, T2> Tuple2<T1, T2> narrow(Tuple2<? extends T1, ? extends T2> instance) {
+        return (Tuple2<T1, T2>) instance;
+    }
+
     // Common object methods
 
     /**
@@ -152,6 +172,38 @@ public final class Tuple2<T1, T2> {
     @Override
     public int hashCode() {
         return Objects.hash(value1, value2);
+    }
+
+    // Inherited methods
+
+    /**
+     * @see net.yetamine.lang.containers.Tuple#arity()
+     */
+    public int arity() {
+        return 2;
+    }
+
+    /**
+     * @see net.yetamine.lang.containers.Tuple#get(int)
+     */
+    public Object get(int index) {
+        switch (index) {
+            case 0:
+                return get1();
+
+            case 1:
+                return get2();
+
+            default:
+                throw new IndexOutOfBoundsException();
+        }
+    }
+
+    /**
+     * @see net.yetamine.lang.containers.Tuple#toList()
+     */
+    public List<?> toList() {
+        return Collections.unmodifiableList(Arrays.asList(value1, value2));
     }
 
     // Core tuple methods
@@ -333,14 +385,14 @@ public final class Tuple2<T1, T2> {
      *
      * @param <V>
      *            the type of the result
-     * @param reduction
+     * @param mapping
      *            the function to apply on the elements. It must not be
      *            {@code null}.
      *
      * @return the result of the given function
      */
-    public <V> V reduce(BiFunction<? super T1, ? super T2, ? extends V> reduction) {
-        return reduction.apply(value1, value2);
+    public <V> V map(BiFunction<? super T1, ? super T2, ? extends V> mapping) {
+        return mapping.apply(value1, value2);
     }
 
     // Factory methods for common types

@@ -16,7 +16,10 @@
 
 package net.yetamine.lang.containers;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Iterator;
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Spliterators;
@@ -35,7 +38,7 @@ import java.util.stream.StreamSupport;
  * @param <T3>
  *            the type of element #3
  */
-public final class Tuple3<T1, T2, T3> {
+public final class Tuple3<T1, T2, T3> implements Tuple {
 
     /** Common shared empty tuple. */
     private static final Tuple3<?, ?, ?> EMPTY = new Tuple3<>(null, null, null);
@@ -130,6 +133,26 @@ public final class Tuple3<T1, T2, T3> {
         return (Tuple3<T1, T2, T3>) EMPTY;
     }
 
+    /**
+     * Narrows a widened type performing a safe type cast (thanks to the safe
+     * covariant changes for immutable types).
+     *
+     * @param <T1>
+     *            the type of element #1
+     * @param <T2>
+     *            the type of element #2
+     * @param <T3>
+     *            the type of element #3
+     * @param instance
+     *            the instance to narrow
+     *
+     * @return the narrowed instance
+     */
+    @SuppressWarnings("unchecked")
+    public static <T1, T2, T3> Tuple3<T1, T2, T3> narrow(Tuple3<? extends T1, ? extends T2, ? extends T3> instance) {
+        return (Tuple3<T1, T2, T3>) instance;
+    }
+
     // Common object methods
 
     /**
@@ -164,6 +187,41 @@ public final class Tuple3<T1, T2, T3> {
     @Override
     public int hashCode() {
         return Objects.hash(value1, value2, value3);
+    }
+
+    // Inherited methods
+
+    /**
+     * @see net.yetamine.lang.containers.Tuple#arity()
+     */
+    public int arity() {
+        return 3;
+    }
+
+    /**
+     * @see net.yetamine.lang.containers.Tuple#get(int)
+     */
+    public Object get(int index) {
+        switch (index) {
+            case 0:
+                return get1();
+
+            case 1:
+                return get2();
+
+            case 2:
+                return get3();
+
+            default:
+                throw new IndexOutOfBoundsException();
+        }
+    }
+
+    /**
+     * @see net.yetamine.lang.containers.Tuple#toList()
+     */
+    public List<?> toList() {
+        return Collections.unmodifiableList(Arrays.asList(value1, value2, value3));
     }
 
     // Core tuple methods

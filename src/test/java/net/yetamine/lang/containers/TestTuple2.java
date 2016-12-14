@@ -120,7 +120,8 @@ public final class TestTuple2 {
     }
 
     /**
-     * Tests {@link Tuple2#map1(Function)} and {@link Tuple2#map2(Function)}.
+     * Tests {@link Tuple2#map1(Function)}, {@link Tuple2#map2(Function)} and
+     * {@link Tuple2#map(BiFunction)}.
      */
     @Test
     public void testMap() {
@@ -135,12 +136,19 @@ public final class TestTuple2 {
         Assert.assertEquals(t.map1(f), Tuple2.of(i, o2));
         Assert.assertEquals(t.map2(f), Tuple2.of(o1, i));
 
+        Assert.assertEquals(t.map((v1, v2) -> {
+            Assert.assertEquals(v1, o1);
+            Assert.assertEquals(v2, o2);
+            return Integer.valueOf(1);
+        }), Integer.valueOf(1));
+
         Assert.assertEquals(t, Tuple2.of(o1, o2));
     }
 
     /**
-     * Tests {@link Tuple2#use1(java.util.function.Consumer)} and
-     * {@link Tuple2#use2(java.util.function.Consumer)}.
+     * Tests {@link Tuple2#use1(java.util.function.Consumer)},
+     * {@link Tuple2#use2(java.util.function.Consumer)} and
+     * {@link Tuple2#use(java.util.function.BiConsumer)}.
      */
     @Test
     public void testUse() {
@@ -151,25 +159,10 @@ public final class TestTuple2 {
 
         t.use1(o -> Assert.assertEquals(o, o1));
         t.use2(o -> Assert.assertEquals(o, o2));
-
-        Assert.assertEquals(t, Tuple2.of(o1, o2));
-    }
-
-    /**
-     * Tests {@link Tuple2#reduce(BiFunction)}.
-     */
-    @Test
-    public void testReduce() {
-        final Object o1 = new Object();
-        final Object o2 = new Object();
-
-        final Tuple2<?, ?> t = Tuple2.of(o1, o2);
-
-        Assert.assertEquals(t.reduce((v1, v2) -> {
-            Assert.assertEquals(v1, o1);
-            Assert.assertEquals(v2, o2);
-            return Integer.valueOf(1);
-        }), Integer.valueOf(1));
+        t.use((a, b) -> {
+            Assert.assertEquals(a, o1);
+            Assert.assertEquals(b, o2);
+        });
 
         Assert.assertEquals(t, Tuple2.of(o1, o2));
     }
