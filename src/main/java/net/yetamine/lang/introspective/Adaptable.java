@@ -36,8 +36,8 @@ public interface Adaptable {
      * @param type
      *            the desired type. It must not be {@code null}.
      *
-     * @return this instance adapted to the given type, or an empty container if
-     *         not possible
+     * @return an {@link Optional} with this instance adapted to the given type,
+     *         or {@link Optional#empty()}
      */
     default <T> Optional<T> adapt(Class<? extends T> type) {
         return type.isInstance(this) ? Optional.of(type.cast(this)) : Optional.empty();
@@ -53,8 +53,9 @@ public interface Adaptable {
      * @param o
      *            the instance to adapt
      *
-     * @return the instance adapted to the given type, or an empty container if
-     *         not possible or the instance argument is {@code null}
+     * @return an {@link Optional} with this instance adapted to the given type,
+     *         or {@link Optional#empty()} if not possible or the instance
+     *         argument is {@code null}
      */
     static <T> Optional<T> adapt(Class<? extends T> type, Adaptable o) {
         return (o != null) ? o.adapt(type) : Optional.empty();
@@ -70,8 +71,9 @@ public interface Adaptable {
      * @param o
      *            the instance to adapt
      *
-     * @return the instance adapted to the given type, or an empty container if
-     *         not possible or the instance argument is {@code null}
+     * @return an {@link Optional} with this instance adapted to the given type,
+     *         or {@link Optional#empty()} if not possible or the instance
+     *         argument is {@code null}
      */
     static <T> Optional<T> adapt(Class<? extends T> type, Object o) {
         return (o instanceof Adaptable) ? ((Adaptable) o).adapt(type) : Optional.empty();
