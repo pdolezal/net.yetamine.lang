@@ -29,4 +29,23 @@ public interface Interruptible {
      * This method should throw no exceptions either.
      */
     void interrupt();
+
+    /**
+     * Invokes {@link #interrupt()} on the given object if the object implements
+     * this interface.
+     *
+     * @param o
+     *            the object to interrupt
+     *
+     * @return {@code true} if {@link #interrupt()} has been invoked on the
+     *         given object successfully
+     */
+    static boolean interrupt(Object o) {
+        if (o instanceof Interruptible) {
+            ((Interruptible) o).interrupt();
+            return true;
+        }
+
+        return false;
+    }
 }

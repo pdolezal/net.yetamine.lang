@@ -25,4 +25,23 @@ public interface Invalidable {
      * Invalidates the content related to this instance.
      */
     void invalidate();
+
+    /**
+     * Invokes {@link #invalidate()} if the given object implements this
+     * interface.
+     *
+     * @param o
+     *            the object to invalidate
+     *
+     * @return {@code true} if {@link #invalidate()} has been invoked on the
+     *         given object successfully
+     */
+    static boolean invalidate(Object o) {
+        if (o instanceof Invalidable) {
+            ((Invalidable) o).invalidate();
+            return true;
+        }
+
+        return false;
+    }
 }
