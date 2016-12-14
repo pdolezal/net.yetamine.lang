@@ -21,6 +21,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
@@ -40,6 +41,80 @@ import java.util.function.Function;
  * copies or layering multiple unmodifiable wrappers.
  */
 public final class Capture {
+
+    /**
+     * Returns the most convenient representation of a frozen collection, which
+     * may be an empty instance, an optimized single-element implementation, or
+     * an unmodifiable view holding the original collection.
+     *
+     * @param <E>
+     *            the type of the elements
+     * @param source
+     *            the source collection to be taken as frozen. It must not be
+     *            {@code null}.
+     *
+     * @return the best representation for the given elements
+     */
+    public static <E> Set<E> frozen(Set<? extends E> source) {
+        if (source.isEmpty()) { // Return the usual empty collection
+            return Collections.emptySet();
+        }
+
+        final Iterator<? extends E> it = source.iterator();
+        final E head = it.next();
+        // If there are more, just return an unmodifiable wrapper
+        return it.hasNext() ? Collections.unmodifiableSet(source) : Collections.singleton(head);
+    }
+
+    /**
+     * Returns the most convenient representation of a frozen collection, which
+     * may be an empty instance, an optimized single-element implementation, or
+     * an unmodifiable view holding the original collection.
+     *
+     * @param <E>
+     *            the type of the elements
+     * @param source
+     *            the source collection to be taken as frozen. It must not be
+     *            {@code null}.
+     *
+     * @return the best representation for the given elements
+     */
+    public static <E> List<E> frozen(List<? extends E> source) {
+        if (source.isEmpty()) { // Return the usual empty collection
+            return Collections.emptyList();
+        }
+
+        return (source.size() == 1) ? Collections.singletonList(source.get(0)) : Collections.unmodifiableList(source);
+    }
+
+    /**
+     * Returns the most convenient representation of a frozen collection, which
+     * may be an empty instance, an optimized single-element implementation, or
+     * an unmodifiable view holding the original collection.
+     *
+     * @param <K>
+     *            the type of the map keys
+     * @param <V>
+     *            the type of the map values
+     * @param source
+     *            the source collection to be taken as frozen. It must not be
+     *            {@code null}.
+     *
+     * @return the best representation for the given elements
+     */
+    public static <K, V> Map<K, V> frozen(Map<? extends K, ? extends V> source) {
+        if (source.isEmpty()) { // Return the usual empty collection
+            return Collections.emptyMap();
+        }
+
+        final Iterator<? extends Map.Entry<? extends K, ? extends V>> it = source.entrySet().iterator();
+        final Map.Entry<? extends K, ? extends V> head = it.next();
+        if (it.hasNext()) { // If there are more, just return an unmodifiable wrapper
+            return Collections.unmodifiableMap(source);
+        }
+
+        return Collections.singletonMap(head.getKey(), head.getValue());
+    }
 
     /**
      * Returns an unmodifiable instance that wraps the result returned by the
