@@ -72,6 +72,22 @@ public final class Single<T> implements Supplier<T> {
     }
 
     /**
+     * Narrows a widened type performing a safe type cast (thanks to the safe
+     * covariant changes for immutable types).
+     *
+     * @param <T>
+     *            the type of the represented value
+     * @param instance
+     *            the instance to narrow
+     *
+     * @return the narrowed instance
+     */
+    @SuppressWarnings("unchecked")
+    public static <T> Single<T> narrow(Single<? extends T> instance) {
+        return (Single<T>) instance;
+    }
+
+    /**
      * Returns an instance representing a single value.
      *
      * @param <T>
