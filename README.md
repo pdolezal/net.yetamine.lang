@@ -218,7 +218,7 @@ Try to avoid consulting `isPresent` *and* `get`. There are several ways: using `
 
 ```{java}
 boolean greet(String name) {
-    return Choice.of(greeting(name)).ifTrue(System.out::println).isTrue();
+    return Choice.from(greeting(name)).ifRight(System.out::println).isRight();
 }
 ```
 

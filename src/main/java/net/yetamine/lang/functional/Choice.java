@@ -25,71 +25,147 @@ import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 /**
- * An alternative to {@link Optional} for the cases when the value may or may
- * not be acceptable, but the decision is provided and the container does not
- * decide on its own. The value is therefore marked as either <i>true</i> or
- * <i>false</i> and the container provides methods for both these situations.
+ * An alternative to {@link Optional} for the cases when the value may be right
+ * or wrong, but the value itself might be used anyway, e.g., for logging. The
+ * the value is marked as either <i>right</i> or <i>wrong</i> and this mark is
+ * carried with the value, so that the consumer of the value can decide if and
+ * how the value could be used.
  *
  * @param <T>
  *            the type of the contained value
  */
 public final class Choice<T> implements Supplier<T> {
 
-    /** Shared instance for <i>true</i> {@code null}. */
-    private static final Choice<?> NULL_AS_TRUE = new Choice<>(null, true);
-    /** Shared instance for <i>false</i> {@code null}. */
-    private static final Choice<?> NULL_AS_FALSE = new Choice<>(null, false);
+    /** Shared instance for <i>right</i> {@code null}. */
+    private static final Choice<?> RIGHT_NULL = new Choice<>(null, true);
+    /** Shared instance for <i>wrong</i> {@code null}. */
+    private static final Choice<?> WRONG_NULL = new Choice<>(null, false);
 
     /** Stored value. */
     private final T value;
-    /** Flag marking <i>true</i> or <i>false</i>. */
-    private final boolean valid;
+    /** Flag marking <i>right</i> or <i>wrong</i>. */
+    private final boolean right;
 
     /**
      * Creates a new instance.
      *
      * @param o
      *            the value to store
-     * @param v
-     *            the flag marking <i>true</i> or <i>false</i>
+     * @param t
+     *            the flag marking <i>right</i> or <i>wrong</i>
      */
-    private Choice(T o, boolean v) {
+    private Choice(T o, boolean t) {
         value = o;
-        valid = v;
+        right = t;
     }
 
     /**
-     * Returns an instance representing the value as <i>true</i>.
+     * Narrows a widened type performing a safe type cast (thanks to the safe
+     * covariant changes for immutable types).
+     *
+     * @param <T>
+     *            the type of the represented value
+     * @param instance
+     *            the instance to narrow
+     *
+     * @return the narrowed instance
+     */
+    @SuppressWarnings("unchecked")
+    public static <T> Choice<T> narrow(Choice<? extends T> instance) {
+        return (Choice<T>) instance;
+    }
+
+    /**
+     * Returns a representation of the given value.
+     *
+     * @param <T>
+     *            the type of the value
+     * @param value
+     *            the value to store
+     * @param right
+     *            {@code true} when the value shall be considered <i>right</i>
+     *            and {@code false} otherwise
+     *
+     * @return a representation of the given value
+     */
+    public static <T> Choice<T> of(T value, boolean right) {
+        return right ? right(value) : wrong(value);
+    }
+
+    /**
+     * Returns the shared instance representing a {@code null} as <i>right</i>.
+     *
+     * @param <T>
+     *            the type of the value
+     *
+     * @return the shared instance representing a {@code null} as <i>right</i>
+     */
+    @SuppressWarnings("unchecked")
+    public static <T> Choice<T> rightNull() {
+        return (Choice<T>) RIGHT_NULL;
+    }
+
+    /**
+     * Returns the shared instance representing a {@code null} as <i>wrong</i>.
+     *
+     * @param <T>
+     *            the type of the value
+     *
+     * @return the shared instance representing a {@code null} as <i>wrong</i>
+     */
+    @SuppressWarnings("unchecked")
+    public static <T> Choice<T> wrongNull() {
+        return (Choice<T>) WRONG_NULL;
+    }
+
+    /**
+     * Returns an instance representing the value as <i>right</i>.
      *
      * @param <T>
      *            the type of the value
      * @param o
      *            the value to represent
      *
-     * @return an instance representing the value as <i>true</i>
+     * @return an instance representing the value as <i>right</i>
      */
-    public static <T> Choice<T> asTrue(T o) {
-        return (o != null) ? new Choice<>(o, true) : asTrue();
+    public static <T> Choice<T> right(T o) {
+        return (o != null) ? new Choice<>(o, true) : rightNull();
     }
 
     /**
-     * Returns an instance representing the value as <i>false</i>.
+     * Returns an instance representing the value as <i>wrong</i>.
      *
      * @param <T>
      *            the type of the value
      * @param o
      *            the value to represent
      *
-     * @return an instance representing the value as <i>false</i>
+     * @return an instance representing the value as <i>wrong</i>
      */
-    public static <T> Choice<T> asFalse(T o) {
-        return (o != null) ? new Choice<>(o, false) : asFalse();
+    public static <T> Choice<T> wrong(T o) {
+        return (o != null) ? new Choice<>(o, false) : wrongNull();
     }
 
     /**
-     * Returns a new instance using the value of the given {@link Optional}
-     * container as <i>true</i>, or {@code null} as <i>false</i> if the given
-     * container is empty.
+     * Returns a new instance representing the given value in the way that the
+     * {@code null} value is considered <i>wrong</i>, while a non-{@code null}
+     * value is considered <i>right</i>.
+     *
+     * @param <T>
+     *            the type of the value
+     * @param o
+     *            the value to represent
+     *
+     * @return the new instance
+     */
+    public static <T> Choice<T> nonNull(T o) {
+        return (o != null) ? new Choice<>(o, true) : wrongNull();
+    }
+
+    /**
+     * Returns a new instance using the given {@link Optional} in the way that a
+     * present value is considered <i>right</i>, while an absent value maps to
+     * <i>wrong</i> {@code null}.
      *
      * @param <T>
      *            the type of the value
@@ -100,23 +176,8 @@ public final class Choice<T> implements Supplier<T> {
      * @return the new instance
      */
     @SuppressWarnings("unchecked")
-    public static <T> Choice<T> of(Optional<? extends T> optional) {
-        return (Choice<T>) optional.map(Choice::asTrue).orElseGet(Choice::asFalse);
-    }
-
-    /**
-     * Returns a new instance representing a non-{@code null} values as
-     * <i>true</i> and {@code null} as <i>false</i>.
-     *
-     * @param <T>
-     *            the type of the value
-     * @param o
-     *            the value to represent
-     *
-     * @return the new instance
-     */
-    public static <T> Choice<T> nonNull(T o) {
-        return (o != null) ? new Choice<>(o, true) : asFalse();
+    public static <T> Choice<T> from(Optional<? extends T> optional) {
+        return (Choice<T>) optional.map(Choice::right).orElseGet(Choice::wrongNull);
     }
 
     /**
@@ -124,7 +185,7 @@ public final class Choice<T> implements Supplier<T> {
      */
     @Override
     public String toString() {
-        return String.format("choice[%s: %s]", valid, value);
+        return String.format("%s[%s]", right ? "Choice.right" : "Choice.wrong", value);
     }
 
     /**
@@ -138,7 +199,7 @@ public final class Choice<T> implements Supplier<T> {
 
         if (obj instanceof Choice<?>) {
             final Choice<?> o = (Choice<?>) obj;
-            return Objects.equals(value, o.value) && (valid == o.valid);
+            return Objects.equals(value, o.value) && (right == o.right);
         }
 
         return false;
@@ -149,7 +210,7 @@ public final class Choice<T> implements Supplier<T> {
      */
     @Override
     public int hashCode() {
-        return Objects.hash(value, valid);
+        return Objects.hash(value, right);
     }
 
     /**
@@ -164,37 +225,37 @@ public final class Choice<T> implements Supplier<T> {
     }
 
     /**
-     * Returns the value of this choice if {@link #isTrue()}.
+     * Returns the value of this choice if {@link #isRight()}.
      *
      * @return the value of this choice
      *
      * @throws NoSuchElementException
-     *             if this choice {@link #isFalse()}
+     *             if this choice {@link #isWrong()}
      */
     public T require() {
-        if (isTrue()) {
-            return get();
+        if (isRight()) {
+            return value;
         }
 
         throw new NoSuchElementException();
     }
 
     /**
-     * Returns the value of this choice if {@link #isTrue()}.
+     * Returns the value of this choice if {@link #isRight()}.
      *
      * @param <X>
      *            the type of the exception to throw
      * @param e
-     *            the supplier of the exception to throw if {@link #isFalse()}
+     *            the supplier of the exception to throw if {@link #isWrong()}
      *
      * @return the value of this choice
      *
      * @throws X
-     *             if this choice {@link #isFalse()}
+     *             if this choice {@link #isWrong()}
      */
     public <X extends Throwable> T require(Supplier<? extends X> e) throws X {
-        if (isTrue()) {
-            return get();
+        if (isRight()) {
+            return value;
         }
 
         throw e.get();
@@ -210,47 +271,64 @@ public final class Choice<T> implements Supplier<T> {
     }
 
     /**
-     * Returns an {@link Optional} with the value if the value {@link #isTrue()}
-     * and not {@code null}.
+     * Returns an {@link Optional} representing a non-{@code null} <i>right</i>
+     * value.
      *
-     * @return an {@link Optional} with the value, or an empty container if the
-     *         value {@link #isFalse()} or {@code null}
+     * @return an {@link Optional} with the non-{@code null} <i>right</i> value,
+     *         otherwise {@link Optional#empty()}
      */
     public Optional<T> optional() {
-        return isTrue() ? Optional.ofNullable(get()) : Optional.empty();
+        return isRight() ? Optional.ofNullable(value) : Optional.empty();
     }
 
     /**
-     * Returns an instance representing the same value, but with the swapped
-     * decision, so that when this instance {@link #isTrue()}, then the result
-     * {@link #isFalse()}.
+     * Returns a <i>right</i> case of the represented value.
+     *
+     * @return a <i>right</i> case of the represented value
+     */
+    public Choice<T> right() {
+        return isRight() ? this : right(value);
+    }
+
+    /**
+     * Returns a <i>wrong</i> case of the represented value.
+     *
+     * @return a <i>wrong</i> case of the represented value
+     */
+    public Choice<T> wrong() {
+        return isWrong() ? this : wrong(value);
+    }
+
+    /**
+     * Returns an instance representing the same value, but <i>right</i> turned
+     * into <i>wrong</i> and vice versa.
      *
      * @return an swapped instance
      */
-    public Choice<T> flip() {
-        return isTrue() ? asFalse(get()) : asTrue(get());
+    public Choice<T> swap() {
+        return isRight() ? wrong(value) : right(value);
     }
 
     /**
-     * Tests if the value represented by this choice is considered <i>true</i>.
+     * Tests if the value represented by this choice is considered <i>right</i>.
      *
-     * @return {@code true} if the represented value is considered <i>true</i>
+     * @return {@code true} if the represented value is considered <i>right</i>
      */
-    public boolean isTrue() {
-        return valid;
+    public boolean isRight() {
+        return right;
     }
 
     /**
-     * Tests if the value represented by this choice is considered <i>false</i>.
+     * Tests if the value represented by this choice is considered <i>wrong</i>.
      *
-     * @return {@code false} if the represented value is considered <i>false</i>
+     * @return {@code false} if the represented value is considered <i>wrong</i>
      */
-    public boolean isFalse() {
-        return !isTrue();
+    public boolean isWrong() {
+        return !isRight();
     }
 
     /**
-     * Passes the represented value to the given consumer if {@link #isTrue()}
+     * Passes the represented value to the given consumer if {@link #isRight()}
      * returns {@code true}.
      *
      * @param consumer
@@ -258,47 +336,47 @@ public final class Choice<T> implements Supplier<T> {
      *
      * @return this instance
      */
-    public Choice<T> ifTrue(Consumer<? super T> consumer) {
-        if (isTrue()) {
-            consumer.accept(get());
+    public Choice<T> ifRight(Consumer<? super T> consumer) {
+        if (isRight()) {
+            consumer.accept(value);
         }
 
         return this;
     }
 
     /**
-     * Runs the given action if {@link #isTrue()} returns {@code false}.
+     * Runs the given action if {@link #isRight()} returns {@code false}.
      *
      * @param consumer
      *            the consumer to accept the value. It must not be {@code null}.
      *
      * @return this instance
      */
-    public Choice<T> ifFalse(Consumer<? super T> consumer) {
-        if (isFalse()) {
-            consumer.accept(get());
+    public Choice<T> ifWrong(Consumer<? super T> consumer) {
+        if (isWrong()) {
+            consumer.accept(value);
         }
 
         return this;
     }
 
     /**
-     * Applies either action depending on {@link #isTrue()} result.
+     * Applies either action depending on {@link #isRight()} result.
      *
-     * @param whenTrue
+     * @param whenRight
      *            the consumer to accept the represented value if
-     *            {@link #isTrue()}. It must not be {@code null}.
-     * @param whenFalse
+     *            {@link #isRight()}. It must not be {@code null}.
+     * @param whenWrong
      *            the consumer to accept the represented value if
-     *            {@link #isFalse()}. It must not be {@code null}.
+     *            {@link #isWrong()}. It must not be {@code null}.
      *
      * @return this instance
      */
-    public Choice<T> accept(Consumer<? super T> whenTrue, Consumer<? super T> whenFalse) {
-        if (isTrue()) {
-            whenTrue.accept(get());
+    public Choice<T> accept(Consumer<? super T> whenRight, Consumer<? super T> whenWrong) {
+        if (isRight()) {
+            whenRight.accept(value);
         } else {
-            whenFalse.accept(get());
+            whenWrong.accept(value);
         }
 
         return this;
@@ -309,14 +387,14 @@ public final class Choice<T> implements Supplier<T> {
      *
      * @param <V>
      *            the type of the new represented value
-     * @param f
+     * @param mapping
      *            the mapping function. It must not be {@code null} and it
      *            should not return {@code null}.
      *
      * @return the result of the mapping function
      */
-    public <V> Choice<V> map(Function<? super Choice<T>, Choice<V>> f) {
-        return f.apply(this);
+    public <V> Choice<V> map(Function<? super Choice<T>, Choice<V>> mapping) {
+        return mapping.apply(this);
     }
 
     /**
@@ -324,55 +402,35 @@ public final class Choice<T> implements Supplier<T> {
      *
      * @param <V>
      *            the type of the new value
-     * @param whenTrue
+     * @param whenRight
      *            the function to map the represented value when
-     *            {@link #isTrue()}. It must not be {@code null}.
-     * @param whenFalse
+     *            {@link #isRight()}. It must not be {@code null}.
+     * @param whenWrong
      *            the function to map the represented value when
-     *            {@link #isFalse()}. It must not be {@code null}.
+     *            {@link #isWrong()}. It must not be {@code null}.
      *
      * @return a new instance represented the mapped value
      */
-    public <V> Choice<V> map(Function<? super T, ? extends V> whenTrue, Function<? super T, ? extends V> whenFalse) {
-        return isTrue() ? asTrue(whenTrue.apply(get())) : asFalse(whenFalse.apply(get()));
+    public <V> Choice<V> map(Function<? super T, ? extends V> whenRight, Function<? super T, ? extends V> whenWrong) {
+        return isRight() ? right(whenRight.apply(value)) : wrong(whenWrong.apply(value));
     }
 
     /**
-     * Maps the represented value and returns it; this method is a shortcut for
-     * {@code choice.map(whenTrue, whenFalse).get()}.
+     * Maps the represented value and returns it using the appropriate mapping
+     * function for the actual <i>right</i> or <i>wrong</i> case.
      *
      * @param <V>
      *            the type of the new value
      * @param whenTrue
      *            the function to map the represented value when
-     *            {@link #isTrue()}. It must not be {@code null}.
+     *            {@link #isRight()}. It must not be {@code null}.
      * @param whenFalse
      *            the function to map the represented value when
-     *            {@link #isFalse()}. It must not be {@code null}.
+     *            {@link #isWrong()}. It must not be {@code null}.
      *
      * @return the mapped value
      */
     public <V> V reconcile(Function<? super T, ? extends V> whenTrue, Function<? super T, ? extends V> whenFalse) {
-        return isTrue() ? whenTrue.apply(get()) : whenFalse.apply(get());
-    }
-
-    /**
-     * Returns the shared instance representing a {@code null} as <i>true</i>.
-     *
-     * @return the shared instance representing a {@code null} as <i>true</i>
-     */
-    @SuppressWarnings("unchecked")
-    private static <T> Choice<T> asTrue() {
-        return (Choice<T>) NULL_AS_TRUE;
-    }
-
-    /**
-     * Returns the shared instance representing a {@code null} as <i>false</i>.
-     *
-     * @return the shared instance representing a {@code null} as <i>false</i>
-     */
-    @SuppressWarnings("unchecked")
-    private static <T> Choice<T> asFalse() {
-        return (Choice<T>) NULL_AS_FALSE;
+        return isRight() ? whenTrue.apply(value) : whenFalse.apply(value);
     }
 }

@@ -44,11 +44,11 @@ public final class TestChoice {
     @Test(dataProvider = "values")
     public void testConstruction(Choice<?> choice, Object o, boolean valid) {
         Assert.assertSame(choice.get(), o);
-        Assert.assertEquals(choice.isTrue(), valid);
-        Assert.assertNotEquals(choice.isFalse(), valid);
-        Assert.assertEquals(choice, valid ? Choice.asTrue(o) : Choice.asFalse(o));
-        Assert.assertNotEquals(choice.flip().isTrue(), valid);
-        Assert.assertEquals(choice.flip().isFalse(), valid);
+        Assert.assertEquals(choice.isRight(), valid);
+        Assert.assertNotEquals(choice.isWrong(), valid);
+        Assert.assertEquals(choice, valid ? Choice.right(o) : Choice.wrong(o));
+        Assert.assertNotEquals(choice.swap().isRight(), valid);
+        Assert.assertEquals(choice.swap().isWrong(), valid);
 
         if (valid) {
             Assert.assertEquals(choice.optional(), Optional.ofNullable(o));
@@ -60,7 +60,7 @@ public final class TestChoice {
     }
 
     /**
-     * Tests {@link Choice#ifTrue(java.util.function.Consumer)}.
+     * Tests {@link Choice#ifRight(java.util.function.Consumer)}.
      *
      * @param choice
      *            the instance to test. It must not be {@code null}.
@@ -70,9 +70,9 @@ public final class TestChoice {
      *            the validity flag
      */
     @Test(dataProvider = "values")
-    public void testIfvalid(Choice<?> choice, Object o, boolean valid) {
+    public void testIfRight(Choice<?> choice, Object o, boolean valid) {
         final Box<Object> box = Box.of(new Object());
-        choice.ifTrue(value -> box.set(value));
+        choice.ifRight(value -> box.set(value));
         if (valid) {
             Assert.assertSame(box.get(), o);
         } else {
@@ -81,7 +81,7 @@ public final class TestChoice {
     }
 
     /**
-     * Tests {@link Choice#ifFalse(java.util.function.Consumer)}.
+     * Tests {@link Choice#ifWrong(java.util.function.Consumer)}.
      *
      * @param choice
      *            the instance to test. It must not be {@code null}.
@@ -91,9 +91,9 @@ public final class TestChoice {
      *            the validity flag
      */
     @Test(dataProvider = "values")
-    public void testIfAbsent(Choice<?> choice, Object o, boolean valid) {
+    public void testIfWrong(Choice<?> choice, Object o, boolean valid) {
         final Box<Object> box = Box.of(new Object());
-        choice.ifFalse(value -> box.set(value));
+        choice.ifWrong(value -> box.set(value));
         if (valid) {
             Assert.assertNotSame(box.get(), o);
         } else {
@@ -157,12 +157,12 @@ public final class TestChoice {
 
         if (valid) {
             Assert.assertSame(r.get(), o1);
-            Assert.assertTrue(r.isTrue());
-            Assert.assertFalse(r.isFalse());
+            Assert.assertTrue(r.isRight());
+            Assert.assertFalse(r.isWrong());
         } else {
             Assert.assertSame(r.get(), o2);
-            Assert.assertTrue(r.isFalse());
-            Assert.assertFalse(r.isTrue());
+            Assert.assertTrue(r.isWrong());
+            Assert.assertFalse(r.isRight());
         }
     }
 
@@ -203,17 +203,22 @@ public final class TestChoice {
 
         return new Object[][] {
             // @formatter:off
-            { Choice.asTrue(o),             o,      true    },
-            { Choice.asTrue(null),          null,   true    },
+            { Choice.right(o),                  o,      true    },
+            { Choice.right(null),               null,   true    },
 
-            { Choice.asFalse(o),             o,      false  },
-            { Choice.asFalse(null),          null,   false  },
+            { Choice.wrong(o),                  o,      false   },
+            { Choice.wrong(null),               null,   false   },
 
-            { Choice.nonNull(o),            o,      true    },
-            { Choice.nonNull(null),         null,   false   },
+            { Choice.nonNull(o),                o,      true    },
+            { Choice.nonNull(null),             null,   false   },
 
-            { Choice.of(Optional.of(o)),    o,      true    },
-            { Choice.of(Optional.empty()),  null,   false   }
+            { Choice.of(o, true),               o,      true    },
+            { Choice.of(o, false),              o,      false   },
+            { Choice.of(null, true),            null,   true    },
+            { Choice.of(null, false),           null,   false   },
+
+            { Choice.from(Optional.of(o)),      o,      true    },
+            { Choice.from(Optional.empty()),    null,   false   }
             // @formatter:on
         };
     }
@@ -226,7 +231,7 @@ public final class TestChoice {
      */
     @Test(dataProvider = "throwing", expectedExceptions = { NoSuchElementException.class })
     public void testRequire1(Object o) {
-        Choice.asFalse(o).require();
+        Choice.wrong(o).require();
     }
 
     /**
@@ -240,7 +245,7 @@ public final class TestChoice {
      */
     @Test(dataProvider = "throwing", expectedExceptions = { IOException.class })
     public void testRequire2(Object o) throws IOException {
-        Choice.asFalse(o).require(IOException::new);
+        Choice.wrong(o).require(IOException::new);
     }
 
     @SuppressWarnings("javadoc")

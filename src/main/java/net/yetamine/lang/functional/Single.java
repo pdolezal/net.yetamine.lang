@@ -218,6 +218,15 @@ public final class Single<T> implements Supplier<T> {
     }
 
     /**
+     * Returns a {@link Choice} containing the represented value.
+     *
+     * @return a {@link Choice} containing the represented value
+     */
+    public Choice<T> choice() {
+        return Choice.of(value, single.isTrue());
+    }
+
+    /**
      * Returns an {@link Optional} containing the represented value.
      *
      * @return an {@link Optional} containing the represented value
