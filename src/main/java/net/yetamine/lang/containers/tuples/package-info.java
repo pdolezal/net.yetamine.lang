@@ -15,6 +15,6 @@
  */
 
 /**
- * Generic containers holding a limited number of items or entities.
+ * Tuples.
  */
-package net.yetamine.lang.containers;
+package net.yetamine.lang.containers.tuples;

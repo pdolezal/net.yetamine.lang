@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.yetamine.lang.containers;
+package net.yetamine.lang.containers.tuples;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -32,6 +32,9 @@ import java.util.stream.Stream;
 import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+
+import net.yetamine.lang.containers.tuples.Tuple2;
+import net.yetamine.lang.containers.tuples.Tuple3;
 
 /**
  * Tests {@link Tuple2}.

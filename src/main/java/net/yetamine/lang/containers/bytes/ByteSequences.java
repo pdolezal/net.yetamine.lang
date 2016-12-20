@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.yetamine.lang.containers;
+package net.yetamine.lang.containers.bytes;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;

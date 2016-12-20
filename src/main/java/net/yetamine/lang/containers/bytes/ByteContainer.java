@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.yetamine.lang.containers;
+package net.yetamine.lang.containers.bytes;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
@@ -212,42 +212,42 @@ public final class ByteContainer implements ByteSequence {
     }
 
     /**
-     * @see net.yetamine.lang.containers.ByteSequence#length()
+     * @see net.yetamine.lang.containers.bytes.ByteSequence#length()
      */
     public int length() {
         return array.length;
     }
 
     /**
-     * @see net.yetamine.lang.containers.ByteSequence#valueAt(int)
+     * @see net.yetamine.lang.containers.bytes.ByteSequence#valueAt(int)
      */
     public byte valueAt(int index) {
         return array[index];
     }
 
     /**
-     * @see net.yetamine.lang.containers.ByteSequence#copy(int, int)
+     * @see net.yetamine.lang.containers.bytes.ByteSequence#copy(int, int)
      */
     public ByteContainer copy(int from, int to) {
         return ((from == 0) && (to == length())) ? this : of(array, from, to);
     }
 
     /**
-     * @see net.yetamine.lang.containers.ByteSequence#view(int, int)
+     * @see net.yetamine.lang.containers.bytes.ByteSequence#view(int, int)
      */
     public ByteSequence view(int from, int to) {
         return ByteArrayView.of(array, from, to);
     }
 
     /**
-     * @see net.yetamine.lang.containers.ByteSequence#array()
+     * @see net.yetamine.lang.containers.bytes.ByteSequence#array()
      */
     public byte[] array() {
         return (array.length == 0) ? array : array.clone();
     }
 
     /**
-     * @see net.yetamine.lang.containers.ByteSequence#array(int, int)
+     * @see net.yetamine.lang.containers.bytes.ByteSequence#array(int, int)
      */
     public byte[] array(int from, int to) {
         final int length = ByteSequences.length(from, to, array.length);
@@ -262,14 +262,14 @@ public final class ByteContainer implements ByteSequence {
     }
 
     /**
-     * @see net.yetamine.lang.containers.ByteSequence#string(java.nio.charset.Charset)
+     * @see net.yetamine.lang.containers.bytes.ByteSequence#string(java.nio.charset.Charset)
      */
     public String string(Charset encoding) {
         return new String(array, encoding);
     }
 
     /**
-     * @see net.yetamine.lang.containers.ByteSequence#buffer()
+     * @see net.yetamine.lang.containers.bytes.ByteSequence#buffer()
      */
     public ByteBuffer buffer() {
         ByteBuffer result = buffer;
@@ -283,7 +283,7 @@ public final class ByteContainer implements ByteSequence {
     }
 
     /**
-     * @see net.yetamine.lang.containers.ByteSequence#stream()
+     * @see net.yetamine.lang.containers.bytes.ByteSequence#stream()
      */
     public IntStream stream() {
         return IntStream.range(0, array.length).map(i -> array[i]);

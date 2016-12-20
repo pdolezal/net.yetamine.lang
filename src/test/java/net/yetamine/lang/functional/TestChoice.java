@@ -19,12 +19,11 @@ package net.yetamine.lang.functional;
 import java.io.IOException;
 import java.util.NoSuchElementException;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-
-import net.yetamine.lang.containers.Box;
 
 /**
  * Tests {@link Choice}.
@@ -71,7 +70,7 @@ public final class TestChoice {
      */
     @Test(dataProvider = "values")
     public void testIfRight(Choice<?> choice, Object o, boolean valid) {
-        final Box<Object> box = Box.of(new Object());
+        final AtomicReference<Object> box = new AtomicReference<>(new Object());
         choice.ifRight(value -> box.set(value));
         if (valid) {
             Assert.assertSame(box.get(), o);
@@ -92,7 +91,7 @@ public final class TestChoice {
      */
     @Test(dataProvider = "values")
     public void testIfWrong(Choice<?> choice, Object o, boolean valid) {
-        final Box<Object> box = Box.of(new Object());
+        final AtomicReference<Object> box = new AtomicReference<>(new Object());
         choice.ifWrong(value -> box.set(value));
         if (valid) {
             Assert.assertNotSame(box.get(), o);
@@ -113,7 +112,7 @@ public final class TestChoice {
      */
     @Test(dataProvider = "values")
     public void testAccept(Choice<?> choice, Object o, boolean valid) {
-        final Box<Object> box = Box.empty();
+        final AtomicReference<Object> box = new AtomicReference<>();
         final Object o1 = new Object();
         final Object o2 = new Object();
 

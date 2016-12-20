@@ -17,13 +17,12 @@
 package net.yetamine.lang.functional;
 
 import java.util.Arrays;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
 
 import org.testng.Assert;
 import org.testng.annotations.Test;
-
-import net.yetamine.lang.containers.Box;
 
 /**
  * Tests {@link BiAcceptor}.
@@ -35,17 +34,17 @@ public final class TestBiAcceptor {
      */
     @Test
     public void testOnlyIf() {
-        final BiPredicate<Box<Integer>, Integer> notEqual = (b, i) -> !b.get().equals(i);
-        final BiConsumer<Box<Integer>, Integer> consumer = (b, i) -> b.patch(v -> v + i);
-        final BiConsumer<Box<Integer>, Integer> conditional = BiAcceptor.from(consumer).onlyIf(notEqual);
+        final BiPredicate<AtomicInteger, Integer> notEqual = (b, i) -> (b.get() != i);
+        final BiConsumer<AtomicInteger, Integer> consumer = (b, i) -> b.set(b.get() + i);
+        final BiConsumer<AtomicInteger, Integer> conditional = BiAcceptor.from(consumer).onlyIf(notEqual);
 
-        final Box<Integer> value = Box.of(0);
-
-        conditional.accept(value, 1);
-        Assert.assertEquals(value.get(), Integer.valueOf(1));
+        final AtomicInteger value = new AtomicInteger(0);
 
         conditional.accept(value, 1);
-        Assert.assertEquals(value.get(), Integer.valueOf(1)); // Not incremented second time
+        Assert.assertEquals(value.get(), 1);
+
+        conditional.accept(value, 1);
+        Assert.assertEquals(value.get(), 1); // Not incremented second time
     }
 
     /**
@@ -53,13 +52,13 @@ public final class TestBiAcceptor {
      */
     @Test
     public void testSequential() {
-        final BiConsumer<Box<Integer>, Integer> a1 = (b, i) -> b.patch(v -> v + i);
-        final BiConsumer<Box<Integer>, Integer> a2 = (b, i) -> b.patch(v -> v * i);
+        final BiConsumer<AtomicInteger, Integer> a1 = (b, i) -> b.set(b.get() + i);
+        final BiConsumer<AtomicInteger, Integer> a2 = (b, i) -> b.set(b.get() * i);
 
-        final BiConsumer<Box<Integer>, Integer> a = BiAcceptor.sequential(Arrays.asList(a1, a2));
+        final BiConsumer<AtomicInteger, Integer> a = BiAcceptor.sequential(Arrays.asList(a1, a2));
 
-        final Box<Integer> value = Box.of(2);
+        final AtomicInteger value = new AtomicInteger(2);
         a.accept(value, 2);
-        Assert.assertEquals(value.get(), Integer.valueOf(8));
+        Assert.assertEquals(value.get(), 8);
     }
 }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.yetamine.lang.containers;
+package net.yetamine.lang.containers.values;
 
 import java.util.Objects;
 import java.util.function.Function;
@@ -36,7 +36,7 @@ import java.util.function.Supplier;
  * @param <T>
  *            the type of the element
  */
-public final class IndirectValue<T> implements InvalidableValue<T> {
+public final class Indirect<T> implements Value<T> {
 
     /** Supplier to compute the result on demand. */
     private final Supplier<? extends T> supplier;
@@ -63,10 +63,18 @@ public final class IndirectValue<T> implements InvalidableValue<T> {
      *            the factory for making the custom supplier. It must not be
      *            {@code null}.
      */
-    public IndirectValue(Supplier<? extends T> compute, Function<? super T, ? extends Supplier<? extends T>> customize) {
+    public Indirect(Supplier<? extends T> compute, Function<? super T, ? extends Supplier<? extends T>> customize) {
         factory = Objects.requireNonNull(customize);
         supplier = Objects.requireNonNull(compute);
         invalidate(); // Set an invalid reference
+    }
+
+    /**
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public String toString() {
+        return String.format("indirect[supplier=%s, factory=%s]", supplier, factory);
     }
 
     /**

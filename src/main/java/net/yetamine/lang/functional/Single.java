@@ -650,7 +650,7 @@ public final class Single<T> implements Supplier<T> {
      * @param <T>
      *            the type of the stored value
      *
-     * @see net.yetamine.lang.containers.Box
+     * @see net.yetamine.lang.containers.values.Box
      */
     private static final class Box<T> {
 

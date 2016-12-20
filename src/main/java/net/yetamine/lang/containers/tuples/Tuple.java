@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.yetamine.lang.containers;
+package net.yetamine.lang.containers.tuples;
 
 import java.util.List;
 

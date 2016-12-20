@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.yetamine.lang.containers;
+package net.yetamine.lang.containers.values;
 
 import java.io.Serializable;
 import java.util.Objects;
@@ -22,13 +22,15 @@ import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+import net.yetamine.lang.containers.Pointer;
+
 /**
  * A mutable container for holding a single value.
  *
  * @param <T>
  *            the type of the stored value
  */
-public final class Box<T> implements Serializable, Pointer<T> {
+public final class Box<T> implements Serializable, Value<T>, Pointer<T> {
 
     /** Serialization version: 1 */
     private static final long serialVersionUID = 1L;

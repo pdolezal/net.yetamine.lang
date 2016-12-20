@@ -9,8 +9,8 @@ What can be found here:
 * An unmodifiable view of a byte sequence, `ByteSequence`, to represent binary constants.
 * A mutable `Box` for objects, which is useful for accumulators and for "out" method parameters.
 * Companions for `Optional`: `Choice` and `Single`. `Traversing` is notable as well.
-* Containers for deferred and cached values: `DeferredValue` and `IndirectValue`.
 * Support for adapting arbitrary objects for use in try-with-resources.
+* Containers for single values that might be created on demand.
 * On-demand allocated and freed resource-like objects.
 * `Cloneable` support: no more fiddling with reflection.
 * Some minor utilities for using functional interfaces.
@@ -235,21 +235,21 @@ final Supplier<?> answer = () -> {
     } catch (InterruptedException e) {
         throw new RuntimeException(e);
     }
-    
+
     return 42;
 }
 
-final Supplier<?> supplier = new DeferredValue<>(answer); 
+final Supplier<?> supplier = new Deferred<>(answer); 
 
 System.out.println(supplier.get()); // Invokes the computation
 System.out.println(supplier.get()); // Uses the computed value, answers immediately
 
 // When the answer could be too large, let's cache it with WeakReference
-final Supplier<?> weak = new IndirectValue<>(answer, v -> new WeakReference<>(v)::get);
+final Supplier<?> weak = new Indirect<>(answer, v -> new WeakReference<>(v)::get);
 
 System.out.println(weak.get()); // Invokes the computation
 System.out.println(weak.get()); // Well, depends on the garbage collection. Maybe answers immediately.
-``` 
+```
 
 
 ### Making collection snapshots ###

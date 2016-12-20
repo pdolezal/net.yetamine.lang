@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.yetamine.lang.containers;
+package net.yetamine.lang.containers.bytes;
 
 import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;

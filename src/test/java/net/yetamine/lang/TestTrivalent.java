@@ -18,12 +18,11 @@ package net.yetamine.lang;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-
-import net.yetamine.lang.containers.Box;
 
 /**
  * Tests {@link Trivalent}.
@@ -218,23 +217,23 @@ public final class TestTrivalent {
      */
     @Test
     public void testIfs() {
-        final Box<Boolean> box = Box.empty();
+        final AtomicReference<Boolean> box = new AtomicReference<>();
 
         for (Trivalent value : Trivalent.values()) {
-            box.accept(Boolean.FALSE);
-            value.ifUnknown(() -> box.accept(Boolean.TRUE));
+            box.set(Boolean.FALSE);
+            value.ifUnknown(() -> box.set(Boolean.TRUE));
             Assert.assertEquals(box.get().booleanValue(), value.isUnknown());
 
-            box.accept(Boolean.FALSE);
-            value.ifTrue(() -> box.accept(Boolean.TRUE));
+            box.set(Boolean.FALSE);
+            value.ifTrue(() -> box.set(Boolean.TRUE));
             Assert.assertEquals(box.get().booleanValue(), value.isTrue());
 
-            box.accept(Boolean.FALSE);
-            value.ifFalse(() -> box.accept(Boolean.TRUE));
+            box.set(Boolean.FALSE);
+            value.ifFalse(() -> box.set(Boolean.TRUE));
             Assert.assertEquals(box.get().booleanValue(), value.isFalse());
 
-            box.accept(null); // Simulate Trivalent with null Boolean
-            value.ifBoolean(b -> box.accept(b));
+            box.set(null); // Simulate Trivalent with null Boolean
+            value.ifBoolean(b -> box.set(b));
 
             if (value.isBoolean()) {
                 Assert.assertEquals(box.get().booleanValue(), value.asBoolean());

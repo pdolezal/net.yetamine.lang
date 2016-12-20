@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.yetamine.lang.containers;
+package net.yetamine.lang.containers.tuples;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -192,14 +192,14 @@ public final class Tuple3<T1, T2, T3> implements Tuple {
     // Inherited methods
 
     /**
-     * @see net.yetamine.lang.containers.Tuple#arity()
+     * @see net.yetamine.lang.containers.tuples.Tuple#arity()
      */
     public int arity() {
         return 3;
     }
 
     /**
-     * @see net.yetamine.lang.containers.Tuple#get(int)
+     * @see net.yetamine.lang.containers.tuples.Tuple#get(int)
      */
     public Object get(int index) {
         switch (index) {
@@ -218,7 +218,7 @@ public final class Tuple3<T1, T2, T3> implements Tuple {
     }
 
     /**
-     * @see net.yetamine.lang.containers.Tuple#toList()
+     * @see net.yetamine.lang.containers.tuples.Tuple#toList()
      */
     public List<?> toList() {
         return Collections.unmodifiableList(Arrays.asList(value1, value2, value3));

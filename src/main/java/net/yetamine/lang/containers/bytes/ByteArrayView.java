@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.yetamine.lang.containers;
+package net.yetamine.lang.containers.bytes;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
@@ -200,28 +200,28 @@ public final class ByteArrayView implements ByteSequence {
     }
 
     /**
-     * @see net.yetamine.lang.containers.ByteSequence#length()
+     * @see net.yetamine.lang.containers.bytes.ByteSequence#length()
      */
     public int length() {
         return length;
     }
 
     /**
-     * @see net.yetamine.lang.containers.ByteSequence#valueAt(int)
+     * @see net.yetamine.lang.containers.bytes.ByteSequence#valueAt(int)
      */
     public byte valueAt(int index) {
         return array[origin + ByteSequences.index(index, (0 <= index) && (index < length))];
     }
 
     /**
-     * @see net.yetamine.lang.containers.ByteSequence#copy(int, int)
+     * @see net.yetamine.lang.containers.bytes.ByteSequence#copy(int, int)
      */
     public ByteContainer copy(int from, int to) {
         return ByteContainer.of(array, origin + from, origin + to);
     }
 
     /**
-     * @see net.yetamine.lang.containers.ByteSequence#view(int, int)
+     * @see net.yetamine.lang.containers.bytes.ByteSequence#view(int, int)
      */
     public ByteSequence view(int from, int to) {
         final int range = ByteSequences.length(from, to, length);
@@ -229,7 +229,7 @@ public final class ByteArrayView implements ByteSequence {
     }
 
     /**
-     * @see net.yetamine.lang.containers.ByteSequence#array()
+     * @see net.yetamine.lang.containers.bytes.ByteSequence#array()
      */
     public byte[] array() {
         final byte[] result = new byte[length];
@@ -238,7 +238,7 @@ public final class ByteArrayView implements ByteSequence {
     }
 
     /**
-     * @see net.yetamine.lang.containers.ByteSequence#array(int, int)
+     * @see net.yetamine.lang.containers.bytes.ByteSequence#array(int, int)
      */
     public byte[] array(int from, int to) {
         final int range = ByteSequences.length(from, to, length);
@@ -253,14 +253,14 @@ public final class ByteArrayView implements ByteSequence {
     }
 
     /**
-     * @see net.yetamine.lang.containers.ByteSequence#string(java.nio.charset.Charset)
+     * @see net.yetamine.lang.containers.bytes.ByteSequence#string(java.nio.charset.Charset)
      */
     public String string(Charset encoding) {
         return new String(array, origin, length, encoding);
     }
 
     /**
-     * @see net.yetamine.lang.containers.ByteSequence#buffer()
+     * @see net.yetamine.lang.containers.bytes.ByteSequence#buffer()
      */
     public ByteBuffer buffer() {
         ByteBuffer result = buffer;
@@ -274,7 +274,7 @@ public final class ByteArrayView implements ByteSequence {
     }
 
     /**
-     * @see net.yetamine.lang.containers.ByteSequence#stream()
+     * @see net.yetamine.lang.containers.bytes.ByteSequence#stream()
      */
     public IntStream stream() {
         return IntStream.range(origin, origin + length).map(i -> array[i]);

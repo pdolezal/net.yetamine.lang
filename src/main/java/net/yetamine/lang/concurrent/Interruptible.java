@@ -18,6 +18,9 @@ package net.yetamine.lang.concurrent;
 
 /**
  * Provides the capability of interrupting an asynchronous operation.
+ *
+ * <p>
+ * Implementations of this interface must be thread-safe.
  */
 public interface Interruptible {
 

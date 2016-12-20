@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.yetamine.lang.containers;
+package net.yetamine.lang.containers.bytes;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -25,6 +25,13 @@ import java.util.Arrays;
 import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+
+import net.yetamine.lang.containers.bytes.ByteArrayView;
+import net.yetamine.lang.containers.bytes.ByteBufferView;
+import net.yetamine.lang.containers.bytes.ByteContainer;
+import net.yetamine.lang.containers.bytes.ByteSequence;
+import net.yetamine.lang.containers.bytes.ByteSequenceReader;
+import net.yetamine.lang.containers.bytes.ByteSequences;
 
 /**
  * Tests {@link ByteContainer} and {@link ByteArrayView}.

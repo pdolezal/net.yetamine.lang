@@ -14,29 +14,7 @@
  * limitations under the License.
  */
 
-package net.yetamine.lang.containers;
-
-import org.testng.Assert;
-import org.testng.annotations.Test;
-
 /**
- * Tests {@link DeferredValue}.
+ * Containers for holding byte sequences.
  */
-public final class TestDeferredValue {
-
-    /**
-     * Tests caching and invalidation of the value.
-     */
-    @Test
-    public void test() {
-        final DeferredValue<?> v = new DeferredValue<>(Object::new);
-
-        final Object o = v.get();
-        Assert.assertSame(v.get(), o);
-
-        v.invalidate();
-        final Object p = v.get();
-        Assert.assertNotSame(p, o);
-        Assert.assertSame(v.get(), p);
-    }
-}
+package net.yetamine.lang.containers.bytes;

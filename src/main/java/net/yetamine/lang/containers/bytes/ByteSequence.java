@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.yetamine.lang.containers;
+package net.yetamine.lang.containers.bytes;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -312,7 +312,7 @@ final class DefaultByteSequenceReader extends ByteSequenceReader {
     }
 
     /**
-     * @see net.yetamine.lang.containers.ByteSequenceReader#available()
+     * @see net.yetamine.lang.containers.bytes.ByteSequenceReader#available()
      */
     @Override
     public synchronized int available() {
@@ -320,7 +320,7 @@ final class DefaultByteSequenceReader extends ByteSequenceReader {
     }
 
     /**
-     * @see net.yetamine.lang.containers.ByteSequenceReader#mark(int)
+     * @see net.yetamine.lang.containers.bytes.ByteSequenceReader#mark(int)
      */
     @Override
     public synchronized void mark(int readlimit) {
@@ -330,7 +330,7 @@ final class DefaultByteSequenceReader extends ByteSequenceReader {
     }
 
     /**
-     * @see net.yetamine.lang.containers.ByteSequenceReader#skip(long)
+     * @see net.yetamine.lang.containers.bytes.ByteSequenceReader#skip(long)
      */
     @Override
     public synchronized long skip(long n) {
@@ -344,7 +344,7 @@ final class DefaultByteSequenceReader extends ByteSequenceReader {
     }
 
     /**
-     * @see net.yetamine.lang.containers.ByteSequenceReader#reset()
+     * @see net.yetamine.lang.containers.bytes.ByteSequenceReader#reset()
      */
     @Override
     public synchronized void reset() {

@@ -18,6 +18,12 @@ package net.yetamine.lang.concurrent;
 
 /**
  * Provides the capability of invalidating some content.
+ *
+ * <p>
+ * This interface targets on concurrent use cases where its implementations must
+ * be thread-safe. However, implementations that are not intended for concurrent
+ * use, like non-concurrent collections may relax this thread safety requirement
+ * and align its use conditions with its own thread safety limitations.
  */
 public interface Invalidable {
 

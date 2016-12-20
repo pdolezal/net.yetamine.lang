@@ -52,6 +52,22 @@ public final class ToString implements Supplier<String> {
     }
 
     /**
+     * Formats a value with the default formatter.
+     *
+     * @param o
+     *            the value to format
+     *
+     * @return the default formatting
+     */
+    public static String concealed(Object o) {
+        if (o == null) {
+            return "concealed[null]";
+        }
+
+        return String.format("concealed[%s@%08x]", o.getClass().getTypeName(), System.identityHashCode(o));
+    }
+
+    /**
      * @see java.lang.Object#toString()
      */
     @Override

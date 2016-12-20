@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.yetamine.lang.containers;
+package net.yetamine.lang.containers.values;
 
 import java.util.Objects;
 import java.util.function.Supplier;
@@ -30,7 +30,7 @@ import java.util.function.Supplier;
  * @param <T>
  *            the type of the element
  */
-public final class DeferredValue<T> implements InvalidableValue<T> {
+public final class Deferred<T> implements Value<T> {
 
     /** Supplier to compute the result on demand. */
     private final Supplier<? extends T> supplier;
@@ -46,8 +46,16 @@ public final class DeferredValue<T> implements InvalidableValue<T> {
      *            the supplier that shall compute the value. It must not be
      *            {@code null}.
      */
-    public DeferredValue(Supplier<? extends T> compute) {
+    public Deferred(Supplier<? extends T> compute) {
         supplier = Objects.requireNonNull(compute);
+    }
+
+    /**
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public String toString() {
+        return String.format("deferred[supplier=%s, value=%s]", supplier, value);
     }
 
     /**
@@ -88,6 +96,9 @@ public final class DeferredValue<T> implements InvalidableValue<T> {
      * @see net.yetamine.lang.concurrent.Invalidable#invalidate()
      */
     public void invalidate() {
-        valid = false;
+        synchronized (this) {
+            value = null; // Release the value explicitly to help garbage collector
+            valid = false;
+        }
     }
 }

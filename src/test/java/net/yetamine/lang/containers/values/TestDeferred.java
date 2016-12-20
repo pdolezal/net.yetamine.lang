@@ -14,44 +14,31 @@
  * limitations under the License.
  */
 
-package net.yetamine.lang.containers;
+package net.yetamine.lang.containers.values;
 
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
+import net.yetamine.lang.containers.values.Deferred;
+
 /**
- * Tests {@link DeferredValue}.
+ * Tests {@link Deferred}.
  */
-public final class TestIndirectValue {
+public final class TestDeferred {
 
     /**
      * Tests caching and invalidation of the value.
      */
     @Test
     public void test() {
-        final Box<Object> box = Box.empty();
-        final IndirectValue<?> v = new IndirectValue<>(Object::new, box::set);
+        final Deferred<?> v = new Deferred<>(Object::new);
 
         final Object o = v.get();
         Assert.assertSame(v.get(), o);
-        Assert.assertSame(box.get(), o);
-
-        final Object p = new Object();
-        box.set(p); // Override internally
-        Assert.assertSame(v.get(), p);
-
-        box.clear();
-        final Object q = v.get();
-        Assert.assertNotSame(q, o);
-        Assert.assertNotSame(q, p);
-        Assert.assertSame(v.get(), q);
-        Assert.assertSame(box.get(), q);
 
         v.invalidate();
-        final Object r = v.get();
-        Assert.assertNotSame(r, o);
-        Assert.assertNotSame(r, p);
-        Assert.assertNotSame(r, q);
-        Assert.assertSame(v.get(), r);
+        final Object p = v.get();
+        Assert.assertNotSame(p, o);
+        Assert.assertSame(v.get(), p);
     }
 }

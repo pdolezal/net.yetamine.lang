@@ -21,8 +21,8 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.Objects;
 
-import net.yetamine.lang.containers.ByteSequence;
-import net.yetamine.lang.containers.ByteSequenceBuilder;
+import net.yetamine.lang.containers.bytes.ByteSequence;
+import net.yetamine.lang.containers.bytes.ByteSequenceBuilder;
 
 /**
  * A prototype based on a serialized object.
