@@ -35,9 +35,7 @@ public final class Deferred<T> implements Value<T> {
     /** Supplier to compute the result on demand. */
     private final Supplier<? extends T> supplier;
     /** Result to return with {@link #get()}. */
-    private T value;
-    /** Mark for valid {@link #value}. */
-    private volatile boolean valid;
+    private volatile Supplier<? extends T> value;
 
     /**
      * Creates a new instance.
@@ -71,19 +69,20 @@ public final class Deferred<T> implements Value<T> {
      * @see java.util.function.Supplier#get()
      */
     public T get() {
-        if (valid) { // Already computed, this access ensures correct memory visibility
-            return value;
+        final Supplier<? extends T> guess = value;
+        if (guess != null) {
+            return guess.get();
         }
 
         final T result;
         synchronized (this) {
-            if (valid) { // Double-checked locking applied here
-                return value;
+            final Supplier<? extends T> box = value;
+            if (box != null) { // Double-checked locking applied here
+                return box.get();
             }
 
             result = supplier.get();
-            value = result;
-            valid = true; // Write the volatile as last for the memory fence to apply
+            value = () -> result;
         }
 
         return result;
@@ -96,9 +95,6 @@ public final class Deferred<T> implements Value<T> {
      * @see net.yetamine.lang.concurrent.Invalidable#invalidate()
      */
     public void invalidate() {
-        synchronized (this) {
-            value = null; // Release the value explicitly to help garbage collector
-            valid = false;
-        }
+        value = null;
     }
 }
