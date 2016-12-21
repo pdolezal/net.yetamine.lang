@@ -150,6 +150,14 @@ final class DefaultPointer<T> implements Pointer<T> {
     }
 
     /**
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public String toString() {
+        return String.format("pointer[%s]", get());
+    }
+
+    /**
      * @see net.yetamine.lang.containers.Pointer#get()
      */
     public T get() {
