@@ -263,9 +263,9 @@ public final class ResourcePile<X extends Exception> implements ResourceGroup<X>
                 }
             };
 
-            instance = resource;                // Make the resource available from the beginning
-            opening = () -> resource;           // Always provide the same resource instance
             releasing = ResourceClosing.none(); // Never release though
+            opening = () -> resource;           // Always provide the same resource instance
+            instance = resource;                // Make the resource available from the beginning
 
             root = head; // Assuming private parameter
             assert (root != null);
@@ -317,8 +317,7 @@ public final class ResourcePile<X extends Exception> implements ResourceGroup<X>
          */
         public void release() throws X {
             final R resource;
-
-            synchronized (root) {
+            synchronized (this) {
                 resource = instance;
                 instance = null;
             }
@@ -330,14 +329,15 @@ public final class ResourcePile<X extends Exception> implements ResourceGroup<X>
          * @see net.yetamine.lang.closeables.ResourceHandle#close()
          */
         public void close() throws X {
-            final R resource;
-
             synchronized (root) {
                 removeSelf();
+            }
 
-                opening = null; // Prevent any subsequent opening
+            final R resource;
+            synchronized (this) {
                 resource = instance;
                 instance = null;
+                opening = null; // Like release, but prevent any future opening
             }
 
             closing.close(resource);

@@ -209,9 +209,9 @@ public final class ResourceStack<X extends Exception> implements ResourceGroup<X
                 }
             };
 
-            instance = resource;                // Make the resource available from the beginning
-            opening = () -> resource;           // Always provide the same resource instance
             releasing = ResourceClosing.none(); // Never release though
+            opening = () -> resource;           // Always provide the same resource instance
+            instance = resource;                // Make the resource available from the beginning
 
             root = head; // Assuming private parameter
             assert (root != null);
@@ -263,9 +263,17 @@ public final class ResourceStack<X extends Exception> implements ResourceGroup<X
          */
         public void release() throws X {
             synchronized (root) {
-                if ((this != root) && (opening == null)) { // Regular node, already closed
-                    assert (instance == null);
-                    return;
+                if (this != root) {
+                    // This is a regular node, in that case we should not
+                    // continue releasing it if it is already closed, but
+                    // finding that out requires locking this instance
+
+                    synchronized (this) {
+                        if (opening == null) { // Already closed
+                            assert (instance == null);
+                            return;
+                        }
+                    }
                 }
 
                 Throwable exception = null;
@@ -295,9 +303,17 @@ public final class ResourceStack<X extends Exception> implements ResourceGroup<X
          */
         public void close() throws X {
             synchronized (root) {
-                if ((this != root) && (opening == null)) { // Regular node, already closed
-                    assert (instance == null);
-                    return;
+                if (this != root) {
+                    // This is a regular node, in that case we should not
+                    // continue releasing it if it is already closed, but
+                    // finding that out requires locking this instance
+
+                    synchronized (this) {
+                        if (opening == null) { // Already closed
+                            assert (instance == null);
+                            return;
+                        }
+                    }
                 }
 
                 Throwable exception = null;
@@ -368,9 +384,12 @@ public final class ResourceStack<X extends Exception> implements ResourceGroup<X
          *             if the operation fails
          */
         private void releaseSelf() throws X {
-            assert Thread.holdsLock(root);
-            final R resource = instance;
-            instance = null;
+            final R resource;
+            synchronized (this) {
+                resource = instance;
+                instance = null;
+            }
+
             releasing.close(resource);
         }
 
@@ -384,10 +403,13 @@ public final class ResourceStack<X extends Exception> implements ResourceGroup<X
          *             if the operation fails
          */
         private void closeSelf() throws X {
-            assert Thread.holdsLock(root);
-            opening = null; // Prevent any subsequent opening
-            final R resource = instance;
-            instance = null;
+            final R resource;
+            synchronized (this) {
+                resource = instance;
+                instance = null;
+                opening = null; // Like release, but prevent any future opening
+            }
+
             closing.close(resource);
         }
 
