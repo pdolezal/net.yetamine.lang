@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.yetamine.lang;
+package net.yetamine.lang.collections;
 
 import java.util.ArrayList;
 import java.util.Collection;

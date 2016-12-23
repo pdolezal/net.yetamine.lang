@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.yetamine.lang;
+package net.yetamine.lang.collections;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -32,6 +32,8 @@ import java.util.TreeSet;
 
 import org.testng.Assert;
 import org.testng.annotations.Test;
+
+import net.yetamine.lang.collections.Capture;
 
 /**
  * Tests {@link Capture}.

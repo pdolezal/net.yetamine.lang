@@ -25,7 +25,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import net.yetamine.lang.Capture;
+import net.yetamine.lang.collections.Capture;
 
 /**
  * Declares additional abilities and traits extending the basic contract of an
