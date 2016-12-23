@@ -56,13 +56,13 @@ public final class TestResourceStack {
      *             if something fails
      */
     @Test
-    public void testAdopted_Constant() throws Exception {
+    public void testUsing() throws Exception {
         final AtomicInteger resource1 = new AtomicInteger(OPENED);
         final AtomicInteger resource2 = new AtomicInteger(OPENED);
         final AtomicInteger resource3 = new AtomicInteger(OPENED);
 
         try (ResourceStack<IOException> group = new ResourceStack<>()) {
-            final ResourceHandle<AtomicInteger, IOException> handle1 = group.adopted(resource1);
+            final ResourceHandle<AtomicInteger, IOException> handle1 = group.using(resource1);
             Assert.assertSame(handle1.available().get(), resource1);
             Assert.assertSame(handle1.acquired(), resource1);
 
@@ -74,8 +74,8 @@ public final class TestResourceStack {
             Assert.assertSame(handle1.available().get(), resource1);
             Assert.assertSame(handle1.acquired(), resource1);
 
-            group.adopted(resource2);
-            group.adopted(resource3).close();
+            group.using(resource2);
+            group.using(resource3).close();
             Assert.assertEquals(resource3.get(), OPENED);
             resource3.set(INIT);
         }
@@ -92,7 +92,7 @@ public final class TestResourceStack {
      *             if something fails
      */
     @Test
-    public void testAdopted_Closeable() throws Exception {
+    public void testAdopted() throws Exception {
         final ResourceClosing<AtomicInteger, IOException> closing = r -> r.set(CLOSED);
 
         final AtomicInteger resource1 = new AtomicInteger(OPENED);

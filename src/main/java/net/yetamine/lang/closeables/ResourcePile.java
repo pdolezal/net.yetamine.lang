@@ -56,22 +56,6 @@ public final class ResourcePile<X extends Exception> implements ResourceGroup<X>
     }
 
     /**
-     * @see net.yetamine.lang.closeables.ResourceGroup#adopted(java.lang.Object,
-     *      net.yetamine.lang.closeables.ResourceClosing)
-     */
-    public <R> ResourceHandle<R, X> adopted(R resource, ResourceClosing<? super R, ? extends X> destructor) {
-        synchronized (root) {
-            if (closed) { // Prevent more additions
-                throw new IllegalStateException();
-            }
-
-            final Handle<R, X> result = new Handle<>(root, resource, destructor, null);
-            root.append(result);
-            return result;
-        }
-    }
-
-    /**
      * @see net.yetamine.lang.closeables.ResourceGroup#managed(net.yetamine.lang.closeables.ResourceOpening,
      *      net.yetamine.lang.closeables.ResourceClosing)
      */
@@ -82,6 +66,22 @@ public final class ResourcePile<X extends Exception> implements ResourceGroup<X>
             }
 
             final Handle<R, X> result = new Handle<>(root, constructor, destructor);
+            root.append(result);
+            return result;
+        }
+    }
+
+    /**
+     * @see net.yetamine.lang.closeables.ResourceGroup#adopted(java.lang.Object,
+     *      net.yetamine.lang.closeables.ResourceClosing)
+     */
+    public <R> ResourceHandle<R, X> adopted(R resource, ResourceClosing<? super R, ? extends X> destructor) {
+        synchronized (root) {
+            if (closed) { // Prevent more additions
+                throw new IllegalStateException();
+            }
+
+            final Handle<R, X> result = new Handle<>(root, resource, destructor, null);
             root.append(result);
             return result;
         }

@@ -43,9 +43,9 @@ public final class TestResourceAdapter {
      *             if something fails
      */
     @Test
-    public void testAdopted_Constant() throws Exception {
+    public void testUsing() throws Exception {
         final AtomicInteger resource = new AtomicInteger(OPENED);
-        try (ResourceHandle<AtomicInteger, IOException> ra = ResourceAdapter.adopted(resource)) {
+        try (ResourceHandle<AtomicInteger, IOException> ra = ResourceAdapter.using(resource)) {
             Assert.assertSame(ra.available().get(), resource);
             Assert.assertSame(ra.acquired(), resource);
 
@@ -68,7 +68,7 @@ public final class TestResourceAdapter {
      *             if something fails
      */
     @Test
-    public void testAdopted_Closeable() throws Exception {
+    public void testAdopted() throws Exception {
         final ResourceClosing<AtomicInteger, IOException> closing = r -> r.set(CLOSED);
 
         final AtomicInteger resource = new AtomicInteger(OPENED);
@@ -100,7 +100,7 @@ public final class TestResourceAdapter {
 
         final ResourceClosing<AtomicInteger, IOException> closing = r -> r.set(CLOSED);
         final ResourceOpening<AtomicInteger, IOException> opening = () -> new AtomicInteger(INIT);
-        try (ResourceHandle<AtomicInteger, IOException> ra = ResourceAdapter.using(opening, closing)) {
+        try (ResourceHandle<AtomicInteger, IOException> ra = ResourceAdapter.managed(opening, closing)) {
             Assert.assertFalse(ra.available().isPresent());
 
             final AtomicInteger instance1 = ra.acquired();
@@ -177,7 +177,7 @@ public final class TestResourceAdapter {
             // Do nothing: no failure with no actual resource
         }
 
-        try (ResourceHandle<AtomicInteger, IOException> ra = ResourceAdapter.using(opening, closing)) {
+        try (ResourceHandle<AtomicInteger, IOException> ra = ResourceAdapter.managed(opening, closing)) {
             // Do nothing: no failure with no actual resource retrieved
         }
 
@@ -189,7 +189,7 @@ public final class TestResourceAdapter {
         });
 
         Assert.expectThrows(IOException.class, () -> {
-            try (ResourceHandle<AtomicInteger, IOException> ra = ResourceAdapter.using(opening, closing)) {
+            try (ResourceHandle<AtomicInteger, IOException> ra = ResourceAdapter.managed(opening, closing)) {
                 ra.acquired(); // Create some
             }
         });
@@ -219,10 +219,10 @@ public final class TestResourceAdapter {
         Assert.expectThrows(IOException.class, ra2::close);
 
         // No failures with no actual resource
-        ResourceAdapter.using(opening, closing).release();
+        ResourceAdapter.managed(opening, closing).release();
 
         Assert.expectThrows(IOException.class, () -> {
-            final ResourceHandle<AtomicInteger, IOException> ra = ResourceAdapter.using(opening, closing);
+            final ResourceHandle<AtomicInteger, IOException> ra = ResourceAdapter.managed(opening, closing);
             ra.acquired(); // Force creating the resource
             ra.release();
         });

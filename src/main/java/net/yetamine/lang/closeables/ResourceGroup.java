@@ -30,6 +30,49 @@ package net.yetamine.lang.closeables;
 public interface ResourceGroup<X extends Exception> extends PureCloseable<X> {
 
     /**
+     * Adds a new resource in this group.
+     *
+     * <p>
+     * This method adds a placeholder for the resource in the group, returning a
+     * handle to manage it. The resource instance is created and released as the
+     * handle invocations require: {@link ResourceHandle#acquired()} should make
+     * another resource instance on demand and {@link ResourceHandle#release()}
+     * should free the instance.
+     *
+     * @param <R>
+     *            the type of the resource
+     * @param constructor
+     *            the strategy for opening a resource instance. It must not be
+     *            {@code null}.
+     * @param destructor
+     *            the strategy for closing a resource instance. It must not be
+     *            {@code null}.
+     *
+     * @return a handle to manage the resource
+     */
+    <R> ResourceHandle<R, X> managed(ResourceOpening<? extends R, ? extends X> constructor, ResourceClosing<? super R, ? extends X> destructor);
+
+    /**
+     * Adds a new resource in this group.
+     *
+     * <p>
+     * This method shall use {@link #managed(ResourceOpening, ResourceClosing)}
+     * with the {@link PureCloseable#close()} as the closing operation. The
+     * default implementation does exactly that.
+     *
+     * @param <R>
+     *            the type of the resource
+     * @param constructor
+     *            the strategy for opening a resource instance. It must not be
+     *            {@code null}.
+     *
+     * @return a handle to manage the resource
+     */
+    default <R extends PureCloseable<? extends X>> ResourceHandle<R, X> managed(ResourceOpening<? extends R, ? extends X> constructor) {
+        return managed(constructor, r -> r.close());  // JDK does not handle R::close well...
+    }
+
+    /**
      * Adopts the given resource instance.
      *
      * <p>
@@ -54,6 +97,25 @@ public interface ResourceGroup<X extends Exception> extends PureCloseable<X> {
      * Adopts the given resource instance.
      *
      * <p>
+     * This method shall use {@link #adopted(Object, ResourceClosing)} with the
+     * {@link PureCloseable#close()} as the closing operation. The default
+     * implementation does exactly that.
+     *
+     * @param <R>
+     *            the type of the resource
+     * @param resource
+     *            the resource instance to adopt
+     *
+     * @return a handle to manage the resource
+     */
+    default <R extends PureCloseable<? extends X>> ResourceHandle<R, X> adopted(R resource) {
+        return adopted(resource, r -> r.close());  // JDK does not handle R::close well...
+    }
+
+    /**
+     * Adopts the given resource instance.
+     *
+     * <p>
      * This method behaves like {@link #adopted(Object, ResourceClosing)}, but
      * the resource given for managing can't be closed by any means by the
      * returned handle. This is useful when the handle should provide some
@@ -68,32 +130,9 @@ public interface ResourceGroup<X extends Exception> extends PureCloseable<X> {
      *
      * @return a handle to manage the resource
      */
-    default <R> ResourceHandle<R, X> adopted(R resource) {
+    default <R> ResourceHandle<R, X> using(R resource) {
         return adopted(resource, ResourceClosing.none());
     }
-
-    /**
-     * Adds a new resource in this stack.
-     *
-     * <p>
-     * This method adds a placeholder for the resource in the group, returning a
-     * handle to manage it. The resource instance is created and released as the
-     * handle invocations require: {@link ResourceHandle#acquired()} should make
-     * another resource instance on demand and {@link ResourceHandle#release()}
-     * should free the instance.
-     *
-     * @param <R>
-     *            the type of the resource
-     * @param constructor
-     *            the strategy for opening a resource instance. It must not be
-     *            {@code null}.
-     * @param destructor
-     *            the strategy for closing a resource instance. It must not be
-     *            {@code null}.
-     *
-     * @return a handle to manage the resource
-     */
-    <R> ResourceHandle<R, X> managed(ResourceOpening<? extends R, ? extends X> constructor, ResourceClosing<? super R, ? extends X> destructor);
 
     /**
      * Releases all resources.

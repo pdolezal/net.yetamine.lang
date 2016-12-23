@@ -117,8 +117,31 @@ public final class ResourceAdapter<R, X extends Exception> implements ResourceHa
      *
      * @return the new instance
      */
-    public static <R, X extends Exception> ResourceHandle<R, X> using(ResourceOpening<? extends R, ? extends X> constructor, ResourceClosing<? super R, ? extends X> destructor) {
+    public static <R, X extends Exception> ResourceHandle<R, X> managed(ResourceOpening<? extends R, ? extends X> constructor, ResourceClosing<? super R, ? extends X> destructor) {
         return new ResourceAdapter<>(constructor, destructor);
+    }
+
+    /**
+     * Creates a new instance.
+     *
+     * <p>
+     * A managed resource created by this method would be closed automatically
+     * using its own {@link PureCloseable#close()} method for both release and
+     * close.
+     *
+     * @param <R>
+     *            the type of the resource
+     * @param <X>
+     *            the type of the exception that the attempt to manage the
+     *            resource may throw
+     * @param constructor
+     *            the strategy for opening a resource instance. It must not be
+     *            {@code null}.
+     *
+     * @return the new instance
+     */
+    public static <X extends Exception, R extends PureCloseable<? extends X>> ResourceHandle<R, X> managed(ResourceOpening<? extends R, ? extends X> constructor) {
+        return managed(constructor, r -> r.close());
     }
 
     /**
@@ -150,6 +173,28 @@ public final class ResourceAdapter<R, X extends Exception> implements ResourceHa
      * Creates a new instance.
      *
      * <p>
+     * The resource given for managing can be closed with the handle using its
+     * own {@link PureCloseable#close()} methods, while {@link #release()} does
+     * not apply to it, so any attempts to just release the resource do nothing.
+     *
+     * @param <R>
+     *            the type of the resource
+     * @param <X>
+     *            the type of the exception that the attempt to manage the
+     *            resource may throw
+     * @param resource
+     *            the resource instance to manage
+     *
+     * @return the new instance
+     */
+    public static <X extends Exception, R extends PureCloseable<? extends X>> ResourceHandle<R, X> adopted(R resource) {
+        return adopted(resource, r -> r.close()); // JDK does not handle R::close well...
+    }
+
+    /**
+     * Creates a new instance.
+     *
+     * <p>
      * The resource given for managing can't be closed by any means by the
      * returned handle. This is useful when the handle should provide some
      * resource without actually owning it, e.g., when some code expects a
@@ -166,7 +211,7 @@ public final class ResourceAdapter<R, X extends Exception> implements ResourceHa
      *
      * @return the new instance
      */
-    public static <R, X extends Exception> ResourceHandle<R, X> adopted(R resource) {
+    public static <R, X extends Exception> ResourceHandle<R, X> using(R resource) {
         return adopted(resource, ResourceClosing.none());
     }
 
