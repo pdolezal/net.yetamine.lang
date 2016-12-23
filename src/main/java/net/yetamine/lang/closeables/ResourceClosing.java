@@ -16,6 +16,10 @@
 
 package net.yetamine.lang.closeables;
 
+import java.util.Arrays;
+
+import net.yetamine.lang.Throwing;
+
 /**
  * Represents a strategy that closes a resource.
  *
@@ -42,6 +46,93 @@ public interface ResourceClosing<R, X extends Exception> {
      *             if the operation fails
      */
     void close(R object) throws X;
+
+    /**
+     * Closes all given objects with this strategy.
+     *
+     * <p>
+     * The default implementation just invokes {@link #closeAll(Iterable)} like
+     * this: {@code closeAll(Arrays.asList(object))}.
+     *
+     * @param objects
+     *            the objects to close. It must not be {@code null}.
+     *
+     * @throws X
+     *             if the operation fails
+     */
+    default void closeAll(@SuppressWarnings("unchecked") R... objects) throws X {
+        closeAll(Arrays.asList(objects));
+    }
+
+    /**
+     * Closes all given objects with this strategy.
+     *
+     * <p>
+     * The default implementation closes all the given resources. If some of
+     * them throws an exception, the exception will be thrown after all the
+     * resources are closed; any subsequent exceptions are attached as
+     * suppressed exceptions of the first one.
+     *
+     * @param objects
+     *            the objects to close. It must not be {@code null}.
+     *
+     * @throws X
+     *             if the operation fails
+     */
+    default void closeAll(Iterable<? extends R> objects) throws X {
+        Throwable exception = null;
+
+        for (R object : objects) {
+            if (object == null) {
+                continue;
+            }
+
+            try {
+                close(object);
+            } catch (Throwable t) {
+                if (exception == null) {
+                    exception = t;
+                    continue;
+                }
+
+                exception.addSuppressed(t);
+            }
+        }
+
+        if (exception == null) {
+            return;
+        }
+
+        Throwing.some(exception).throwIfUnchecked();
+        @SuppressWarnings("unchecked") // Valid because all unchecked exception have been handled
+        final X throwable = (X) exception;
+        throw throwable;
+    }
+
+    /**
+     * Makes an instance from the given strategy.
+     *
+     * <p>
+     * This method is a convenient factory method for fluent making instances:
+     *
+     * <pre>
+     * ResourceClosing.from(MyUtilities::someTest).closeAll(resources)
+     * </pre>
+     *
+     * @param <R>
+     *            the type of the resource
+     * @param <X>
+     *            the type of the exception that the attempt to close the
+     *            resource may throw
+     * @param closing
+     *            the closing method to return. It must not be {@code null}.
+     *
+     * @return the closing method
+     */
+    @SuppressWarnings("unchecked")
+    static <R, X extends Exception> ResourceClosing<R, X> from(ResourceClosing<? super R, ? extends X> closing) {
+        return (ResourceClosing<R, X>) closing;
+    }
 
     /**
      * Returns an instance that does nothing.

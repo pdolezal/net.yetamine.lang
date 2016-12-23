@@ -29,4 +29,31 @@ public interface SafeCloseable extends PureCloseable<RuntimeException> {
      * @see java.lang.AutoCloseable#close()
      */
     void close();
+
+    /**
+     * Closes the given resource if not {@code null}.
+     *
+     * @param resource
+     *            the resource to close
+     */
+    static void close(SafeCloseable resource) {
+        PureCloseable.close(resource);
+    }
+
+    /**
+     * Closes the given resource if it is an instance of this interface.
+     *
+     * @param resource
+     *            the resource to close
+     *
+     * @return {@code true} iff the object is a resource that has been closed
+     */
+    static boolean close(Object resource) {
+        if (resource instanceof SafeCloseable) {
+            ((SafeCloseable) resource).close();
+            return true;
+        }
+
+        return false;
+    }
 }

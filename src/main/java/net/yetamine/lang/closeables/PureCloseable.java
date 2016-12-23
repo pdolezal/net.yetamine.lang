@@ -31,4 +31,22 @@ public interface PureCloseable<X extends Exception> extends AutoCloseable {
      * @see java.lang.AutoCloseable#close()
      */
     void close() throws X;
+
+    /**
+     * Closes the given resource if not {@code null}.
+     *
+     * @param <X>
+     *            the type of the exception that the resource bound to this
+     *            interface may throw
+     * @param resource
+     *            the resource to close
+     *
+     * @throws X
+     *             if the operation fails
+     */
+    static <X extends Exception> void close(PureCloseable<? extends X> resource) throws X {
+        if (resource != null) {
+            resource.close();
+        }
+    }
 }
