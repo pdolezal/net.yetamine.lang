@@ -41,8 +41,9 @@ public final class Predicates {
      *
      * @return the predicate
      */
+    @SuppressWarnings("unchecked")
     public static <T> Predicate<T> from(Predicate<? super T> predicate) {
-        return predicate::test;
+        return (Predicate<T>) predicate;
     }
 
     /**

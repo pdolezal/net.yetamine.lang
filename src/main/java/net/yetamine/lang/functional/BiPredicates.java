@@ -43,8 +43,9 @@ public final class BiPredicates {
      *
      * @return the predicate
      */
+    @SuppressWarnings("unchecked")
     static <T, U> BiPredicate<T, U> from(BiPredicate<? super T, ? super U> predicate) {
-        return predicate::test;
+        return (BiPredicate<T, U>) predicate;
     }
 
     /**
