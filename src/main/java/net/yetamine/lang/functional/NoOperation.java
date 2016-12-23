@@ -54,7 +54,7 @@ public final class NoOperation {
      *
      * <p>
      * This method is the actual implementation of the "no operation", which is
-     * useful mainly for making one-argument lambdas.
+     * useful mainly for making two-argument lambdas.
      *
      * @param <T>
      *            the type of the first argument
@@ -66,6 +66,30 @@ public final class NoOperation {
      *            the argument to be ignored
      */
     public static <T, U> void execute(T argument1, U argument2) {
+        // Do nothing
+    }
+
+    /**
+     * Does nothing.
+     *
+     * <p>
+     * This method is the actual implementation of the "no operation", which is
+     * useful mainly for making three-argument lambdas.
+     *
+     * @param <T>
+     *            the type of the first argument
+     * @param <U>
+     *            the type of the second argument
+     * @param <V>
+     *            the type of the third argument
+     * @param argument1
+     *            the argument to be ignored
+     * @param argument2
+     *            the argument to be ignored
+     * @param argument3
+     *            the argument to be ignored
+     */
+    public static <T, U, V> void execute(T argument1, U argument2, V argument3) {
         // Do nothing
     }
 
