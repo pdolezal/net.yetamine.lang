@@ -18,6 +18,7 @@ package net.yetamine.lang;
 
 import java.io.EOFException;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
@@ -36,6 +37,17 @@ public final class TestThrowing {
     public void testSome() {
         Assert.expectThrows(NullPointerException.class, () -> Throwing.some(null));
         Assert.expectThrows(IOException.class, () -> Throwing.some(new IOException()).rethrow());
+
+        Assert.expectThrows(IllegalArgumentException.class, () -> {
+            Throwing.some(new IllegalArgumentException()).rethrowUnchecked();
+        });
+
+        try {
+            Throwing.some(new IOException()).rethrowUnchecked();
+            Assert.fail();
+        } catch (UncheckedException e) {
+            Assert.assertTrue(e.getCause() instanceof IOException);
+        }
     }
 
     /**
@@ -45,6 +57,28 @@ public final class TestThrowing {
     public void testMaybe() {
         Throwing.maybe((NullPointerException) null).rethrow();
         Assert.expectThrows(IOException.class, () -> Throwing.some(new IOException()).rethrow());
+
+        Assert.expectThrows(IllegalArgumentException.class, () -> {
+            Throwing.maybe(new IllegalArgumentException()).rethrowUnchecked();
+        });
+
+        try {
+            Throwing.maybe(new IOException()).rethrowUnchecked();
+            Assert.fail();
+        } catch (UncheckedException e) {
+            Assert.assertTrue(e.getCause() instanceof IOException);
+        }
+    }
+
+    /**
+     * Test {@link Throwing#none()}.
+     */
+    @Test
+    public void testNone() {
+        Throwing.none().map(t -> {
+            Assert.fail();
+            return new RuntimeException();
+        }).rethrow();
     }
 
     /**
@@ -118,7 +152,19 @@ public final class TestThrowing {
     }
 
     /**
-     * Tests {@link Throwing#throwAs(Class, java.util.function.Function)}.
+     * Tests {@link Throwing#throwIfUnchecked()}.
+     */
+    @Test
+    public void testThrowIfUnchecked() {
+        Throwing.some(new IOException()).throwIfUnchecked();
+        Assert.expectThrows(AssertionError.class, () -> Throwing.some(new AssertionError()).throwIfUnchecked());
+        Assert.expectThrows(IllegalArgumentException.class, () -> {
+            Throwing.some(new IllegalArgumentException()).throwIfUnchecked();
+        });
+    }
+
+    /**
+     * Tests {@link Throwing#throwAs(java.util.function.Function, Class)}.
      *
      * @throws Exception
      *             if something goes wrong
@@ -128,30 +174,82 @@ public final class TestThrowing {
         final Function<Object, CloneNotSupportedException> always = o -> new CloneNotSupportedException();
         final Function<Object, RuntimeException> never = o -> null;
 
-        Throwing.some(new IOException()).throwAs(RuntimeException.class, never);
-        Throwing.some(new IOException()).throwAs(RuntimeException.class, always);
+        Throwing.some(new IOException()).throwAs(never, RuntimeException.class);
+        Throwing.some(new IOException()).throwAs(always, RuntimeException.class);
 
-        Throwing.some(new EOFException()).throwAs(IOException.class, never);
+        Throwing.some(new EOFException()).throwAs(never, IOException.class);
         Assert.expectThrows(CloneNotSupportedException.class, () -> {
-            Throwing.some(new EOFException()).throwAs(IOException.class, always);
+            Throwing.some(new EOFException()).throwAs(always, IOException.class);
         });
 
-        Throwing.maybe(new IOException()).throwAs(RuntimeException.class, never);
-        Throwing.maybe(new IOException()).throwAs(RuntimeException.class, always);
-        Throwing.maybe(null).throwAs(RuntimeException.class, never);
-        Throwing.maybe(null).throwAs(RuntimeException.class, always);
-        Throwing.maybe(new EOFException()).throwAs(IOException.class, never);
-        Assert.expectThrows(CloneNotSupportedException.class, () -> {
-            Throwing.maybe(new EOFException()).throwAs(IOException.class, always);
+        Assert.expectThrows(UncheckedIOException.class, () -> {
+            Throwing.some(new EOFException()).throwAs(UncheckedIOException::new);
         });
 
-        Throwing.cause(new IOException()).throwAs(RuntimeException.class, never);
-        Throwing.cause(new IOException()).throwAs(RuntimeException.class, always);
-        Throwing.cause(new RuntimeException(new EOFException())).throwAs(RuntimeException.class, never);
-        Throwing.cause(new RuntimeException(new EOFException())).throwAs(RuntimeException.class, always);
-        Throwing.cause(new RuntimeException(new EOFException())).throwAs(IOException.class, never);
+        Throwing.maybe(new IOException()).throwAs(never, RuntimeException.class);
+        Throwing.maybe(new IOException()).throwAs(always, RuntimeException.class);
+        Throwing.maybe(null).throwAs(never, RuntimeException.class);
+        Throwing.maybe(null).throwAs(always, RuntimeException.class);
+        Throwing.maybe(new EOFException()).throwAs(never, IOException.class);
         Assert.expectThrows(CloneNotSupportedException.class, () -> {
-            Throwing.cause(new RuntimeException(new EOFException())).throwAs(IOException.class, always);
+            Throwing.maybe(new EOFException()).throwAs(always, IOException.class);
         });
+
+        Throwing.cause(new IOException()).throwAs(never, RuntimeException.class);
+        Throwing.cause(new IOException()).throwAs(always, RuntimeException.class);
+        Throwing.cause(new RuntimeException(new EOFException())).throwAs(never, RuntimeException.class);
+        Throwing.cause(new RuntimeException(new EOFException())).throwAs(always, RuntimeException.class);
+        Throwing.cause(new RuntimeException(new EOFException())).throwAs(never, IOException.class);
+        Assert.expectThrows(CloneNotSupportedException.class, () -> {
+            Throwing.cause(new RuntimeException(new EOFException())).throwAs(always, IOException.class);
+        });
+    }
+
+    /**
+     * Tests {@link Throwing#map(Function)}.
+     */
+    @Test
+    public void testMap() {
+        try {
+            Throwing.some(new ArithmeticException()).map(IOException::new).rethrow();
+            Assert.fail();
+        } catch (IOException e) {
+            Assert.assertTrue(e.getCause() instanceof ArithmeticException);
+        }
+    }
+
+    /**
+     * Tests {@link Throwing#guard(net.yetamine.lang.Throwing.Operation)}.
+     */
+    @Test
+    public void testGuard() {
+        final Throwing<?> t = Throwing.guard(() -> {
+            throw new IOException();
+        });
+
+        Assert.assertThrows(IOException.class, t::rethrow);
+        Assert.assertThrows(NullPointerException.class, () -> Throwing.guard(null));
+        Assert.assertThrows(AssertionError.class, () -> Throwing.guard(() -> {
+            throw new AssertionError();
+        }));
+    }
+
+    /**
+     * Tests {@link Throwing#sandbox(net.yetamine.lang.Throwing.Operation)}.
+     */
+    @Test
+    public void testSandbox() {
+        final Throwing<?> s1 = Throwing.sandbox(() -> {
+            throw new IOException();
+        });
+
+        Assert.assertThrows(IOException.class, s1::rethrow);
+        Assert.assertThrows(NullPointerException.class, () -> Throwing.sandbox(null));
+
+        final Throwing<?> s2 = Throwing.sandbox(() -> {
+            throw new AssertionError();
+        });
+
+        Assert.assertThrows(AssertionError.class, s2::rethrow);
     }
 }

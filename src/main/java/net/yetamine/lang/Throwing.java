@@ -30,6 +30,24 @@ import java.util.function.Predicate;
  */
 public final class Throwing<T extends Throwable> {
 
+    /**
+     * Represents an operation that may throw some exception.
+     *
+     * @param <X>
+     *            the exception which might be thrown
+     */
+    @FunctionalInterface
+    public interface Operation<X extends Exception> {
+
+        /**
+         * Executes the operation.
+         *
+         * @throws X
+         *             if the operation fails
+         */
+        void execute() throws X;
+    }
+
     /** Sole instance of {@code null} exception. */
     private static final Throwing<?> NONE = new Throwing<>(null);
 
@@ -44,6 +62,55 @@ public final class Throwing<T extends Throwable> {
      */
     private Throwing(T t) {
         throwable = t;
+    }
+
+    /**
+     * Guards the operation and catches any {@link Throwable}.
+     *
+     * @param operation
+     *            the operation to guard. It must not be {@code null}.
+     *
+     * @return an instance containing the caught exception if any
+     *
+     * @throws NullPointerException
+     *             if the operation is {@code null}; this is the case which is
+     *             not intentionally protected as it indicates an error in the
+     *             code which needs correction
+     */
+    public static Throwing<Throwable> sandbox(Operation<?> operation) {
+        Objects.requireNonNull(operation);
+        try { // Execute in sandbox
+            operation.execute();
+        } catch (Throwable t) {
+            return some(t);
+        }
+
+        return none();
+    }
+
+    /**
+     * Guards the operation and catches any {@link Exception} (however, no
+     * {@link Error} is caught intentionally).
+     *
+     * @param operation
+     *            the operation to guard. It must not be {@code null}.
+     *
+     * @return an instance containing the caught exception if any
+     *
+     * @throws NullPointerException
+     *             if the operation is {@code null}; this is the case which is
+     *             not intentionally protected as it indicates an error in the
+     *             code which needs correction
+     */
+    public static Throwing<Exception> guard(Operation<?> operation) {
+        Objects.requireNonNull(operation);
+        try { // Execute in sandbox
+            operation.execute();
+        } catch (Exception e) {
+            return some(e);
+        }
+
+        return none();
     }
 
     /**
@@ -71,9 +138,21 @@ public final class Throwing<T extends Throwable> {
      *
      * @return an instance for handling the given exception
      */
-    @SuppressWarnings("unchecked")
     public static <T extends Throwable> Throwing<T> maybe(T throwable) {
-        return (throwable != null) ? new Throwing<>(throwable) : (Throwing<T>) NONE;
+        return (throwable != null) ? new Throwing<>(throwable) : none();
+    }
+
+    /**
+     * Returns an instance that throws nothing.
+     *
+     * @param <T>
+     *            the type of the exception
+     *
+     * @return an instance throwing nothing
+     */
+    @SuppressWarnings("unchecked")
+    public static <T extends Throwable> Throwing<T> none() {
+        return (Throwing<T>) NONE;
     }
 
     /**
@@ -144,26 +223,59 @@ public final class Throwing<T extends Throwable> {
     }
 
     /**
+     * Throws the exception if unchecked.
+     *
+     * @return this instance
+     */
+    public Throwing<T> throwIfUnchecked() {
+        return throwIf(RuntimeException.class).throwIf(Error.class);
+    }
+
+    /**
+     * Throws the exception that the given mapping function returns.
+     *
+     * @param mapping
+     *            the function to map the current exception to another. It must
+     *            not be {@code null}.
+     *
+     * @param <X>
+     *            the type of the exception to possibly throw
+     *
+     * @return this instance
+     *
+     * @throws X
+     *             if the mapping function returns this exception
+     */
+    public <X extends Throwable> Throwing<T> throwAs(Function<? super T, ? extends X> mapping) throws X {
+        final X t = mapping.apply(throwable);
+        if (t != null) {
+            throw t;
+        }
+
+        return this;
+    }
+
+    /**
      * Throws the exception that the given mapping function returns if the
      * current exception is of the given type.
+     *
+     * @param mapping
+     *            the function to map the current exception to another. It must
+     *            not be {@code null}.
+     * @param clazz
+     *            the desired type of the exception
      *
      * @param <X>
      *            the desired type of the current exception
      * @param <Z>
      *            the type of the exception to possibly throw
-     * @param clazz
-     *            the desired type of the exception
-     * @param mapping
-     *            the function to map the current exception to another. It must
-     *            not be {@code null}.
-     *
      * @return this instance
      *
      * @throws Z
      *             if the exception to handle is of the desired type and the
      *             mapping function returns this exception to throw
      */
-    public <X, Z extends Throwable> Throwing<T> throwAs(Class<? extends X> clazz, Function<? super X, ? extends Z> mapping) throws Z {
+    public <X, Z extends Throwable> Throwing<T> throwAs(Function<? super X, ? extends Z> mapping, Class<? extends X> clazz) throws Z {
         if (clazz.isInstance(throwable)) {
             final Z t = mapping.apply(clazz.cast(throwable));
             if (t != null) {
@@ -172,6 +284,22 @@ public final class Throwing<T extends Throwable> {
         }
 
         return this;
+    }
+
+    /**
+     * Maps the exception with the given function to a different one, if any
+     * present.
+     *
+     * @param <X>
+     *            the type of the resulting exception
+     * @param mapping
+     *            the mapping function. It must not be {@code null}.
+     *
+     * @return an instance representing the mapped exception, possibly
+     *         {@link #none()}
+     */
+    public <X extends Throwable> Throwing<X> map(Function<? super T, ? extends X> mapping) {
+        return (throwable != null) ? maybe(mapping.apply(throwable)) : none();
     }
 
     /**
@@ -187,11 +315,31 @@ public final class Throwing<T extends Throwable> {
     }
 
     /**
+     * Rethrows the exception to handle, if any, as unchecked.
+     *
+     * <p>
+     * An unchecked exception is thrown directly, while a checked exception is
+     * wrapped in a {@link UncheckedException}.
+     */
+    public void rethrowUnchecked() {
+        throwIfUnchecked().map(UncheckedException::new).rethrow();
+    }
+
+    /**
      * Returns the exception provided by this instance.
      *
      * @return the exception provided by this instance
      */
     public Optional<T> throwable() {
         return Optional.ofNullable(throwable);
+    }
+
+    /**
+     * Indicates if an actual exception, which could be thrown, is represented.
+     *
+     * @return {@code true} iff {@code throwable().isPresent()}
+     */
+    public boolean couldThrow() {
+        return (throwable != null);
     }
 }

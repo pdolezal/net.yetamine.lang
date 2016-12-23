@@ -160,7 +160,7 @@ public final class ResourcePile<X extends Exception> implements ResourceGroup<X>
             return;
         }
 
-        Throwing.some(exception).throwIf(RuntimeException.class).throwIf(Error.class);
+        Throwing.some(exception).throwIfUnchecked();
         @SuppressWarnings("unchecked") // Valid because all unchecked exception have been handled
         final X throwable = (X) exception;
         throw throwable;

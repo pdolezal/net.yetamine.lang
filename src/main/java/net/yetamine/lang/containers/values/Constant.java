@@ -56,9 +56,21 @@ public final class Constant<T> implements Serializable, Value<T> {
      *
      * @return the instance
      */
-    @SuppressWarnings("unchecked")
     public static <T> Value<T> of(T constant) {
-        return (constant != null) ? new Constant<>(constant) : (Constant<T>) EMPTY;
+        return (constant != null) ? new Constant<>(constant) : nil();
+    }
+
+    /**
+     * Returns an instance for the {@code null} value.
+     *
+     * @param <T>
+     *            the type of the element
+     *
+     * @return the instance
+     */
+    @SuppressWarnings("unchecked")
+    public static <T> Value<T> nil() {
+        return (Constant<T>) EMPTY;
     }
 
     /**
