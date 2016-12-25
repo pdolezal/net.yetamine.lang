@@ -22,11 +22,11 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Objects;
-import java.util.Spliterators;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
+
+import net.yetamine.lang.collections.Iterators;
 
 /**
  * A rudimentary tuple implementation consisting of three elements.
@@ -557,7 +557,6 @@ public final class Tuple3<T1, T2, T3> implements Tuple {
      * @return a zipping stream
      */
     public static <T1, T2, T3> Stream<Tuple3<T1, T2, T3>> zip(Stream<? extends T1> source1, Stream<? extends T2> source2, Stream<? extends T3> source3) {
-        final Iterator<Tuple3<T1, T2, T3>> it = zip(source1.iterator(), source2.iterator(), source3.iterator());
-        return StreamSupport.stream(Spliterators.spliteratorUnknownSize(it, 0), false);
+        return Iterators.stream(zip(source1.iterator(), source2.iterator(), source3.iterator()));
     }
 }

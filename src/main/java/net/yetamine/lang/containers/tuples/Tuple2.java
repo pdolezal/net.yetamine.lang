@@ -23,7 +23,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Objects;
-import java.util.Spliterators;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
@@ -31,7 +30,8 @@ import java.util.function.Function;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
+
+import net.yetamine.lang.collections.Iterators;
 
 /**
  * A rudimentary tuple implementation consisting of two elements.
@@ -545,8 +545,7 @@ public final class Tuple2<T1, T2> implements Tuple {
      * @return a zipping stream
      */
     public static <T1, T2> Stream<Tuple2<T1, T2>> zip(Stream<? extends T1> source1, Stream<? extends T2> source2) {
-        final Iterator<Tuple2<T1, T2>> it = zip(source1.iterator(), source2.iterator());
-        return StreamSupport.stream(Spliterators.spliteratorUnknownSize(it, 0), false);
+        return Iterators.stream(zip(source1.iterator(), source2.iterator()));
     }
 
     // Link to Map
