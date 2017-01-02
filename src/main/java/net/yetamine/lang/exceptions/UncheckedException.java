@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.yetamine.lang;
+package net.yetamine.lang.exceptions;
 
 import java.util.Objects;
 
@@ -44,5 +44,52 @@ public class UncheckedException extends RuntimeException {
      */
     public UncheckedException(Throwable cause) {
         super(Objects.requireNonNull(cause));
+    }
+
+    /**
+     * Throws a new {@link UncheckedException} that carries the given exception
+     * as the cause.
+     *
+     * @param t
+     *            the exception to wrap. It must not be {@code null}.
+     */
+    public static void raise(Throwable t) {
+        throw new UncheckedException(t);
+    }
+
+    /**
+     * Throws a new {@link UncheckedException} that carries the given exception
+     * as the cause if the exception is not an {@link Error}, which is rethrown
+     * without wrapping.
+     *
+     * @param t
+     *            the exception to wrap. It must not be {@code null}.
+     */
+    public static void enclose(Throwable t) {
+        if (t instanceof Error) {
+            throw (Error) t;
+        }
+
+        throw new UncheckedException(t);
+    }
+
+    /**
+     * Throws a new {@link UncheckedException} that carries the given exception
+     * as the cause if the exception is a checked exception; any {@link Error}
+     * and {@link RuntimeException} are rethrown without wrapping.
+     *
+     * @param t
+     *            the exception to wrap. It must not be {@code null}.
+     */
+    public static void rethrow(Throwable t) {
+        if (t instanceof RuntimeException) {
+            throw (RuntimeException) t;
+        }
+
+        if (t instanceof Error) {
+            throw (Error) t;
+        }
+
+        throw new UncheckedException(t);
     }
 }

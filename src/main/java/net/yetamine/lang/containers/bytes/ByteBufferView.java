@@ -20,7 +20,7 @@ import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.util.stream.IntStream;
 
-import net.yetamine.lang.Throwables;
+import net.yetamine.lang.exceptions.Throwables;
 
 /**
  * An implementation of {@link ByteSequence} that provides a read-only view on a

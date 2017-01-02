@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.yetamine.lang;
+package net.yetamine.lang.exceptions;
 
 /**
  * A utility class for dealing with exceptions.

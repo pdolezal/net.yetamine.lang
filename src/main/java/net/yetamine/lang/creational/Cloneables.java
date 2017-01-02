@@ -25,8 +25,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Objects;
 import java.util.function.Function;
 
-import net.yetamine.lang.Throwables;
 import net.yetamine.lang.Types;
+import net.yetamine.lang.exceptions.Throwables;
 
 /**
  * Cloning support.

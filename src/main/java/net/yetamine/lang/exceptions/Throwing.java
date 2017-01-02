@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.yetamine.lang;
+package net.yetamine.lang.exceptions;
 
 import java.util.Objects;
 import java.util.Optional;
@@ -29,24 +29,6 @@ import java.util.function.Predicate;
  *            the type of the exception to handle
  */
 public final class Throwing<T extends Throwable> {
-
-    /**
-     * Represents an operation that may throw some exception.
-     *
-     * @param <X>
-     *            the exception which might be thrown
-     */
-    @FunctionalInterface
-    public interface Operation<X extends Exception> {
-
-        /**
-         * Executes the operation.
-         *
-         * @throws X
-         *             if the operation fails
-         */
-        void execute() throws X;
-    }
 
     /** Sole instance of {@code null} exception. */
     private static final Throwing<?> NONE = new Throwing<>(null);
@@ -77,10 +59,10 @@ public final class Throwing<T extends Throwable> {
      *             not intentionally protected as it indicates an error in the
      *             code which needs correction
      */
-    public static Throwing<Throwable> sandbox(Operation<?> operation) {
+    public static Throwing<Throwable> sandbox(ThrowingRunnable<?> operation) {
         Objects.requireNonNull(operation);
         try { // Execute in sandbox
-            operation.execute();
+            operation.run();
         } catch (Throwable t) {
             return some(t);
         }
@@ -102,10 +84,10 @@ public final class Throwing<T extends Throwable> {
      *             not intentionally protected as it indicates an error in the
      *             code which needs correction
      */
-    public static Throwing<Exception> guard(Operation<?> operation) {
+    public static Throwing<Exception> guard(ThrowingRunnable<?> operation) {
         Objects.requireNonNull(operation);
         try { // Execute in sandbox
-            operation.execute();
+            operation.run();
         } catch (Exception e) {
             return some(e);
         }
@@ -223,7 +205,8 @@ public final class Throwing<T extends Throwable> {
     }
 
     /**
-     * Throws the exception if unchecked.
+     * Throws the exception if unchecked (i.e., {@link RuntimeException} or
+     * {@link Error}).
      *
      * @return this instance
      */
@@ -303,6 +286,53 @@ public final class Throwing<T extends Throwable> {
     }
 
     /**
+     * Passes the exception to handle, if any, to the given handler.
+     *
+     * @param <X>
+     *            the type of the exception that the handler declares to throw
+     * @param handler
+     *            the handler to use. It must not be {@code null}.
+     *
+     * @return this instance
+     *
+     * @throws X
+     *             if the handler throws the exception
+     */
+    public <X extends Exception> Throwing<T> then(ThrowingConsumer<? super T, ? extends X> handler) throws X {
+        if (throwable != null) {
+            handler.accept(throwable);
+        }
+
+        return this;
+    }
+
+    /**
+     * Runs the given action regardless of an exception pending to handle.
+     *
+     * <p>
+     * If the action throws an exception, the exception is thrown and any
+     * pending exception shall be added as a suppressed one.
+     *
+     * @param action
+     *            the action to run. It must not be {@code null}.
+     *
+     * @return this instance
+     */
+    public Throwing<T> anyway(Runnable action) {
+        try {
+            action.run();
+        } catch (Throwable t) {
+            if (throwable != null) {
+                t.addSuppressed(throwable);
+            }
+
+            throw t;
+        }
+
+        return this;
+    }
+
+    /**
      * Rethrows the exception to handle if any.
      *
      * @throws T
@@ -312,17 +342,6 @@ public final class Throwing<T extends Throwable> {
         if (throwable != null) {
             throw throwable;
         }
-    }
-
-    /**
-     * Rethrows the exception to handle, if any, as unchecked.
-     *
-     * <p>
-     * An unchecked exception is thrown directly, while a checked exception is
-     * wrapped in a {@link UncheckedException}.
-     */
-    public void rethrowUnchecked() {
-        throwIfUnchecked().map(UncheckedException::new).rethrow();
     }
 
     /**

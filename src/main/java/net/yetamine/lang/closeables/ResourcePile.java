@@ -20,7 +20,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import net.yetamine.lang.Throwing;
+import net.yetamine.lang.exceptions.Throwing;
 
 /**
  * An implementation of {@link ResourceGroup} which deals with the resources as

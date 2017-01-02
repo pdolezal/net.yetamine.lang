@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.yetamine.lang;
+package net.yetamine.lang.exceptions;
 
 import org.testng.Assert;
 import org.testng.annotations.Test;

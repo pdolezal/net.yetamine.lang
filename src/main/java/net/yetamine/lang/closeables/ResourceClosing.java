@@ -18,7 +18,7 @@ package net.yetamine.lang.closeables;
 
 import java.util.Arrays;
 
-import net.yetamine.lang.Throwing;
+import net.yetamine.lang.exceptions.Throwing;
 
 /**
  * Represents a strategy that closes a resource.

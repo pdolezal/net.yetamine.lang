@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.yetamine.lang;
+package net.yetamine.lang.exceptions;
 
 import java.io.EOFException;
 import java.io.IOException;
@@ -39,14 +39,15 @@ public final class TestThrowing {
         Assert.expectThrows(IOException.class, () -> Throwing.some(new IOException()).rethrow());
 
         Assert.expectThrows(IllegalArgumentException.class, () -> {
-            Throwing.some(new IllegalArgumentException()).rethrowUnchecked();
+            Throwing.some(new IllegalArgumentException()).then(UncheckedException::rethrow);
         });
 
+        final IOException io = new IOException();
         try {
-            Throwing.some(new IOException()).rethrowUnchecked();
+            Throwing.some(io).then(UncheckedException::rethrow);
             Assert.fail();
         } catch (UncheckedException e) {
-            Assert.assertTrue(e.getCause() instanceof IOException);
+            Assert.assertSame(e.getCause(), io);
         }
     }
 
@@ -59,14 +60,15 @@ public final class TestThrowing {
         Assert.expectThrows(IOException.class, () -> Throwing.some(new IOException()).rethrow());
 
         Assert.expectThrows(IllegalArgumentException.class, () -> {
-            Throwing.maybe(new IllegalArgumentException()).rethrowUnchecked();
+            Throwing.maybe(new IllegalArgumentException()).then(UncheckedException::rethrow);
         });
 
+        final IOException io = new IOException();
         try {
-            Throwing.maybe(new IOException()).rethrowUnchecked();
+            Throwing.maybe(io).then(UncheckedException::rethrow);
             Assert.fail();
         } catch (UncheckedException e) {
-            Assert.assertTrue(e.getCause() instanceof IOException);
+            Assert.assertSame(e.getCause(), io);
         }
     }
 
@@ -210,16 +212,17 @@ public final class TestThrowing {
      */
     @Test
     public void testMap() {
+        final ArithmeticException a = new ArithmeticException();
         try {
-            Throwing.some(new ArithmeticException()).map(IOException::new).rethrow();
+            Throwing.some(a).map(IOException::new).rethrow();
             Assert.fail();
         } catch (IOException e) {
-            Assert.assertTrue(e.getCause() instanceof ArithmeticException);
+            Assert.assertSame(e.getCause(), a);
         }
     }
 
     /**
-     * Tests {@link Throwing#guard(net.yetamine.lang.Throwing.Operation)}.
+     * Tests {@link Throwing#guard(ThrowingRunnable)}.
      */
     @Test
     public void testGuard() {
@@ -235,7 +238,7 @@ public final class TestThrowing {
     }
 
     /**
-     * Tests {@link Throwing#sandbox(net.yetamine.lang.Throwing.Operation)}.
+     * Tests {@link Throwing#sandbox(ThrowingRunnable)}.
      */
     @Test
     public void testSandbox() {
@@ -251,5 +254,22 @@ public final class TestThrowing {
         });
 
         Assert.assertThrows(AssertionError.class, s2::rethrow);
+    }
+
+    /**
+     * Tests {@link Throwing#anyway(Runnable)}.
+     */
+    @Test
+    public void testAnyway() {
+        final IOException io = new IOException();
+        try {
+            Throwing.some(io).anyway(() -> {
+                throw new IllegalStateException();
+            }).anyway(Assert::fail);
+
+            Assert.fail();
+        } catch (IllegalStateException e) {
+            Assert.assertSame(e.getSuppressed()[0], io);
+        }
     }
 }
