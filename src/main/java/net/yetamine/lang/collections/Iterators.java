@@ -33,9 +33,9 @@ public final class Iterators {
      * The stream has an unknown size, it is sequential and not ordered.
      *
      * @param <T>
-     * the type of the elements
+     *            the type of the elements
      * @param iterator
-     * the iterator to use. It must not be {@code null}.
+     *            the iterator to use. It must not be {@code null}.
      *
      * @return the stream
      */
