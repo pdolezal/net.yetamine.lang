@@ -307,18 +307,23 @@ public final class Throwing<T extends Throwable> {
     }
 
     /**
-     * Runs the given action regardless of an exception pending to handle.
+     * Executes the given action regardless of an exception pending to handle.
      *
      * <p>
      * If the action throws an exception, the exception is thrown and any
      * pending exception shall be added as a suppressed one.
      *
+     * @param <X>
+     *            the type of the exception that the action may throw
      * @param action
-     *            the action to run. It must not be {@code null}.
+     *            the action to execute . It must not be {@code null}.
      *
      * @return this instance
+     *
+     * @throws X
+     *             if the action fails
      */
-    public Throwing<T> anyway(Runnable action) {
+    public <X extends Exception> Throwing<T> anyway(ThrowingRunnable<X> action) throws X {
         try {
             action.run();
         } catch (Throwable t) {

@@ -257,7 +257,7 @@ public final class TestThrowing {
     }
 
     /**
-     * Tests {@link Throwing#anyway(Runnable)}.
+     * Tests {@link Throwing#anyway(ThrowingRunnable)}.
      */
     @Test
     public void testAnyway() {
