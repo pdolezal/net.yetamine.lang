@@ -338,6 +338,38 @@ public final class Throwing<T extends Throwable> {
     }
 
     /**
+     * Executes the given operation regardless of an exception pending to
+     * handle.
+     *
+     * <p>
+     * If the action throws an exception, the exception is thrown and any
+     * pending exception shall be added as a suppressed one.
+     *
+     * @param <R>
+     *            the type of the result
+     * @param <X>
+     *            the type of the exception that the action may throw
+     * @param operation
+     *            the operation to execute. It must not be {@code null}.
+     *
+     * @return the result of the operation
+     *
+     * @throws X
+     *             if the action fails
+     */
+    public <R, X extends Exception> R yield(ThrowingOperation<? super T, ? extends R, X> operation) throws X {
+        try {
+            return operation.execute(throwable);
+        } catch (Throwable t) {
+            if (throwable != null) {
+                t.addSuppressed(throwable);
+            }
+
+            throw t;
+        }
+    }
+
+    /**
      * Rethrows the exception to handle if any.
      *
      * @throws T

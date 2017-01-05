@@ -272,4 +272,26 @@ public final class TestThrowing {
             Assert.assertSame(e.getSuppressed()[0], io);
         }
     }
+
+    /**
+     * Tests {@link Throwing#yield(ThrowingOperation)}.
+     */
+    @Test
+    public void testYield() {
+        final IOException io = new IOException();
+        try {
+            Throwing.some(io).anyway(() -> {
+                throw new IllegalStateException();
+            }).yield(e -> {
+                Assert.fail();
+                return null;
+            });
+
+            Assert.fail();
+        } catch (IllegalStateException e) {
+            Assert.assertSame(e.getSuppressed()[0], io);
+        }
+
+        Assert.assertTrue(Throwing.some(io).yield(e -> true));
+    }
 }
