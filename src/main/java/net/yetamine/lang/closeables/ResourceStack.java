@@ -277,12 +277,15 @@ public final class ResourceStack<X extends Exception> implements ResourceGroup<X
                 }
 
                 Throwable exception = null;
+                boolean interrupt = false;
+
                 // Traverse from the top of the stack towards this node and free the resources
                 for (Handle<?, X> handle = root.next; /* until handle == this */; handle = handle.next) {
                     try { // This may throw
                         handle.releaseSelf();
                     } catch (Throwable t) {
                         if (exception != null) { // Rethrowing just the first one, others are suppressed
+                            interrupt |= t instanceof InterruptedException;
                             exception.addSuppressed(t);
                         } else {
                             exception = t;
@@ -294,7 +297,7 @@ public final class ResourceStack<X extends Exception> implements ResourceGroup<X
                     }
                 }
 
-                rethrow(exception);
+                rethrow(exception, interrupt);
             }
         }
 
@@ -317,6 +320,8 @@ public final class ResourceStack<X extends Exception> implements ResourceGroup<X
                 }
 
                 Throwable exception = null;
+                boolean interrupt = false;
+
                 // Traverse from the top of the stack towards this node and close all the nodes
                 for (Handle<?, X> handle = root.next; /* until handle == this */; /* next of handle */) {
                     final Handle<?, X> removed = handle;
@@ -327,6 +332,7 @@ public final class ResourceStack<X extends Exception> implements ResourceGroup<X
                         removed.closeSelf();
                     } catch (Throwable t) {
                         if (exception != null) { // Rethrowing just the first one, others are suppressed
+                            interrupt |= t instanceof InterruptedException;
                             exception.addSuppressed(t);
                         } else {
                             exception = t;
@@ -338,7 +344,7 @@ public final class ResourceStack<X extends Exception> implements ResourceGroup<X
                     }
                 }
 
-                rethrow(exception);
+                rethrow(exception, interrupt);
             }
         }
 
@@ -418,16 +424,21 @@ public final class ResourceStack<X extends Exception> implements ResourceGroup<X
          *
          * @param exception
          *            the exception to throw. It may be {@code null}.
+         * @param interrupt
          *
          * @throws Throwable
          *             if an exception is given
          */
-        private static <X extends Throwable> void rethrow(Throwable exception) throws X {
+        private static <X extends Throwable> void rethrow(Throwable exception, boolean interrupt) throws X {
             if (exception == null) {
                 return;
             }
 
             Throwing.some(exception).throwIfUnchecked();
+            if (interrupt && !(exception instanceof InterruptedException)) {
+                Thread.currentThread().interrupt();
+            }
+
             @SuppressWarnings("unchecked") // Valid because all unchecked exception have been handled
             final X throwable = (X) exception;
             throw throwable;

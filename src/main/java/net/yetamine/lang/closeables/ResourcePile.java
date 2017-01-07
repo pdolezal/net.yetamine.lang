@@ -92,6 +92,7 @@ public final class ResourcePile<X extends Exception> implements ResourceGroup<X>
      */
     public void release() throws X {
         Throwable exception = null;
+        boolean interrupt = false;
 
         synchronized (root) {
             for (Handle<?, X> handle = root.next(); handle != root; handle = handle.next()) {
@@ -103,12 +104,13 @@ public final class ResourcePile<X extends Exception> implements ResourceGroup<X>
                         continue;
                     }
 
+                    interrupt |= t instanceof InterruptedException;
                     exception.addSuppressed(t);
                 }
             }
         }
 
-        rethrow(exception);
+        rethrow(exception, interrupt);
     }
 
     /**
@@ -116,6 +118,7 @@ public final class ResourcePile<X extends Exception> implements ResourceGroup<X>
      */
     public void close() throws X {
         Throwable exception = null;
+        boolean interrupt = false;
 
         synchronized (root) {
             closed = true; // Disable further additions, then drain all items
@@ -129,12 +132,13 @@ public final class ResourcePile<X extends Exception> implements ResourceGroup<X>
                         continue;
                     }
 
+                    interrupt |= t instanceof InterruptedException;
                     exception.addSuppressed(t);
                 }
             }
         }
 
-        rethrow(exception);
+        rethrow(exception, interrupt);
     }
 
     /**
@@ -151,16 +155,21 @@ public final class ResourcePile<X extends Exception> implements ResourceGroup<X>
      *
      * @param exception
      *            the exception to throw. It may be {@code null}.
+     * @param interrupt
      *
      * @throws Throwable
      *             if an exception is given
      */
-    private static <X extends Throwable> void rethrow(Throwable exception) throws X {
+    private static <X extends Throwable> void rethrow(Throwable exception, boolean interrupt) throws X {
         if (exception == null) {
             return;
         }
 
         Throwing.some(exception).throwIfUnchecked();
+        if (interrupt && !(exception instanceof InterruptedException)) {
+            Thread.currentThread().interrupt();
+        }
+
         @SuppressWarnings("unchecked") // Valid because all unchecked exception have been handled
         final X throwable = (X) exception;
         throw throwable;
