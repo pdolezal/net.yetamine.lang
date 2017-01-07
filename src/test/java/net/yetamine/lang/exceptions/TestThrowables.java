@@ -41,6 +41,17 @@ public final class TestThrowables {
     }
 
     /**
+     * Tests {@link Throwables#raise(Throwable)}.
+     *
+     * @throws FailingException
+     *             if tests succeeds
+     */
+    @Test(expectedExceptions = { FailingException.class })
+    public void testRaise() throws FailingException {
+        Throwables.raise(new FailingException());
+    }
+
+    /**
      * Tests {@link Throwables#init(Throwable, Throwable)}.
      */
     @Test

@@ -25,6 +25,18 @@ import java.util.function.Predicate;
  * Provides a fluent handling of exceptions where catch handlers are not
  * available, e.g., for resolving causes of an exception.
  *
+ * <p>
+ * Be extremely careful when applying on general exception classes, when
+ * incorrect handling of {@link InterruptedException} can happen easily, leaving
+ * possibly dire consequences in non-responsive threads that were interrupted in
+ * order to finish etc.
+ *
+ * <p>
+ * When unsure how the exception could be handled, a good prevention of such
+ * problems is using code like {@code throwing.then(Throwables::reinterrupt)}
+ * early in the handling pipeline. Note that {@link UncheckedException} offers
+ * yet another layer of protection and therefore it may be sufficient already.
+ *
  * @param <T>
  *            the type of the exception to handle
  */
@@ -44,6 +56,23 @@ public final class Throwing<T extends Throwable> {
      */
     private Throwing(T t) {
         throwable = t;
+    }
+
+    /**
+     * Narrows a widened type performing a safe type cast (thanks to the safe
+     * covariant changes for immutable types).
+     *
+     * @param <T>
+     *            the type of the exception to handle
+     *
+     * @param instance
+     *            the instance to narrow
+     *
+     * @return the narrowed instance
+     */
+    @SuppressWarnings("unchecked")
+    public static <T extends Throwable> Throwing<T> narrow(Throwing<? extends T> instance) {
+        return (Throwing<T>) instance;
     }
 
     /**

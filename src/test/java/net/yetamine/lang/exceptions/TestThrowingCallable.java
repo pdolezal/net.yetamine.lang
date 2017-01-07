@@ -57,6 +57,30 @@ public final class TestThrowingCallable {
     }
 
     /**
+     * Tests {@link ThrowingCallable#whenInterrupted(ThrowingConsumer)}.
+     *
+     * @throws Exception
+     *             if the test fails
+     */
+    @Test
+    public void testWhenInterrupted() throws Exception {
+        try {
+            ThrowingCallable.from(() -> {
+                throw new InterruptedException();
+            }).whenInterrupted(InterruptionException::raise).call();
+
+            Assert.fail();
+        } catch (UncheckedException e) {
+            Assert.assertTrue(e.getCause() instanceof InterruptedException);
+            Assert.assertTrue(Thread.interrupted());
+        }
+
+        Assert.expectThrows(IOException.class, () -> ThrowingCallable.from(() -> {
+            throw new IOException();
+        }).whenInterrupted(InterruptionException::raise).call());
+    }
+
+    /**
      * Tests {@link ThrowingCallable#enclosing(ThrowingCallable)}.
      */
     @Test

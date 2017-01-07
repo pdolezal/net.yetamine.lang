@@ -22,6 +22,25 @@ package net.yetamine.lang.exceptions;
 public final class Throwables {
 
     /**
+     * Throws the given exception.
+     *
+     * @param <X>
+     *            the type of the exception
+     * @param throwable
+     *            the exception to throw. It must not be {@code null}.
+     *
+     * @return nothing, the exception is thrown
+     *
+     * @throws X
+     *             when the exception is not {@code null}, otherwise JVM should
+     *             raise an exception to indicate missing exception instance to
+     *             throw
+     */
+    public static <X extends Throwable> X raise(X throwable) throws X {
+        throw throwable;
+    }
+
+    /**
      * Calls {@link Throwable#initCause(Throwable)} on the given exception and
      * returns the exception then.
      *

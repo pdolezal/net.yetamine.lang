@@ -39,6 +39,32 @@ public interface ThrowingCallable<V, X extends Exception> extends Callable<V> {
     V call() throws X;
 
     /**
+     * Returns an instance that uses a dedicated special handler for taking care
+     * of any {@link InterruptedException} which may raise when invoking this
+     * instance.
+     *
+     * @param handler
+     *            the handler to use. It must not be {@code null}.
+     *
+     * @return the guarding instance
+     */
+    default ThrowingCallable<V, X> whenInterrupted(ThrowingConsumer<? super InterruptedException, ? extends X> handler) {
+        Objects.requireNonNull(handler);
+
+        return () -> {
+            try {
+                return call();
+            } catch (Exception e) {
+                if (e instanceof InterruptedException) {
+                    handler.accept((InterruptedException) e);
+                }
+
+                throw e;
+            }
+        };
+    }
+
+    /**
      * Returns the given callable.
      *
      * @param <V>

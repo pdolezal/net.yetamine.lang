@@ -50,6 +50,32 @@ public interface ThrowingOperation<T, R, X extends Exception> {
     R execute(T arg) throws X;
 
     /**
+     * Returns an instance that uses a dedicated special handler for taking care
+     * of any {@link InterruptedException} which may raise when invoking this
+     * instance.
+     *
+     * @param handler
+     *            the handler to use. It must not be {@code null}.
+     *
+     * @return the guarding instance
+     */
+    default ThrowingOperation<T, R, X> whenInterrupted(ThrowingConsumer<? super InterruptedException, ? extends X> handler) {
+        Objects.requireNonNull(handler);
+
+        return arg -> {
+            try {
+                return execute(arg);
+            } catch (Exception e) {
+                if (e instanceof InterruptedException) {
+                    handler.accept((InterruptedException) e);
+                }
+
+                throw e;
+            }
+        };
+    }
+
+    /**
      * Returns the given operation.
      *
      * @param <T>

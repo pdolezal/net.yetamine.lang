@@ -29,6 +29,17 @@ import java.util.Objects;
  * The common practice is wrapping the checked exception in an unchecked one.
  * This exception serves exactly to this one purpose and works especially well
  * when coupled with {@link Throwing} for unwrapping the cause and rethrowing.
+ *
+ * <p>
+ * The name of this exception, "unchecked", has actually two meanings. First: it
+ * is an unchecked exception and therefore allows to convey a checked exception,
+ * as described above; second: it carries an exception which impacts might not
+ * be checked thoroughly and therefore probably requires further handling. The
+ * latter meaning suggests that it is better to catch such an exception early,
+ * handle its root cause properly, e.g., by throwing another, more appropriate
+ * exception. Note that {@link InterruptedException} needs special attention,
+ * using the dedicated {@link InterruptionException} for handling it should be
+ * preferred.
  */
 public class UncheckedException extends RuntimeException {
 
@@ -44,6 +55,22 @@ public class UncheckedException extends RuntimeException {
      */
     public UncheckedException(Throwable cause) {
         super(Objects.requireNonNull(cause));
+    }
+
+    /**
+     * Returns the root cause of the exception which is not an
+     * {@link UncheckedException} instance.
+     *
+     * @return the root cause
+     */
+    public final Throwable getRoot() {
+        Throwable result = getCause();
+        while (result instanceof UncheckedException) {
+            result = result.getCause();
+        }
+
+        assert (result != null);
+        return result;
     }
 
     /**
@@ -70,7 +97,7 @@ public class UncheckedException extends RuntimeException {
             throw (Error) t;
         }
 
-        throw new UncheckedException(t);
+        raise(t);
     }
 
     /**
@@ -90,6 +117,6 @@ public class UncheckedException extends RuntimeException {
             throw (Error) t;
         }
 
-        throw new UncheckedException(t);
+        raise(t);
     }
 }
