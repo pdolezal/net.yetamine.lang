@@ -179,7 +179,7 @@ public final class Throwing<T extends Throwable> {
      *             if the exception to handle is of the desired type and the
      *             predicate succeeds
      */
-    public <X extends Throwable> Throwing<T> throwIf(Class<? extends X> clazz, Predicate<? super X> condition) throws X {
+    public <X extends Throwable> Throwing<T> throwIf(Class<X> clazz, Predicate<? super X> condition) throws X {
         if (clazz.isInstance(throwable)) {
             final X t = clazz.cast(throwable);
             if (condition.test(t)) {
@@ -206,7 +206,7 @@ public final class Throwing<T extends Throwable> {
      *             if the exception to handle is of the desired type and the
      *             predicate succeeds
      */
-    public <X extends Throwable> Throwing<T> throwIf(Class<? extends X> clazz) throws X {
+    public <X extends Throwable> Throwing<T> throwIf(Class<X> clazz) throws X {
         if (clazz.isInstance(throwable)) {
             throw clazz.cast(throwable);
         }
@@ -239,7 +239,7 @@ public final class Throwing<T extends Throwable> {
      * @throws X
      *             if the mapping function returns this exception
      */
-    public <X extends Throwable> Throwing<T> throwAs(Function<? super T, ? extends X> mapping) throws X {
+    public <X extends Throwable> Throwing<T> throwAs(Function<? super T, X> mapping) throws X {
         final X t = mapping.apply(throwable);
         if (t != null) {
             throw t;
@@ -268,7 +268,7 @@ public final class Throwing<T extends Throwable> {
      *             if the exception to handle is of the desired type and the
      *             mapping function returns this exception to throw
      */
-    public <X, Z extends Throwable> Throwing<T> throwAs(Function<? super X, ? extends Z> mapping, Class<? extends X> clazz) throws Z {
+    public <X extends Throwable, Z extends Throwable> Throwing<T> throwAs(Function<? super X, ? extends Z> mapping, Class<X> clazz) throws Z {
         if (clazz.isInstance(throwable)) {
             final Z t = mapping.apply(clazz.cast(throwable));
             if (t != null) {
@@ -358,7 +358,7 @@ public final class Throwing<T extends Throwable> {
      * @throws X
      *             if the handler throws the exception
      */
-    public <X extends Exception> Throwing<T> then(ThrowingConsumer<? super T, ? extends X> handler) throws X {
+    public <X extends Exception> Throwing<T> then(ThrowingConsumer<? super T, X> handler) throws X {
         if (throwable != null) {
             handler.accept(throwable);
         }
