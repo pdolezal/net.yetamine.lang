@@ -416,21 +416,47 @@ public final class Choice<T> implements Supplier<T> {
     }
 
     /**
+     * Maps the represented value if right, keeping the wrong value untouched.
+     *
+     * @param mapping
+     *            the function to map the represented value when
+     *            {@link #isRight()}. It must not be {@code null}.
+     *
+     * @return a new instance represented the mapped value
+     */
+    public Choice<T> mapRight(Function<? super T, ? extends T> mapping) {
+        return isRight() ? right(mapping.apply(value)) : this;
+    }
+
+    /**
+     * Maps the represented value if wrong, keeping the right value untouched.
+     *
+     * @param mapping
+     *            the function to map the represented value when
+     *            {@link #isWrong()}. It must not be {@code null}.
+     *
+     * @return a new instance represented the mapped value
+     */
+    public Choice<T> mapWrong(Function<? super T, ? extends T> mapping) {
+        return isRight() ? this : wrong(mapping.apply(value));
+    }
+
+    /**
      * Maps the represented value and returns it using the appropriate mapping
      * function for the actual <i>right</i> or <i>wrong</i> case.
      *
      * @param <V>
      *            the type of the new value
-     * @param whenTrue
+     * @param whenRight
      *            the function to map the represented value when
      *            {@link #isRight()}. It must not be {@code null}.
-     * @param whenFalse
+     * @param whenWrong
      *            the function to map the represented value when
      *            {@link #isWrong()}. It must not be {@code null}.
      *
      * @return the mapped value
      */
-    public <V> V reconcile(Function<? super T, ? extends V> whenTrue, Function<? super T, ? extends V> whenFalse) {
-        return isRight() ? whenTrue.apply(value) : whenFalse.apply(value);
+    public <V> V reconcile(Function<? super T, ? extends V> whenRight, Function<? super T, ? extends V> whenWrong) {
+        return isRight() ? whenRight.apply(value) : whenWrong.apply(value);
     }
 }

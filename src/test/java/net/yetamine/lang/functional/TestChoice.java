@@ -146,7 +146,7 @@ public final class TestChoice {
         final Object o1 = new Object();
         final Object o2 = new Object();
 
-        final Choice<?> r = choice.map(value -> {
+        final Choice<Object> c = choice.map(value -> {
             Assert.assertSame(value, o);
             return o1;
         }, value -> {
@@ -154,11 +154,30 @@ public final class TestChoice {
             return o2;
         });
 
+        final Choice<?> r = c.mapRight(value -> o2);
+        final Choice<?> w = c.mapWrong(value -> o1);
+
         if (valid) {
-            Assert.assertSame(r.get(), o1);
+            Assert.assertSame(c.get(), o1);
+            Assert.assertTrue(c.isRight());
+            Assert.assertFalse(c.isWrong());
+
+            Assert.assertSame(w.get(), o1);
+            Assert.assertTrue(w.isRight());
+            Assert.assertFalse(w.isWrong());
+
+            Assert.assertSame(r.get(), o2);
             Assert.assertTrue(r.isRight());
             Assert.assertFalse(r.isWrong());
         } else {
+            Assert.assertSame(c.get(), o2);
+            Assert.assertTrue(c.isWrong());
+            Assert.assertFalse(c.isRight());
+
+            Assert.assertSame(w.get(), o1);
+            Assert.assertTrue(w.isWrong());
+            Assert.assertFalse(w.isRight());
+
             Assert.assertSame(r.get(), o2);
             Assert.assertTrue(r.isWrong());
             Assert.assertFalse(r.isRight());
