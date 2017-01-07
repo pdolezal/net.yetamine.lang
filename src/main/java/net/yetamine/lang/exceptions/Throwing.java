@@ -376,7 +376,7 @@ public final class Throwing<T extends Throwable> {
      * @param <X>
      *            the type of the exception that the action may throw
      * @param action
-     *            the action to execute . It must not be {@code null}.
+     *            the action to execute. It must not be {@code null}.
      *
      * @return this instance
      *
@@ -406,7 +406,7 @@ public final class Throwing<T extends Throwable> {
      * @param <X>
      *            the type of the exception that the action may throw
      * @param action
-     *            the action to execute . It must not be {@code null}.
+     *            the action to execute. It must not be {@code null}.
      *
      * @return this instance
      *
