@@ -19,6 +19,7 @@ package net.yetamine.lang.exceptions;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
@@ -35,11 +36,13 @@ public final class TestThrowing {
      */
     @Test
     public void testSome() {
+        Assert.assertTrue(Throwing.some(new IOException()).couldThrow());
+
         Assert.expectThrows(NullPointerException.class, () -> Throwing.some(null));
         Assert.expectThrows(IOException.class, () -> Throwing.some(new IOException()).rethrow());
 
         Assert.expectThrows(IllegalArgumentException.class, () -> {
-            Throwing.some(new IllegalArgumentException()).then(UncheckedException::rethrow);
+            Throwing.some(new IllegalArgumentException()).then(UncheckedException::rethrow).anyway(Assert::fail);
         });
 
         final IOException io = new IOException();
@@ -56,11 +59,14 @@ public final class TestThrowing {
      */
     @Test
     public void testMaybe() {
+        Assert.assertTrue(Throwing.maybe(new IOException()).couldThrow());
+        Assert.assertFalse(Throwing.maybe(null).couldThrow());
+
         Throwing.maybe((NullPointerException) null).rethrow();
         Assert.expectThrows(IOException.class, () -> Throwing.some(new IOException()).rethrow());
 
         Assert.expectThrows(IllegalArgumentException.class, () -> {
-            Throwing.maybe(new IllegalArgumentException()).then(UncheckedException::rethrow);
+            Throwing.maybe(new IllegalArgumentException()).then(UncheckedException::rethrow).anyway(Assert::fail);
         });
 
         final IOException io = new IOException();
@@ -77,6 +83,8 @@ public final class TestThrowing {
      */
     @Test
     public void testNone() {
+        Assert.assertFalse(Throwing.none().couldThrow());
+
         Throwing.none().map(t -> {
             Assert.fail();
             return new RuntimeException();
@@ -93,6 +101,8 @@ public final class TestThrowing {
     public void testCause() throws Throwable {
         Assert.expectThrows(NullPointerException.class, () -> Throwing.cause(null));
         Assert.expectThrows(IOException.class, () -> Throwing.cause(new RuntimeException(new IOException())).rethrow());
+        Assert.expectThrows(IOException.class,
+                () -> Throwing.some(new RuntimeException(new IOException())).cause().rethrow());
         Throwing.cause(new RuntimeException()).rethrow(); // No cause, no throw
     }
 
@@ -208,6 +218,34 @@ public final class TestThrowing {
     }
 
     /**
+     * Tests {@link Throwing#when(Class, ThrowingConsumer)}.
+     */
+    @Test
+    public void testWhen_Consumer() {
+        final AtomicBoolean passed = new AtomicBoolean();
+
+        final Exception e = new IOException();
+        Throwing.some(e).when(IOException.class, q -> {
+            Assert.assertSame(q, e);
+            passed.set(true);
+        });
+
+        Assert.assertTrue(passed.get());
+        Throwing.none().when(Throwable.class, q -> Assert.fail());
+    }
+
+    /**
+     * Tests {@link Throwing#when(Class, ThrowingRunnable)}.
+     */
+    @Test
+    public void testWhen_Runnable() {
+        final AtomicBoolean passed = new AtomicBoolean();
+        Throwing.some(new IOException()).when(IOException.class, () -> passed.set(true));
+        Assert.assertTrue(passed.get());
+        Throwing.none().when(Throwable.class, () -> Assert.fail());
+    }
+
+    /**
      * Tests {@link Throwing#map(Function)}.
      */
     @Test
@@ -254,6 +292,17 @@ public final class TestThrowing {
         });
 
         Assert.assertThrows(AssertionError.class, s2::rethrow);
+    }
+
+    /**
+     * Tests {@link Throwing#otherwise(ThrowingRunnable)}.
+     */
+    @Test
+    public void testOtherwise() {
+        final AtomicBoolean passed = new AtomicBoolean();
+        Throwing.none().otherwise(() -> passed.set(true));
+        Assert.assertTrue(passed.get());
+        Throwing.some(new IOException()).otherwise(Assert::fail);
     }
 
     /**

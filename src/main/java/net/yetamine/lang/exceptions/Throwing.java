@@ -152,6 +152,16 @@ public final class Throwing<T extends Throwable> {
     }
 
     /**
+     * Returns an instance for handling the cause (if any) of the current
+     * exception.
+     *
+     * @return an instance for handling the cause of the current exception
+     */
+    public Throwing<Throwable> cause() {
+        return (throwable != null) ? maybe(throwable.getCause()) : none();
+    }
+
+    /**
      * Throws the exception if it is of the given type and satisfies the given
      * predicate.
      *
@@ -286,6 +296,56 @@ public final class Throwing<T extends Throwable> {
     }
 
     /**
+     * Invokes the given handler with the exception of the desired type if any.
+     *
+     * @param <Q>
+     *            the type of the exception to process
+     * @param <X>
+     *            the type of the exception that the handler declares to throw
+     * @param type
+     *            the type of the exception to process. It must not be
+     *            {@code null}.
+     * @param handler
+     *            the handler to use. It must not be {@code null}.
+     *
+     * @return this instance
+     *
+     * @throws X
+     *             if the handler throws the exception
+     */
+    public <Q extends Throwable, X extends Exception> Throwing<T> when(Class<? extends Q> type, ThrowingConsumer<Q, X> handler) throws X {
+        if (type.isInstance(throwable)) {
+            handler.accept(type.cast(throwable));
+        }
+
+        return this;
+    }
+
+    /**
+     * Invokes the given handler when the exception has the desired type.
+     *
+     * @param <X>
+     *            the type of the exception that the handler declares to throw
+     * @param type
+     *            the type of the exception to process. It must not be
+     *            {@code null}.
+     * @param handler
+     *            the handler to use. It must not be {@code null}.
+     *
+     * @return this instance
+     *
+     * @throws X
+     *             if the handler throws the exception
+     */
+    public <X extends Exception> Throwing<T> when(Class<? extends Throwable> type, ThrowingRunnable<X> handler) throws X {
+        if (type.isInstance(throwable)) {
+            handler.run();
+        }
+
+        return this;
+    }
+
+    /**
      * Passes the exception to handle, if any, to the given handler.
      *
      * @param <X>
@@ -338,6 +398,30 @@ public final class Throwing<T extends Throwable> {
     }
 
     /**
+     * Executes the given action if no exception pending to handle.
+     *
+     * <p>
+     * If the action throws an exception, the exception is thrown.
+     *
+     * @param <X>
+     *            the type of the exception that the action may throw
+     * @param action
+     *            the action to execute . It must not be {@code null}.
+     *
+     * @return this instance
+     *
+     * @throws X
+     *             if the action fails
+     */
+    public <X extends Exception> Throwing<T> otherwise(ThrowingRunnable<X> action) throws X {
+        if (throwable == null) {
+            action.run();
+        }
+
+        return this;
+    }
+
+    /**
      * Executes the given operation regardless of an exception pending to
      * handle.
      *
@@ -372,13 +456,17 @@ public final class Throwing<T extends Throwable> {
     /**
      * Rethrows the exception to handle if any.
      *
+     * @return this instance
+     *
      * @throws T
      *             if there is any exception to handle
      */
-    public void rethrow() throws T {
+    public Throwing<T> rethrow() throws T {
         if (throwable != null) {
             throw throwable;
         }
+
+        return this;
     }
 
     /**
