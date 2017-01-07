@@ -60,7 +60,8 @@ public interface ResourceClosing<R, X extends Exception> {
      * @throws X
      *             if the operation fails
      */
-    default void closeAll(@SuppressWarnings("unchecked") R... objects) throws X {
+    @SuppressWarnings("unchecked")
+    default void closeAll(R... objects) throws X {
         closeAll(Arrays.asList(objects));
     }
 
