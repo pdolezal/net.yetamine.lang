@@ -51,7 +51,8 @@ public interface ThrowingCallable<V, X extends Exception> extends Callable<V> {
     default ThrowingCallable<V, X> whenInterrupted(ThrowingConsumer<? super InterruptedException, ? extends X> handler) {
         Objects.requireNonNull(handler);
 
-        return () -> {
+        @SuppressWarnings("unchecked") // When using -Xlint:unchecked
+        final ThrowingCallable<V, X> result = () -> {
             try {
                 return call();
             } catch (Exception e) {
@@ -62,6 +63,8 @@ public interface ThrowingCallable<V, X extends Exception> extends Callable<V> {
                 throw e;
             }
         };
+
+        return result;
     }
 
     /**
