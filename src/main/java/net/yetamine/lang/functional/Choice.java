@@ -24,6 +24,8 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
+import net.yetamine.lang.exceptions.ThrowingOperation;
+
 /**
  * An alternative to {@link Optional} for the cases when the value may be right
  * or wrong, but the value itself might be used anyway, e.g., for logging. The
@@ -246,7 +248,8 @@ public final class Choice<T> implements Supplier<T> {
      * @param <X>
      *            the type of the exception to throw
      * @param e
-     *            the supplier of the exception to throw if {@link #isWrong()}
+     *            the supplier of the exception to throw if {@link #isWrong()}.
+     *            It must not be {@code null}.
      *
      * @return the value of this choice
      *
@@ -361,6 +364,65 @@ public final class Choice<T> implements Supplier<T> {
     }
 
     /**
+     * Maps the represented value if right, keeping the wrong value untouched.
+     *
+     * @param mapping
+     *            the function to map the represented value when
+     *            {@link #isRight()}. It must not be {@code null}.
+     *
+     * @return a new instance representing the mapped value
+     */
+    public Choice<T> mapRight(Function<? super T, ? extends T> mapping) {
+        return isRight() ? right(mapping.apply(value)) : this;
+    }
+
+    /**
+     * Maps the represented value if wrong, keeping the right value untouched.
+     *
+     * @param mapping
+     *            the function to map the represented value when
+     *            {@link #isWrong()}. It must not be {@code null}.
+     *
+     * @return a new instance representing the mapped value
+     */
+    public Choice<T> mapWrong(Function<? super T, ? extends T> mapping) {
+        return isRight() ? this : wrong(mapping.apply(value));
+    }
+
+    /**
+     * Maps the represented value.
+     *
+     * @param <V>
+     *            the type of the new value
+     * @param whenRight
+     *            the function to map the represented value when
+     *            {@link #isRight()}. It must not be {@code null}.
+     * @param whenWrong
+     *            the function to map the represented value when
+     *            {@link #isWrong()}. It must not be {@code null}.
+     *
+     * @return a new instance representing the mapped value
+     */
+    public <V> Choice<V> map(Function<? super T, ? extends V> whenRight, Function<? super T, ? extends V> whenWrong) {
+        return isRight() ? right(whenRight.apply(value)) : wrong(whenWrong.apply(value));
+    }
+
+    /**
+     * Maps this instance.
+     *
+     * @param <V>
+     *            the type of the new represented value
+     * @param mapping
+     *            the mapping function. It must not be {@code null} and it
+     *            should not return {@code null}.
+     *
+     * @return the result of the mapping function
+     */
+    public <V> Choice<V> map(Function<? super Choice<T>, Choice<V>> mapping) {
+        return mapping.apply(this);
+    }
+
+    /**
      * Applies either action depending on {@link #isRight()} result.
      *
      * @param whenRight
@@ -383,65 +445,6 @@ public final class Choice<T> implements Supplier<T> {
     }
 
     /**
-     * Maps this instance.
-     *
-     * @param <V>
-     *            the type of the new represented value
-     * @param mapping
-     *            the mapping function. It must not be {@code null} and it
-     *            should not return {@code null}.
-     *
-     * @return the result of the mapping function
-     */
-    public <V> Choice<V> map(Function<? super Choice<T>, Choice<V>> mapping) {
-        return mapping.apply(this);
-    }
-
-    /**
-     * Maps the represented value.
-     *
-     * @param <V>
-     *            the type of the new value
-     * @param whenRight
-     *            the function to map the represented value when
-     *            {@link #isRight()}. It must not be {@code null}.
-     * @param whenWrong
-     *            the function to map the represented value when
-     *            {@link #isWrong()}. It must not be {@code null}.
-     *
-     * @return a new instance represented the mapped value
-     */
-    public <V> Choice<V> map(Function<? super T, ? extends V> whenRight, Function<? super T, ? extends V> whenWrong) {
-        return isRight() ? right(whenRight.apply(value)) : wrong(whenWrong.apply(value));
-    }
-
-    /**
-     * Maps the represented value if right, keeping the wrong value untouched.
-     *
-     * @param mapping
-     *            the function to map the represented value when
-     *            {@link #isRight()}. It must not be {@code null}.
-     *
-     * @return a new instance represented the mapped value
-     */
-    public Choice<T> mapRight(Function<? super T, ? extends T> mapping) {
-        return isRight() ? right(mapping.apply(value)) : this;
-    }
-
-    /**
-     * Maps the represented value if wrong, keeping the right value untouched.
-     *
-     * @param mapping
-     *            the function to map the represented value when
-     *            {@link #isWrong()}. It must not be {@code null}.
-     *
-     * @return a new instance represented the mapped value
-     */
-    public Choice<T> mapWrong(Function<? super T, ? extends T> mapping) {
-        return isRight() ? this : wrong(mapping.apply(value));
-    }
-
-    /**
      * Maps the represented value and returns it using the appropriate mapping
      * function for the actual <i>right</i> or <i>wrong</i> case.
      *
@@ -458,5 +461,29 @@ public final class Choice<T> implements Supplier<T> {
      */
     public <V> V reconcile(Function<? super T, ? extends V> whenRight, Function<? super T, ? extends V> whenWrong) {
         return isRight() ? whenRight.apply(value) : whenWrong.apply(value);
+    }
+
+    /**
+     * Maps the represented value and returns it using the appropriate mapping
+     * function for the actual <i>right</i> or <i>wrong</i> case.
+     *
+     * @param <V>
+     *            the type of the new value
+     * @param <X>
+     *            the type of the exception that might be thrown
+     * @param whenRight
+     *            the function to map the represented value when
+     *            {@link #isRight()}. It must not be {@code null}.
+     * @param whenWrong
+     *            the function to map the represented value when
+     *            {@link #isWrong()}. It must not be {@code null}.
+     *
+     * @return the mapped value
+     *
+     * @throws X
+     *             if an operation fails
+     */
+    public <V, X extends Exception> V resolve(ThrowingOperation<? super T, ? extends V, ? extends X> whenRight, ThrowingOperation<? super T, ? extends V, ? extends X> whenWrong) throws X {
+        return isRight() ? whenRight.execute(value) : whenWrong.execute(value);
     }
 }

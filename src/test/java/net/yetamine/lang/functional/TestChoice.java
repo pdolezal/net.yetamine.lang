@@ -25,6 +25,8 @@ import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import net.yetamine.lang.exceptions.Throwables;
+
 /**
  * Tests {@link Choice}.
  */
@@ -185,7 +187,7 @@ public final class TestChoice {
     }
 
     /**
-     * Tests reconcile.
+     * Tests reconciliation.
      *
      * @param choice
      *            the instance to test. It must not be {@code null}.
@@ -196,10 +198,20 @@ public final class TestChoice {
      */
     @Test(dataProvider = "values")
     public void testReconcile(Choice<?> choice, Object o, boolean valid) {
+        if (valid) {
+            Assert.expectThrows(IOException.class, () -> {
+                choice.resolve(value -> Throwables.raise(new IOException()), value -> value);
+            });
+        } else {
+            Assert.expectThrows(IOException.class, () -> {
+                choice.resolve(value -> value, value -> Throwables.raise(new IOException()));
+            });
+        }
+
         final Object o1 = new Object();
         final Object o2 = new Object();
 
-        final Object r = choice.reconcile(value -> {
+        final Object r1 = choice.reconcile(value -> {
             Assert.assertSame(value, o);
             return o1;
         }, value -> {
@@ -208,9 +220,23 @@ public final class TestChoice {
         });
 
         if (valid) {
-            Assert.assertSame(r, o1);
+            Assert.assertSame(r1, o1);
         } else {
-            Assert.assertSame(r, o2);
+            Assert.assertSame(r1, o2);
+        }
+
+        final Object r2 = choice.resolve(value -> {
+            Assert.assertSame(value, o);
+            return o1;
+        }, value -> {
+            Assert.assertSame(value, o);
+            return o2;
+        });
+
+        if (valid) {
+            Assert.assertSame(r2, o1);
+        } else {
+            Assert.assertSame(r2, o2);
         }
     }
 
