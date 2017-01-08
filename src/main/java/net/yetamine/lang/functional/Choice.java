@@ -372,7 +372,7 @@ public final class Choice<T> implements Supplier<T> {
      *
      * @return this instance
      */
-    public Choice<T> accept(Consumer<? super T> whenRight, Consumer<? super T> whenWrong) {
+    public Choice<T> use(Consumer<? super T> whenRight, Consumer<? super T> whenWrong) {
         if (isRight()) {
             whenRight.accept(value);
         } else {

@@ -101,7 +101,7 @@ public final class TestChoice {
     }
 
     /**
-     * Tests accepting.
+     * Tests using.
      *
      * @param choice
      *            the instance to test. It must not be {@code null}.
@@ -111,12 +111,12 @@ public final class TestChoice {
      *            the validity flag
      */
     @Test(dataProvider = "values")
-    public void testAccept(Choice<?> choice, Object o, boolean valid) {
+    public void testUse(Choice<?> choice, Object o, boolean valid) {
         final AtomicReference<Object> box = new AtomicReference<>();
         final Object o1 = new Object();
         final Object o2 = new Object();
 
-        choice.accept(value -> {
+        choice.use(value -> {
             Assert.assertSame(value, o);
             box.set(o1);
         }, value -> {
