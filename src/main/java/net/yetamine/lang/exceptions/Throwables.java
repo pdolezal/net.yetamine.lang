@@ -36,7 +36,34 @@ public final class Throwables {
      *             raise an exception to indicate missing exception instance to
      *             throw
      */
-    public static <X extends Throwable> X raise(X throwable) throws X {
+    public static <X extends Throwable> X thrown(X throwable) throws X {
+        throw throwable;
+    }
+
+    /**
+     * Throws the given exception.
+     *
+     * <p>
+     * This method acts as {@link #thrown(Throwable)}, but instead of pretending
+     * to return a result of the type of the given exception, it pretends to
+     * return a result of any suitable type, so that it could consistute any
+     * function-like lambda.
+     *
+     * @param <T>
+     *            the return type
+     * @param <X>
+     *            the type of the exception
+     * @param throwable
+     *            the exception to throw. It must not be {@code null}.
+     *
+     * @return nothing, the exception is thrown
+     *
+     * @throws X
+     *             when the exception is not {@code null}, otherwise JVM should
+     *             raise an exception to indicate missing exception instance to
+     *             throw
+     */
+    public static <T, X extends Throwable> T raise(X throwable) throws X {
         throw throwable;
     }
 

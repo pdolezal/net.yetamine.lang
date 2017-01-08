@@ -41,14 +41,19 @@ public final class TestThrowables {
     }
 
     /**
-     * Tests {@link Throwables#raise(Throwable)}.
+     * Tests {@link Throwables#raise(Throwable)} and
+     * {@link Throwables#thrown(Throwable)}.
      *
      * @throws FailingException
      *             if tests succeeds
      */
-    @Test(expectedExceptions = { FailingException.class })
-    public void testRaise() throws FailingException {
-        Throwables.raise(new FailingException());
+    @Test
+    public void testThrowing() throws FailingException {
+        Assert.expectThrows(FailingException.class, () -> Throwables.thrown(new FailingException()));
+
+        Assert.expectThrows(FailingException.class, () -> {
+            ThrowingOperation.from(o -> Throwables.raise(new FailingException())).execute(0L);
+        });
     }
 
     /**
