@@ -23,7 +23,7 @@ package net.yetamine.lang.exceptions;
 public final class Interruption {
 
     /**
-     * Interrupted the current thread.
+     * Interrupts the current thread.
      */
     public static void renew() {
         Thread.currentThread().interrupt();

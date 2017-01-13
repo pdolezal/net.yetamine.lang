@@ -22,7 +22,7 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 /**
- * Support tools for dealing with iterators.
+ * Tools for dealing with iterators.
  */
 public final class Iterators {
 

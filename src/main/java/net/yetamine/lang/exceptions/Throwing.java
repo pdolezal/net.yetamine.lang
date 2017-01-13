@@ -33,9 +33,8 @@ import java.util.function.Predicate;
  *
  * <p>
  * When unsure how the exception could be handled, a good prevention of such
- * problems is using code like {@code throwing.then(Throwables::reinterrupt)}
- * early in the handling pipeline. Note that {@link UncheckedException} offers
- * yet another layer of protection and therefore it may be sufficient already.
+ * problems is applying code like {@code throwing.then(Interruption::renew)}
+ * early in the handling pipeline.
  *
  * @param <T>
  *            the type of the exception to handle
