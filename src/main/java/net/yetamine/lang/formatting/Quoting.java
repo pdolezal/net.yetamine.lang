@@ -169,6 +169,19 @@ public final class Quoting implements Function<Object, String> {
         return new StringBuilder().append(opening).append(escape.apply(o.toString())).append(closing).toString();
     }
 
+    /**
+     * Binds an object to a {@link ToString} instance that renders its string
+     * value on demand with this quoting instance.
+     *
+     * @param o
+     *            the object to bind
+     *
+     * @return an on-demand string-rendering object
+     */
+    public ToString bind(Object o) {
+        return new ToString(() -> apply(o));
+    }
+
     // Optimized common cases for direct use
 
     /**
