@@ -2,25 +2,69 @@
 
 This repository provides a library with small extensions of the Java runtime libraries.
 
-What can be found here:
+The library covers several areas and provides small pieces that should play well with vanilla Java runtime libraries rather than trying to replace some parts of them. The covered areas are:
 
-* Trivalent logic value type `Trivalent`.
-* Simple fix-sized containers like `Tuple2` and `Tuple3`.
-* An unmodifiable view of a byte sequence, `ByteSequence`, to represent binary constants.
-* A mutable `Box` for objects, which is useful for accumulators and for "out" method parameters.
-* Companions for `Optional`: `Choice` and `Single`. `Traversing` is notable as well.
-* Support for adapting arbitrary objects for use in try-with-resources.
-* Containers for single values that might be created on demand.
-* On-demand allocated and freed resource-like objects.
-* `Cloneable` support: no more fiddling with reflection.
-* Some minor utilities for using functional interfaces.
-* Several introspective utilities.
-* Several formatting utilities.
+* Resource management, i.e., extensions of `AutoCloseable` and support for further use of *try-with-resources*.
+* A tiny extension for Java Collection Framework, mostly focused on making immutable collections.
+* Containers for single values (supporting, e.g., deferred computation), tuples and a `byte[]` replacement.
+* Creational utilities that make `Cloneable` a bit more usable and provides a better alternative.
+* Exception handling utilities designed mostly for checked exceptions (but not only for them).
+* Formatting support for simple, but common cases (value quoting and logging when `toString` does not work well).
+* Functional utilities, including a more powerful alternatives to `Optional` designed for specific use cases.
+* A base for introspective features like extensible/optional interface contracts.
+* Trivalent logic value type.
 
 
 ## Examples ##
 
-Let's have a look at a few code snippets demonstrating some of the functionality that this library provides.
+Let's have a brief look at some code snippets that demonstrate some of the features provided by this library. Larger samples can be found in the `src/test` in package `net.yetamine.lang.snippets`, which hopefully will grow in the future to give more examples of using the library.
+
+
+### Making collection snapshots ###
+
+It is quite common to see code like `Collections.unmodifiableSet(new HashSet<>(source))` to make a copy of a collection, so that it could be stored, e.g., in an object's field and passed later elsewhere without the danger of unwanted modification. Great, but what if the source is empty? That code snippet makes then too many instances: the (empty) collection and the unmodifiable wrapper, although for empty collections an efficient singleton is available. So, `Capture.collection(source)` can be used instead; this method and its friends for other collections return an unmodifiable copy of the source, but take care not to keep unnecessary instances or wrappers.
+
+
+### Byte arrays? Why? ###
+
+Arrays are mutable. This becomes a nightmare when an array type appears as a parameter (or a part of). Defensive copying is expensive and often not possible (e.g., when the array is a part of another type that you can't control fully). There are collections for objects, but primitive types keep causing the pain.
+
+Here comes the `ByteSequence`. It can not only carry any binary data, but provides several ways to read them besides its own interface, which is similar to `CharSequence`, hence you can use `byte[]`, `ByteBuffer`, `IntStream` or a mixture of `InputStream` and `ReadableByteChannel`. As data sources, `byte[]` and `ByteBuffer` could be used besides a builder that provides a comfortable mixture of `OutputStream` and `WritableByteChannel`. Enjoy well-defined `equals` too!
+
+
+### Tuples ###
+
+Java is hostile towards tuples and therefore alternative solutions, often better in semantic expressiveness, must be applied instead. But sometimes having a tuple is useful anyway, especially when dealing with maps and streams of map entries. Indeed, transforming map entries in a stream or returning two or three values from a function at once is painful. Is it really necessary to make a special type everytime, even when the functionality is internal or very local? Use rather `Tuple2` or `Tuple3`:
+
+```{java}
+// Usual construction pattern for such classes
+final Tuple2<String, String> t2 = Tuple2.of("red", "rot");
+// And for friends of static imports a more concise variant (here for Tuple3)
+final Tuple3<String, String, Locale> t3 = tuple3("red", "rot", Locale.GERMAN);
+```
+
+But let's see something more appealing. What about zipping?
+
+```{java}
+// We have two lists of corresponding values:
+final List<String> en = Arrays.asList("red", "green", "blue");
+final List<String> de = Arrays.asList("rot", "grün", "blau");
+
+// And we want a map like this: {red=rot, green=grün, blue=blau}
+final Map<String, String> colors = new LinkedHashMap<>();
+Tuple2.zip(en, de).forEach(t -> t.use(colors::put));
+// Here it is!
+```
+
+If `en` and `de` were streams, we could use `Collectors` to make the map:
+
+```{java}
+map = Tuple2.zip(en, de).collect(Tuple2.toMap());
+
+// Which is actually a shortcut for:
+map = Tuple2.zip(en, de).collect(Collectors.toMap(Tuple2::get1, Tuple2::get2));
+```
+
 
 
 ### Error handling ###
@@ -87,38 +131,6 @@ resolution.ifUnknown(() -> System.out.println("I have no data yet.")).ifBoolean(
 ```
 
 
-### Tuples ###
-
-Java is hostile towards tuples and therefore alternative solutions, often better in semantic expressiveness, must be applied instead. But sometimes having a tuple is useful anyway, especially when dealing with maps and streams of map entries. Indeed, transforming map entries in a stream or returning two or three values from a function at once is painful. Is it really necessary to make a special type everytime, even when the functionality is internal or very local? Use rather `Tuple2` or `Tuple3`:
-
-```{java}
-// Usual construction pattern for such classes
-final Tuple2<String, String> t2 = Tuple2.of("red", "rot");
-// And for friends of static imports a more concise variant (here for Tuple3)
-final Tuple3<String, String, Locale> t3 = tuple3("red", "rot", Locale.GERMAN);
-```
-
-But let's see something more appealing. What about zipping?
-
-```{java}
-// We have two lists of corresponding values:
-final List<String> en = Arrays.asList("red", "green", "blue");
-final List<String> de = Arrays.asList("rot", "grün", "blau");
-
-// And we want a map like this: {red=rot, green=grün, blue=blau}
-final Map<String, String> colors = new LinkedHashMap<>();
-Tuple2.zip(en, de).forEach(t -> t.use(colors::put));
-// Here it is!
-```
-
-If `en` and `de` were streams, we could use `Collectors` to make the map:
-
-```{java}
-map = Tuple2.zip(en, de).collect(Tuple2.toMap());
-
-// Which is actually a shortcut for:
-map = Tuple2.zip(en, de).collect(Collectors.toMap(Tuple2::get1, Tuple2::get2));
-```
 
 
 ### Having a `Box` is a good thing ###
@@ -233,7 +245,7 @@ final Supplier<?> answer = () -> {
     try { // This could take maybe a lot of time
         Thread.currentThread().sleep(Math.abs((long) new Random().nextInt()));
     } catch (InterruptedException e) {
-        throw new RuntimeException(e);
+        throw InterruptionException.signal(e); // Yet another improvement here
     }
 
     return 42;
@@ -252,16 +264,6 @@ System.out.println(weak.get()); // Well, depends on the garbage collection. Mayb
 ```
 
 
-### Making collection snapshots ###
-
-It is quite common to see code like `Collections.unmodifiableSet(new HashSet<>(source))` to make a copy of a collection, so that it could be stored for an object's needs and perhaps even passed elsewhere, avoiding the danger of unwanted modification. Great, but what if the source is empty? This code snippet makes always a couple of instances: the value holder and the unmodifiable wrapper, although for empty collections a singleton is available. So, `Capture.collection(source)` can be used instead; this method and its friends for other collections return an unmodifiable copy of the source, but take care not to create unnecessary instances or wrappers.
-
-
-### Byte arrays? Why? ###
-
-Arrays are mutable. This becomes a nightmare when an array type appears as a parameter (or a part of). Defensive copying is expensive and often not possible (e.g., when the array is a part of another type that you can't control fully). There are collections for objects, but primitive types keep causing the pain.
-
-Here comes the `ByteSequence`. It can not only carry any binary data, but provides several ways to read them besides its own interface, which is similar to `CharSequence`, hence you can use `byte[]`, `ByteBuffer`, `IntStream` or a mixture of `InputStream` and `ReadableByteChannel`. As data sources, `byte[]` and `ByteBuffer` could be used besides a builder that provides a comfortable mixture of `OutputStream` and `WritableByteChannel`. Enjoy well-defined `equals` too!
 
 
 ### Making contracts more flexible ###

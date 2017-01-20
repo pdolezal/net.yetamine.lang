@@ -45,7 +45,7 @@ public final class TestResourceStack {
     @Test
     public void testEmpty() throws Exception {
         try (ResourceStack<IOException> group = new ResourceStack<>()) {
-            // Do nothing
+            Assert.assertNotNull(group); // Just to avoid warning
         }
     }
 

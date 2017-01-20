@@ -45,7 +45,7 @@ public final class TestResourcePile {
     @Test
     public void testEmpty() throws Exception {
         try (ResourceGroup<IOException> group = new ResourcePile<>()) {
-            // Do nothing
+            Assert.assertNotNull(group);
         }
     }
 

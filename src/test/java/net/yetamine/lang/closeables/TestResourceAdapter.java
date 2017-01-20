@@ -131,6 +131,7 @@ public final class TestResourceAdapter {
 
         final AtomicInteger resource = new AtomicInteger(OPENED);
         try (ResourceHandle<AtomicInteger, IOException> ra = ResourceAdapter.adopted(resource, closing)) {
+            Assert.assertNotNull(ra);
             throw new IOException();
         } catch (IOException e) {
             // Ignore now
@@ -174,17 +175,17 @@ public final class TestResourceAdapter {
         };
 
         try (ResourceHandle<AtomicInteger, IOException> ra = ResourceAdapter.adopted(null, closing)) {
-            // Do nothing: no failure with no actual resource
+            Assert.assertNotNull(ra);
         }
 
         try (ResourceHandle<AtomicInteger, IOException> ra = ResourceAdapter.managed(opening, closing)) {
-            // Do nothing: no failure with no actual resource retrieved
+            Assert.assertNotNull(ra);
         }
 
         Assert.expectThrows(IOException.class, () -> {
             final AtomicInteger resource = new AtomicInteger(OPENED);
             try (ResourceHandle<AtomicInteger, IOException> ra = ResourceAdapter.adopted(resource, closing)) {
-                // Do nothing
+                Assert.assertNotNull(ra);
             }
         });
 
