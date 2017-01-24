@@ -17,19 +17,21 @@ The library covers several areas and provides small pieces that should play well
 
 ## Examples ##
 
-Let's have a brief look at some code snippets that demonstrate some of the features provided by this library. Larger samples can be found in the `src/test` in package `net.yetamine.lang.snippets`, which hopefully will grow in the future to give more examples of using the library.
+Let's have a brief look at some small code snippets that demonstrate some of the features provided by this library. Larger samples, which demonstrate the use of the library, can be found in package `net.yetamine.lang.snippets` in `src/test`.
 
 
 ### Making collection snapshots ###
 
-It is quite common to see code like `Collections.unmodifiableSet(new HashSet<>(source))` to make a copy of a collection, so that it could be stored, e.g., in an object's field and passed later elsewhere without the danger of unwanted modification. Great, but what if the source is empty? That code snippet makes then too many instances: the (empty) collection and the unmodifiable wrapper, although for empty collections an efficient singleton is available. So, `Capture.collection(source)` can be used instead; this method and its friends for other collections return an unmodifiable copy of the source, but take care not to keep unnecessary instances or wrappers.
+It is quite common to see code like `Collections.unmodifiableSet(new HashSet<>(source))` to make a copy of a collection, so that it could be stored, e.g., in an object's field and passed later elsewhere without the danger of unwanted modification. This is definitely a good idea.
+
+However, the code snippet can be quite inefficient when `source` is empty; in that case the code snippet makes too many instances: the (empty) collection, with all its internal structures, and the unmodifiable wrapper. Compare it to the most efficient solution, which is an unmodifiable singleton for the empty collection. `Capture.collection(source)` can be used instead of this code snippet: this method and its friends for other collections return an unmodifiable copy of the source, but take care not to keep unnecessary instances or wrappers and prefer returning an empty singleton for an empty source.
 
 
 ### Byte arrays? Why? ###
 
-Arrays are mutable. This becomes a nightmare when an array type appears as a parameter (or a part of). Defensive copying is expensive and often not possible (e.g., when the array is a part of another type that you can't control fully). There are collections for objects, but primitive types keep causing the pain.
+Arrays are mutable. This becomes a nightmare when an array type appears as a parameter (or a part of). Defensive copying is expensive and sometimes impossible (e.g., when the array is a part of another type that you can't control fully). There are collections for objects, but primitive types keep causing the pain.
 
-Here comes the `ByteSequence`. It can not only carry any binary data, but provides several ways to read them besides its own interface, which is similar to `CharSequence`, hence you can use `byte[]`, `ByteBuffer`, `IntStream` or a mixture of `InputStream` and `ReadableByteChannel`. As data sources, `byte[]` and `ByteBuffer` could be used besides a builder that provides a comfortable mixture of `OutputStream` and `WritableByteChannel`. Enjoy well-defined `equals` too!
+Well, this library offers a solution for the most painful case: binary data. Here comes the `ByteSequence`. Its interface resembles `CharSequence`, but besides that it offers more alternative ways to read the data. Hence you can use `byte[]`, `ByteBuffer`, `IntStream` or a mixture of `InputStream` and `ReadableByteChannel`. For constructing an instance, `byte[]` and `ByteBuffer` could be used besides a builder that provides a mixture of `OutputStream` and `WritableByteChannel`. The cream on the top is well-defined `equals`.
 
 
 ### Tuples ###
@@ -66,46 +68,6 @@ map = Tuple2.zip(en, de).collect(Collectors.toMap(Tuple2::get1, Tuple2::get2));
 ```
 
 
-
-### Error handling ###
-
-Error messages should contain the values that indicate the root of the problem. It is nice to have the actual values quoted in a way, so that they do not blend with the rest of the message, but when the value could be `null`, a problem comes.
-
-Having quotes in the message template does not help always. For instance, does the message *Element is 'null'.* mean that the element is `null` or that the element displays as a string *null*? It should be *Element is null.* without the quotes when the element is indeed `null`. Here `Quoting` helps.
-
-And let's combine `Quoting` with `Throwables` in the snippet. Some exceptions don't have any constructor for setting their cause which becomes annoying when the cause is present. So…
-
-```{java}
-try {
-    // Do some stuff
-} catch (IllegalArgumentException e) {
-    // Null-tolerant quoting that makes the difference between "null" and null
-    final String m = String.format("No element found for %s.", Quoting.single(key));
-    // When missing cause-providing constructor, this is a compact alternative
-    throw Throwables.init(new NoSuchElementException(m), e);
-}
-```
-
-By the way, when talking about exceptions, have you ever had to solve problem like wrapping and unwrapping an exception or analyzing a cause of an exception to throw a more proper exception than offered? What about this:
-
-```{java}
-final Callable<String> action = () -> {
-    // Here run something what may fail with a valuable IOException
-    return result;
-}
-
-// Let's execute the action with a Future somewhere else
-try {
-    System.out.println(future.get());
-} catch (ExecutionException e) {
-    // Well, great: we would like to throw the valuable IOException rather than
-    // something else, but only if the execution failed due to an I/O error
-    Throwing.cause(e).throwIf(IOException.class);
-    
-    throw new RuntimeException(e); // Just pass the others, not so interesting 
-}
-```
-
 ### Sometimes Boolean is not good enough ###
 
 Usually, `true` and `false` work well. But what if you need "I don't know (yet)"? Using a `Boolean` with `null` as the third value is a bad practice. Use rather `Trivalent`:
@@ -131,11 +93,49 @@ resolution.ifUnknown(() -> System.out.println("I have no data yet.")).ifBoolean(
 ```
 
 
+### Error handling ###
+
+Error messages should contain the values that indicate the root of the problem and it is nice to have the actual values somehow quoted, so that they do not blend with the rest of the message and they are easier to spot. Just having quotes in the message template does not help always: for instance, does the message *Element is 'null'.* mean that the element is `null`, or that the element exists its `toString` method returns `"null"`? In the former case, the message should read *Element is null.* without the quotes. Here `Quoting` helps.
+
+And let's combine `Quoting` with `Throwables` in the snippet. Some exceptions don't have any constructor for setting their cause which becomes annoying when the cause is present. So…
+
+```{java}
+try {
+    // Do some stuff
+} catch (IllegalArgumentException e) {
+    // Null-tolerant quoting that makes the difference between "null" and null
+    final String m = String.format("No element found for %s.", Quoting.single(key));
+    // When missing a cause-providing constructor, this is a compact alternative
+    throw Throwables.init(new NoSuchElementException(m), e);
+}
+```
+
+By the way, when talking about exceptions, have you ever had to solve problem like wrapping and unwrapping an exception or analyzing a cause of an exception to throw a more proper exception than offered? What about this:
+
+```{java}
+final Callable<String> action = () -> {
+    // Here run something what may fail with a valuable IOException
+    return result;
+}
+
+// Let's execute the action with a Future somewhere else
+try {
+    System.out.println(future.get());
+} catch (ExecutionException e) {
+    // Well, great: we would like to throw the valuable IOException rather than
+    // something else, but only if the execution failed due to an I/O error
+    Throwing.cause(e).throwIf(IOException.class);
+    // Just pass the others as another Yetamine's useful exception 
+    throw new UncheckedException(e);
+}
+```
+
+There is much more about exception handling, especially for easier dealing with checked exceptions. See `net.yetamine.lang.exceptions` package.
 
 
 ### Having a `Box` is a good thing ###
 
-A mutable box for storing a reference is often useful, e.g., when implementing a `Collector` or when passing a value from a method using an "out" parameter. An `AtomicReference` is often too expensive, a single-element array… well, arrays are better to avoid for many reasons… The `Box` is the best solution then:
+A mutable box for storing a reference is often useful, e.g., when implementing a `Collector` or when passing a value from a method via an "out" parameter. An `AtomicReference` is often too expensive, a single-element array… well, arrays are better to avoid for many reasons… The `Box` is the best solution then:
 
 ```{java}
 boolean haveFun(Box<? super String> box) {
@@ -155,15 +155,15 @@ if (haveFun(box)) {
 }
 ```
 
-Well, the `Box` can do more. Check it out to see.
+Well, the `Box` can do much more.
 
 
 ### Looking for the single occurrence ###
 
-While `Optional` is fine and `Stream::find*` methods work well, they are not much useful when we need to know whether the provided element is indeed only one of the possibilities. What if the stream provides more of them? A compact solution? Using `Single`:
+While `Optional` is fine and `Stream::find*` methods work well, they are not much useful when we need to know whether the provided element is indeed the only one that matches. What if the stream provides more of them? A compact solution? Using `Single`:
 
 ```{java}
-// Filter the elements in a collection and get first one, ensuring that no other exists
+// Filter the elements in a collection and get first one, ensuring that no other equal exists
 element = Single.head(collection.stream().filter(condition)).orElseThrow(NoSuchElementException::new);
 // Now 'element' contains the single value produced by the stream. If there are more values available,
 // or no values at all, NoSuchElementException is thrown instead.
@@ -205,12 +205,12 @@ final String connectToAddress = NETWORK.apply(configuration).flatMap(CONNECT).fl
     .orElseThrow(() -> new IllegalArgumentException("Missing connection address."));
 ```
 
-How to do so? Even without any modification of the type of the `configuration` variable? The trick is to let the constants implement the `Traversing` interface (which is basically a slightly polished `Function`) and that's it. Another sweet point of this approach is that the constants can be then even `enum` constants. Have a look at our example for the `Traversing` interface to see it in detail.
+How to do so? Even without any modification of the type of the `configuration` variable? The trick is to let the constants implement the `Traversing` interface (which is basically a slightly polished `Function`) and that's it. Another sweet point of this approach is that `enum` can be used for implementing these constants. See the `net.yetamine.lang.snippets` package.
 
 
 ### When `Optional` becomes awkward ###
 
-`Optional` is great and the `Traversing` example shows it. However, it can distinguish only whether an object is present or not and the only invalid value is `null`. Sometimes you might need rather a container that just marks a value as *true* or *false* and lets the consumer to decide how to deal with the value – sometimes even a wrong value is better than none, e.g., when logging or when taking an alternative decision needs some additional information.
+`Optional` is great and the `Traversing` example shows it. However, it can distinguish only whether an object is present or not and the only invalid value is `null`. Sometimes you might appreciate more a container that just remembers whether a value is *right* or *wrong* and lets the consumer to decide how to deal with the value. Sometimes even a wrong value is better than none, e.g., when logging or when taking an alternative decision needs some additional information.
 
 Besides that, there is one more use case when `Optional` does not work very well, although it should:
 
@@ -221,12 +221,12 @@ boolean greet(String name) {
         System.out.println(result.get());
         return true;
     }
-    
+
     return false; // No greeting for you
 }
 ```
 
-Try to avoid consulting `isPresent` *and* `get`. There are several ways: using `Optional::map`, storing `result.orElse(null)` and testing the intermediate result… or to use `Choice`:
+Try to avoid consulting *both* `isPresent` *and* `get`. There are several ways: using `Optional::map`, storing `result.orElse(null)` and testing the intermediate result… or to use `Choice`:
 
 ```{java}
 boolean greet(String name) {
@@ -245,7 +245,7 @@ final Supplier<?> answer = () -> {
     try { // This could take maybe a lot of time
         Thread.currentThread().sleep(Math.abs((long) new Random().nextInt()));
     } catch (InterruptedException e) {
-        throw InterruptionException.signal(e); // Yet another improvement here
+        throw InterruptionException.signal(e); // Yet another exception handling improvement
     }
 
     return 42;
@@ -256,7 +256,8 @@ final Supplier<?> supplier = new Deferred<>(answer);
 System.out.println(supplier.get()); // Invokes the computation
 System.out.println(supplier.get()); // Uses the computed value, answers immediately
 
-// When the answer could be too large, let's cache it with WeakReference
+// When the answer could be too large, let's cache it with WeakReference, so that
+// the garbage collector can discard it when the memory becomes more precious
 final Supplier<?> weak = new Indirect<>(answer, v -> new WeakReference<>(v)::get);
 
 System.out.println(weak.get()); // Invokes the computation
@@ -264,13 +265,11 @@ System.out.println(weak.get()); // Well, depends on the garbage collection. Mayb
 ```
 
 
-
-
 ### Making contracts more flexible ###
 
 Having too few contract conditions for an interface is bad: clients of the interface don't know what might happen and implementations must be more cautious as well and perhaps employ defensive copying and other measures to avoid legal, although not very clean behavior of their callers. Having too many contract conditions brings problems as well: it could restrict implementations too much, so that some desired functionality can't be implemented with sufficient efficiency or at all.
 
-Here comes `Extensible`: a mixin interface that allows an implementation to declare some extensions of its contract that are optional or not defined by the basic contract. Extension-aware clients may then leverage the extension to employ a more efficient use of the interface. Note that marker interfaces, like `RandomAccess`, could be used as well, but they have several disadvantages – for instance, the extension support can't vary and depends on a particular type, which is especially tricky when using wrappers. The best part comes at the end: you can use `Extensions` with any object. Here is an example:
+Here comes `Extensible`: a mixin interface that allows an implementation to declare some extensions of its contract that are optional or maybe undefined by the basic contract. Extension-aware clients may then leverage the extension to employ a more efficient use of the interface implementation. Note that marker interfaces, like `RandomAccess`, could be used as well, but they have several disadvantages – for instance, the extension support can't vary and depends on a particular type, which is especially tricky when using wrappers. The best part comes at the end: you can use `Extensions` with any object. Here is an example:
 
 ```{java}
 final Consumer<byte[]> operation = …;
