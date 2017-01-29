@@ -25,6 +25,13 @@ import java.security.NoSuchAlgorithmException;
 public final class ByteSequences {
 
     /**
+     * Prevents creating instances of this class.
+     */
+    private ByteSequences() {
+        throw new AssertionError();
+    }
+
+    /**
      * Implements {@link ByteSequence#equals(Object)}.
      *
      * @param that
@@ -206,9 +213,5 @@ public final class ByteSequences {
         }
 
         return result;
-    }
-
-    private ByteSequences() {
-        throw new AssertionError();
     }
 }

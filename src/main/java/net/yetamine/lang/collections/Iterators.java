@@ -27,6 +27,13 @@ import java.util.stream.StreamSupport;
 public final class Iterators {
 
     /**
+     * Prevents creating instances of this class.
+     */
+    private Iterators() {
+        throw new AssertionError();
+    }
+
+    /**
      * Makes a {@link Stream} from the given iterator.
      *
      * <p>
@@ -41,9 +48,5 @@ public final class Iterators {
      */
     public static <T> Stream<T> stream(Iterator<? extends T> iterator) {
         return StreamSupport.stream(Spliterators.spliteratorUnknownSize(iterator, 0), false);
-    }
-
-    private Iterators() {
-        throw new AssertionError();
     }
 }

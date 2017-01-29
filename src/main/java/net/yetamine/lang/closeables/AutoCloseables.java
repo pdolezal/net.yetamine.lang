@@ -25,6 +25,13 @@ import java.io.IOException;
 public final class AutoCloseables {
 
     /**
+     * Prevents creating instances of this class.
+     */
+    private AutoCloseables() {
+        throw new AssertionError();
+    }
+
+    /**
      * Closes the given resource if not {@code null}.
      *
      * @param resource
@@ -72,9 +79,5 @@ public final class AutoCloseables {
         }
 
         return false;
-    }
-
-    private AutoCloseables() {
-        throw new AssertionError();
     }
 }

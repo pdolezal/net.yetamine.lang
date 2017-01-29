@@ -22,6 +22,13 @@ package net.yetamine.lang;
 public final class Types {
 
     /**
+     * Prevents creating instances of this class.
+     */
+    private Types() {
+        throw new AssertionError();
+    }
+
+    /**
      * Returns the class of an object.
      *
      * @param <T>
@@ -65,9 +72,5 @@ public final class Types {
     @SuppressWarnings("unchecked")
     public static <T> Class<T> cast(Class<?> clazz) {
         return (Class<T>) clazz;
-    }
-
-    private Types() {
-        throw new AssertionError();
     }
 }

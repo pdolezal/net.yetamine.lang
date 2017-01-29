@@ -25,6 +25,13 @@ import java.util.function.BiPredicate;
 public final class BiPredicates {
 
     /**
+     * Prevents creating instances of this class.
+     */
+    private BiPredicates() {
+        throw new AssertionError();
+    }
+
+    /**
      * Makes an instance from the given predicate.
      *
      * <p>
@@ -193,9 +200,5 @@ public final class BiPredicates {
 
             return false;
         };
-    }
-
-    private BiPredicates() {
-        throw new AssertionError();
     }
 }

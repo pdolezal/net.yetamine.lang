@@ -25,6 +25,13 @@ import java.util.function.Predicate;
 public final class Predicates {
 
     /**
+     * Prevents creating instances of this class.
+     */
+    private Predicates() {
+        throw new AssertionError();
+    }
+
+    /**
      * Makes an instance from the given predicate.
      *
      * <p>
@@ -179,9 +186,5 @@ public final class Predicates {
 
             return false;
         };
-    }
-
-    private Predicates() {
-        throw new AssertionError();
     }
 }

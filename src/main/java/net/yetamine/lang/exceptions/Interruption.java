@@ -23,6 +23,13 @@ package net.yetamine.lang.exceptions;
 public final class Interruption {
 
     /**
+     * Prevents creating instances of this class.
+     */
+    private Interruption() {
+        throw new AssertionError();
+    }
+
+    /**
      * Interrupts the current thread.
      */
     public static void renew() {
@@ -70,9 +77,5 @@ public final class Interruption {
     public static InterruptedException signal() {
         Thread.interrupted();
         return new InterruptedException();
-    }
-
-    private Interruption() {
-        throw new AssertionError();
     }
 }

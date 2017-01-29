@@ -23,6 +23,13 @@ package net.yetamine.lang.functional;
 public final class NoOperation {
 
     /**
+     * Prevents creating instances of this class.
+     */
+    private NoOperation() {
+        throw new AssertionError();
+    }
+
+    /**
      * Does nothing.
      *
      * <p>
@@ -91,9 +98,5 @@ public final class NoOperation {
      */
     public static <T, U, V> void execute(T argument1, U argument2, V argument3) {
         // Do nothing
-    }
-
-    private NoOperation() {
-        throw new AssertionError();
     }
 }

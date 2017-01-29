@@ -34,6 +34,13 @@ import net.yetamine.lang.exceptions.Throwables;
 public final class Cloneables {
 
     /**
+     * Prevents creating instances of this class.
+     */
+    private Cloneables() {
+        throw new AssertionError();
+    }
+
+    /**
      * Clones an object.
      *
      * @param <T>
@@ -176,9 +183,5 @@ public final class Cloneables {
         final Object result = Array.newInstance(component, length);
         System.arraycopy(array, 0, result, 0, length);
         return clazz.cast(result);
-    }
-
-    private Cloneables() {
-        throw new AssertionError();
     }
 }

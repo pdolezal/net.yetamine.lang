@@ -43,6 +43,13 @@ import java.util.function.Function;
 public final class Capture {
 
     /**
+     * Prevents creating instances of this class.
+     */
+    private Capture() {
+        throw new AssertionError();
+    }
+
+    /**
      * Returns the most convenient representation of a frozen collection, which
      * may be an empty instance, an optimized single-element implementation, or
      * an unmodifiable view holding the original collection.
@@ -409,9 +416,5 @@ public final class Capture {
         final SortedMap<K, V> result = transformation.apply(source);
         final SortedMap<K, V> unmodifiable = Collections.unmodifiableSortedMap(result);
         return (result.getClass() == unmodifiable.getClass()) ? result : unmodifiable;
-    }
-
-    private Capture() {
-        throw new AssertionError();
     }
 }

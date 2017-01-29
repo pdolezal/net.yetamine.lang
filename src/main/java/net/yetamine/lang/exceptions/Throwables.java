@@ -22,6 +22,13 @@ package net.yetamine.lang.exceptions;
 public final class Throwables {
 
     /**
+     * Prevents creating instances of this class.
+     */
+    private Throwables() {
+        throw new AssertionError();
+    }
+
+    /**
      * Throws the given exception.
      *
      * @param <X>
@@ -100,9 +107,5 @@ public final class Throwables {
         assert (t != null);
         t.initCause(cause);
         return t;
-    }
-
-    private Throwables() {
-        throw new AssertionError();
     }
 }
