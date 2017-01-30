@@ -88,6 +88,11 @@ public final class TestBox {
 
         Assert.assertNotEquals(Box.of(o1), Box.of(o2));
         Assert.assertNotEquals(Box.of(o1), Box.empty());
+
+        final String s1 = "Hello";
+        final Object s2 = new String(s1);
+        Assert.assertEquals(Box.of(s1), Box.of(s2));
+        Assert.assertEquals(Box.of(s1).hashCode(), Box.of(s2).hashCode());
     }
 
     /**
