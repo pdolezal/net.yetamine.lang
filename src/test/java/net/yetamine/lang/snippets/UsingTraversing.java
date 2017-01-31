@@ -46,7 +46,7 @@ public final class UsingTraversing {
      *
      * <p>
      * See the implementation of the other parts within the class to understand
-     * the whole idean and the details.
+     * the whole idea and the details.
      *
      * @param configuration
      *            the configuration object. It must not be {@code null}.
