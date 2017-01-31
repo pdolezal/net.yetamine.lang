@@ -177,9 +177,8 @@ public final class Choice<T> implements Supplier<T> {
      *
      * @return the new instance
      */
-    @SuppressWarnings("unchecked")
     public static <T> Choice<T> from(Optional<? extends T> optional) {
-        return (Choice<T>) optional.map(Choice::right).orElseGet(Choice::wrongNull);
+        return Choice.narrow(optional.map(Choice::right).orElseGet(Choice::wrongNull));
     }
 
     /**
