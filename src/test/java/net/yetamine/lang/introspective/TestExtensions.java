@@ -94,6 +94,9 @@ public final class TestExtensions {
 
         Assert.assertEquals(Extensions.list(a), Extensions.from(Arrays.asList(a)));
         Assert.assertEquals(Extensions.list(a, b), Extensions.from(Arrays.asList(a, b)));
+        Assert.assertEquals(Extensions.list(a, b), Extensions.combined(Extensions.list(a), Extensions.list(b)));
+        Assert.assertEquals(Extensions.list(a, b), Extensions.list(a).with(b));
+        Assert.assertEquals(Extensions.list(a, b, c), Extensions.list(a).with(b, c));
 
         final Set<Object> set = new HashSet<>(Arrays.asList(a, b));
         final Extensions extensions = Extensions.using(set);

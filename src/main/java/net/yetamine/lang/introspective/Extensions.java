@@ -141,7 +141,8 @@ public final class Extensions implements Serializable {
      * @return the new instance
      */
     public static Extensions from(Collection<?> extensions) {
-        return new Extensions(Capture.set(extensions));
+        final Set<?> capture = Capture.set(extensions);
+        return capture.isEmpty() ? empty() : new Extensions(capture);
     }
 
     /**
@@ -153,17 +154,44 @@ public final class Extensions implements Serializable {
      * @return the new instance
      */
     public static Extensions from(Stream<?> extensions) {
-        return using(extensions.collect(Collectors.toSet()));
+        final Set<?> values = extensions.collect(Collectors.toSet());
+        return values.isEmpty() ? empty() : new Extensions(Capture.frozen(values));
+    }
+
+    /**
+     * Creates a new instance.
+     *
+     * @param extensions
+     *            the extensions to combine. It must not be {@code null}.
+     *
+     * @return the new instance
+     */
+    public static Extensions combined(Extensions... extensions) {
+        return combined(Stream.of(extensions));
+    }
+
+    /**
+     * Creates a new instance.
+     *
+     * @param extensions
+     *            the stream of extensions to combine. It must not be
+     *            {@code null}.
+     *
+     * @return the new instance
+     */
+    public static Extensions combined(Stream<Extensions> extensions) {
+        final Set<?> values = extensions.flatMap(extension -> extension.known().stream()).collect(Collectors.toSet());
+        return values.isEmpty() ? empty() : new Extensions(Capture.frozen(values));
     }
 
     /**
      * Creates a new instance.
      *
      * <p>
-     * Unlike {@link #from(Collection)}, this method does not make an
-     * immutable copy of the collection, it rather uses it as it is, therefore
-     * the caller may influence the content of the instance through the original
-     * reference. It is strongly recommended to use a concurrent set then.
+     * Unlike {@link #from(Collection)}, this method does not make an immutable
+     * copy of the collection, it rather uses it as it is, therefore the caller
+     * may influence the content of the instance through the original reference.
+     * It is strongly recommended to use a concurrent set then.
      *
      * @param extensions
      *            the extensions to provide. It must not be {@code null}.
@@ -201,6 +229,30 @@ public final class Extensions implements Serializable {
      */
     public static Extensions of(Extensible o) {
         return (o != null) ? o.extensions() : empty();
+    }
+
+    /**
+     * Returns an instance with an additional extension.
+     *
+     * @param more
+     *            the extension to add. It must not be {@code null}.
+     *
+     * @return an instance combining {@link #known()} and the given extension
+     */
+    public Extensions with(Object more) {
+        return from(Stream.concat(known().stream(), Stream.of(more)));
+    }
+
+    /**
+     * Returns an instance with additional extensions.
+     *
+     * @param more
+     *            the extensions to add. It must not be {@code null}.
+     *
+     * @return an instance combining {@link #known()} and the given extensions
+     */
+    public Extensions with(Object... more) {
+        return from(Stream.concat(known().stream(), Stream.of(more)));
     }
 
     /**
