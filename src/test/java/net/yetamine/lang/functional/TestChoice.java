@@ -131,6 +131,15 @@ public final class TestChoice {
         } else {
             Assert.assertSame(box.get(), o2);
         }
+
+        box.set(o);
+        // Test unconditional consumption
+        choice.use(value -> {
+            Assert.assertSame(value, o);
+            box.set(o1);
+        });
+
+        Assert.assertSame(box.get(), o1);
     }
 
     /**
@@ -238,6 +247,11 @@ public final class TestChoice {
         } else {
             Assert.assertSame(r2, o2);
         }
+
+        // Apply general reconciliation
+        Assert.expectThrows(IOException.class, () -> choice.resolve(value -> Throwables.raise(new IOException())));
+        Assert.assertSame(choice.reconcile(any -> o1), o1);
+        Assert.assertSame(choice.resolve(any -> o1), o1);
     }
 
     @SuppressWarnings("javadoc")

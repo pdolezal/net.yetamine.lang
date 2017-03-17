@@ -444,6 +444,21 @@ public final class Choice<T> implements Supplier<T> {
     }
 
     /**
+     * Applies the given action regardless of the actual <i>right</i> or
+     * <i>wrong</i> case.
+     *
+     * @param consumer
+     *            the consumer to accept the represented value. It must not be
+     *            {@code null}.
+     *
+     * @return this instance
+     */
+    public Choice<T> use(Consumer<? super T> consumer) {
+        consumer.accept(value);
+        return this;
+    }
+
+    /**
      * Maps the represented value and returns it using the appropriate mapping
      * function for the actual <i>right</i> or <i>wrong</i> case.
      *
@@ -460,6 +475,22 @@ public final class Choice<T> implements Supplier<T> {
      */
     public <V> V reconcile(Function<? super T, ? extends V> whenRight, Function<? super T, ? extends V> whenWrong) {
         return isRight() ? whenRight.apply(value) : whenWrong.apply(value);
+    }
+
+    /**
+     * Maps the represented value and returns it using the given function
+     * regardless of the actual <i>right</i> or <i>wrong</i> case.
+     *
+     * @param <V>
+     *            the type of the new value
+     * @param function
+     *            the function to map the represented value. It must not be
+     *            {@code null}.
+     *
+     * @return the mapped value
+     */
+    public <V> V reconcile(Function<? super T, ? extends V> function) {
+        return function.apply(value);
     }
 
     /**
@@ -484,5 +515,26 @@ public final class Choice<T> implements Supplier<T> {
      */
     public <V, X extends Exception> V resolve(ThrowingOperation<? super T, ? extends V, ? extends X> whenRight, ThrowingOperation<? super T, ? extends V, ? extends X> whenWrong) throws X {
         return isRight() ? whenRight.execute(value) : whenWrong.execute(value);
+    }
+
+    /**
+     * Maps the represented value and returns it using the given function
+     * regardless of the actual <i>right</i> or <i>wrong</i> case.
+     *
+     * @param <V>
+     *            the type of the new value
+     * @param <X>
+     *            the type of the exception that might be thrown
+     * @param function
+     *            the function to map the represented value. It must not be
+     *            {@code null}.
+     *
+     * @return the mapped value
+     *
+     * @throws X
+     *             if an operation fails
+     */
+    public <V, X extends Exception> V resolve(ThrowingOperation<? super T, ? extends V, ? extends X> function) throws X {
+        return function.execute(value);
     }
 }

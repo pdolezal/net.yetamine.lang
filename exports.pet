@@ -15,5 +15,5 @@ net.yetamine.lang.containers.values:    1.0.0 @ none
 net.yetamine.lang.creational:           1.0.0 @ none
 net.yetamine.lang.exceptions:           1.0.0 @ none
 net.yetamine.lang.formatting:           1.0.0 @ none
-net.yetamine.lang.functional:           1.0.0 @ none
+net.yetamine.lang.functional:           1.0.0 @ minor
 net.yetamine.lang.introspective:        1.0.0 @ none
