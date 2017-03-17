@@ -155,7 +155,19 @@ if (haveFun(box)) {
 }
 ```
 
-Well, the `Box` can do much more.
+Well, the `Box` can do much more. Here is an example of using `Box` for reasonably fluent `Map` fill:
+
+```{java}
+static final Map<TimeUnit, String> UNITS = Box.of(new EnumMap<TimeUnit, String>(TimeUnit.class)).use(m -> {
+     m.put(TimeUnit.NANOSECONDS, "ns");
+     m.put(TimeUnit.MICROSECONDS, "μs");
+     m.put(TimeUnit.MILLISECONDS, "ms");
+     m.put(TimeUnit.SECONDS, "s");
+     m.put(TimeUnit.MINUTES, "min");
+     m.put(TimeUnit.HOURS, "h");
+     m.put(TimeUnit.DAYS, "d");
+ }).map(Collections::unmodifiableMap);
+```
 
 
 ### Looking for the single occurrence ###

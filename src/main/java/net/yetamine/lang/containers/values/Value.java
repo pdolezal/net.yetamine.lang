@@ -16,6 +16,9 @@
 
 package net.yetamine.lang.containers.values;
 
+import java.util.function.Consumer;
+
+import net.yetamine.lang.Kind1;
 import net.yetamine.lang.concurrent.Invalidable;
 import net.yetamine.lang.functional.Producer;
 
@@ -36,7 +39,21 @@ import net.yetamine.lang.functional.Producer;
  *            the type of the element
  */
 @FunctionalInterface
-public interface Value<T> extends Invalidable, Producer<T> {
+public interface Value<T> extends Invalidable, Producer<T>, Kind1<Value<?>, T> {
+
+    /**
+     * Passes the value to the given consumer like {@link #pass(Consumer)} and
+     * returns this instance.
+     *
+     * @param consumer
+     *            the consumer to use. It must not be {@code null}.
+     *
+     * @return this instance
+     */
+    default Value<T> use(Consumer<? super T> consumer) {
+        pass(consumer);
+        return this;
+    }
 
     /**
      * This method requests releasing the value if it could be retrieved again,

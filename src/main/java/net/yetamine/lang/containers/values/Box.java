@@ -201,12 +201,7 @@ public final class Box<T> implements Serializable, Value<T>, Pointer<T> {
     }
 
     /**
-     * Passes the contained value to the specified consumer.
-     *
-     * @param consumer
-     *            the consumer to call. It must not be {@code null}.
-     *
-     * @return this instance
+     * @see net.yetamine.lang.containers.values.Value#use(java.util.function.Consumer)
      */
     public Box<T> use(Consumer<? super T> consumer) {
         consumer.accept(value);

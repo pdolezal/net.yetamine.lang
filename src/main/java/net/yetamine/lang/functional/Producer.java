@@ -17,6 +17,7 @@
 package net.yetamine.lang.functional;
 
 import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
@@ -84,6 +85,16 @@ public interface Producer<T> extends Supplier<T> {
      */
     default Optional<T> filter(Predicate<? super T> condition) {
         return optional().filter(condition);
+    }
+
+    /**
+     * Passes the result of {@link #get()} to the given consumer.
+     *
+     * @param consumer
+     *            the consumer to use. It must not be {@code null}.
+     */
+    default void pass(Consumer<? super T> consumer) {
+        consumer.accept(get());
     }
 
     /**

@@ -11,7 +11,7 @@ net.yetamine.lang.concurrent:           1.0.0 @ none
 net.yetamine.lang.containers:           1.0.0 @ none
 net.yetamine.lang.containers.bytes:     1.0.0 @ none
 net.yetamine.lang.containers.tuples:    1.0.0 @ none
-net.yetamine.lang.containers.values:    1.0.0 @ none
+net.yetamine.lang.containers.values:    1.0.0 @ minor
 net.yetamine.lang.creational:           1.0.0 @ none
 net.yetamine.lang.exceptions:           1.0.0 @ none
 net.yetamine.lang.formatting:           1.0.0 @ none
