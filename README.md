@@ -38,7 +38,7 @@ Well, this library offers a solution for the most painful case: binary data. Her
 
 Java is hostile towards tuples and therefore alternative solutions, often better in semantic expressiveness, must be applied instead. But sometimes having a tuple is useful anyway, especially when dealing with maps and streams of map entries. Indeed, transforming map entries in a stream or returning two or three values from a function at once is painful. Is it really necessary to make a special type everytime, even when the functionality is internal or very local? Use rather `Tuple2` or `Tuple3`:
 
-```{java}
+```java
 // Usual construction pattern for such classes
 final Tuple2<String, String> t2 = Tuple2.of("red", "rot");
 // And for friends of static imports a more concise variant (here for Tuple3)
@@ -47,7 +47,7 @@ final Tuple3<String, String, Locale> t3 = tuple3("red", "rot", Locale.GERMAN);
 
 But let's see something more appealing. What about zipping?
 
-```{java}
+```java
 // We have two lists of corresponding values:
 final List<String> en = Arrays.asList("red", "green", "blue");
 final List<String> de = Arrays.asList("rot", "grün", "blau");
@@ -60,7 +60,7 @@ Tuple2.zip(en, de).forEach(t -> t.use(colors::put));
 
 If `en` and `de` were streams, we could use `Collectors` to make the map:
 
-```{java}
+```java
 map = Tuple2.zip(en, de).collect(Tuple2.toMap());
 
 // Which is actually a shortcut for:
@@ -76,7 +76,7 @@ Usually, `true` and `false` work well. But what if you need "I don't know (yet)"
 * It provides the basic set of operators: `and`, `or`, and `not` according to Kleene's logic.
 * It provides a comfortable interoperability with Boolean types.
 
-```{java}
+```java
 if (resolution.isUnknown()) {
     System.out.println("I have no data yet.");
 } else {
@@ -86,7 +86,7 @@ if (resolution.isUnknown()) {
 
 For such simple cases, `Trivalent` offers `Optional`-like monadic support:
 
-```{java}
+```java
 resolution.ifUnknown(() -> System.out.println("I have no data yet.")).ifBoolean(b -> {
     System.out.format("You are %s.", b ? "right" : "wrong");
 });
@@ -99,7 +99,7 @@ Error messages should contain the values that indicate the root of the problem a
 
 And let's combine `Quoting` with `Throwables` in the snippet. Some exceptions don't have any constructor for setting their cause which becomes annoying when the cause is present. So…
 
-```{java}
+```java
 try {
     // Do some stuff
 } catch (IllegalArgumentException e) {
@@ -112,7 +112,7 @@ try {
 
 By the way, when talking about exceptions, have you ever had to solve problem like wrapping and unwrapping an exception or analyzing a cause of an exception to throw a more proper exception than offered? What about this:
 
-```{java}
+```java
 final Callable<String> action = () -> {
     // Here run something what may fail with a valuable IOException
     return result;
@@ -137,7 +137,7 @@ There is much more about exception handling, especially for easier dealing with 
 
 A mutable box for storing a reference is often useful, e.g., when implementing a `Collector` or when passing a value from a method via an "out" parameter. An `AtomicReference` is often too expensive, a single-element array… well, arrays are better to avoid for many reasons… The `Box` is the best solution then:
 
-```{java}
+```java
 boolean haveFun(Box<? super String> box) {
     if (new Random().nextInt() % 2 == 0) {
         box.set("Surprise!");
@@ -157,7 +157,7 @@ if (haveFun(box)) {
 
 Well, the `Box` can do much more. Here is an example of using `Box` for reasonably fluent `Map` fill:
 
-```{java}
+```java
 static final Map<TimeUnit, String> UNITS = Box.of(new EnumMap<TimeUnit, String>(TimeUnit.class)).use(m -> {
      m.put(TimeUnit.NANOSECONDS, "ns");
      m.put(TimeUnit.MICROSECONDS, "μs");
@@ -174,7 +174,7 @@ static final Map<TimeUnit, String> UNITS = Box.of(new EnumMap<TimeUnit, String>(
 
 While `Optional` is fine and `Stream::find*` methods work well, they are not much useful when we need to know whether the provided element is indeed the only one that matches. What if the stream provides more of them? A compact solution? Using `Single`:
 
-```{java}
+```java
 // Filter the elements in a collection and get first one, ensuring that no other equal exists
 element = Single.head(collection.stream().filter(condition)).orElseThrow(NoSuchElementException::new);
 // Now 'element' contains the single value produced by the stream. If there are more values available,
@@ -183,7 +183,7 @@ element = Single.head(collection.stream().filter(condition)).orElseThrow(NoSuchE
 
 Throwing an exception might be too harsh. Perhaps we want to find an optimum, perhaps the preference is ordered (e.g., the later prevails), but we also want to warn there are more options and only one of them could be applied:
 
-```{java}
+```java
 // Find an element such that no other element is greater. There may be more such (equally good) 
 // elements though and we want to pick one, but perhaps warn there are more available options.
 optimum = collection.stream().collect(Single.collector(Single.optimum(Comparator.naturalOrder()));
@@ -198,13 +198,13 @@ if (optimum.single().isFalse()) { // Is that optimum really the only one?
 
 This piece of code might remind you of something:
 
-```{java}
+```java
 final String connectToAddress = configuration.getSection(NETWORK).getSection(CONNECTION).getValue(ADDRESS);
 ```
 
 What is some of the objects on the path is missing? Wrapping all in a `catch` block for `NullPointerException` is terrible, but practical. Using `null` checks before diving deeper is clean, but completely impractical. Well, some may know using `Optional` for that:
 
-```{java}
+```java
 final String connectToAddress = Optional.ofNullable(configuration)
     .map(o -> o.getSection(NETWORK)).map(o -> o.getSection(CONNECTION)).map(o -> o.getValue(ADDRESS))
     .orElseThrow(() -> new IllegalArgumentException("Missing connection address."));
@@ -212,7 +212,7 @@ final String connectToAddress = Optional.ofNullable(configuration)
 
 Hm. Guessing this *is* better than the `if`-not-`null`-check way, but not so much. Too much clutter here. What about:
 
-```{java}
+```java
 final String connectToAddress = NETWORK.apply(configuration).flatMap(CONNECT).flatMap(ADDRESS)
     .orElseThrow(() -> new IllegalArgumentException("Missing connection address."));
 ```
@@ -226,7 +226,7 @@ How to do so? Even without any modification of the type of the `configuration` v
 
 Besides that, there is one more use case when `Optional` does not work very well, although it should:
 
-```{java}
+```java
 boolean greet(String name) {
     final Optional<String> result = greeting(name); // Find some optional value
     if (result.isPresent()) {
@@ -240,7 +240,7 @@ boolean greet(String name) {
 
 Try to avoid consulting *both* `isPresent` *and* `get`. There are several ways: using `Optional::map`, storing `result.orElse(null)` and testing the intermediate result… or to use `Choice`:
 
-```{java}
+```java
 boolean greet(String name) {
     return Choice.from(greeting(name)).ifRight(System.out::println).isRight();
 }
@@ -251,7 +251,7 @@ boolean greet(String name) {
 
 Performing a demanding value computation on demand can be often useful. Here are two decorators for `Supplier` that provide such a functionality easily:
 
-```{java}
+```java
 // Find the answer to the Ultimate Question of Life, the Universe, and Everything
 final Supplier<?> answer = () -> {
     try { // This could take maybe a lot of time
@@ -283,7 +283,7 @@ Having too few contract conditions for an interface is bad: clients of the inter
 
 Here comes `Extensible`: a mixin interface that allows an implementation to declare some extensions of its contract that are optional or maybe undefined by the basic contract. Extension-aware clients may then leverage the extension to employ a more efficient use of the interface implementation. Note that marker interfaces, like `RandomAccess`, could be used as well, but they have several disadvantages – for instance, the extension support can't vary and depends on a particular type, which is especially tricky when using wrappers. The best part comes at the end: you can use `Extensions` with any object. Here is an example:
 
-```{java}
+```java
 final Consumer<byte[]> operation = …;
 
 // The contract does not prevent the operand from being modified. A careful 
