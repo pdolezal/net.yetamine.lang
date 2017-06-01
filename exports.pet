@@ -6,7 +6,7 @@ $bundle: 1.2.0 < 2.0.0 @ none
 # Packages to export
 net.yetamine.lang:                      1.1.0 @ minor
 net.yetamine.lang.closeables:           1.0.0 @ none
-net.yetamine.lang.collections:          1.1.0 @ none
+net.yetamine.lang.collections:          1.1.0 @ minor
 net.yetamine.lang.concurrent:           1.0.0 @ none
 net.yetamine.lang.containers:           1.0.0 @ none
 net.yetamine.lang.containers.bytes:     1.0.0 @ none

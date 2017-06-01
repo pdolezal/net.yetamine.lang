@@ -23,9 +23,9 @@ import org.testng.Assert;
 import org.testng.annotations.Test;
 
 /**
- * Tests {@link MappingStorage}.
+ * Tests {@link Mapping}.
  */
-public class TestMappingStorage {
+public class TestMapping {
 
     /**
      * Creates a new blank (mutable) table.
@@ -41,16 +41,16 @@ public class TestMappingStorage {
      *
      * @return the map adapter
      */
-    protected <K, V> MappingStorage<K, V> instance() {
-        return MappingStorage.adapting(new HashMap<>());
+    protected <K, V> Mapping<K, V> instance() {
+        return Mapping.adapting(new HashMap<>());
     }
 
     /**
-     * Tests {@link MappingStorage#find(Object)}.
+     * Tests {@link Mapping#find(Object)}.
      */
     @Test
     public void testFind() {
-        final MappingStorage<Object, Object> f = instance();
+        final Mapping<Object, Object> f = instance();
 
         final Object k = new Object();
         Assert.assertFalse(f.find(k).isPresent());
@@ -61,11 +61,11 @@ public class TestMappingStorage {
     }
 
     /**
-     * Tests {@link MappingStorage#supplyIfAbsent(Object, Supplier)}.
+     * Tests {@link Mapping#supplyIfAbsent(Object, Supplier)}.
      */
     @Test
     public void testSupplyIfAbsent() {
-        final MappingStorage<String, Object> f = instance();
+        final Mapping<String, Object> f = instance();
 
         final Object o = new Object();
         Assert.assertSame(f.supplyIfAbsent("Hello", () -> o), o);
@@ -78,11 +78,11 @@ public class TestMappingStorage {
     }
 
     /**
-     * Tests {@link MappingStorage#supplyIfPresent(Object, Supplier)}.
+     * Tests {@link Mapping#supplyIfPresent(Object, Supplier)}.
      */
     @Test
     public void testSupplyIfPresent() {
-        final MappingStorage<String, Object> f = instance();
+        final Mapping<String, Object> f = instance();
 
         final Object o = new Object();
         Assert.assertNull(f.supplyIfPresent("Hello", () -> {
