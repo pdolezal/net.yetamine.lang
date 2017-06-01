@@ -52,7 +52,7 @@ public class TypeToken<T> {
     /** Type represented by the generic type instance. */
     private final Type type;
     /** The raw parameter type. */
-    private final Class<?> raw;
+    private final Class<?> runtimeClass;
 
     /**
      * Creates a new instance that derives the generic type and class from the
@@ -67,7 +67,7 @@ public class TypeToken<T> {
      */
     protected TypeToken() {
         type = typeArgument(getClass(), TypeToken.class);
-        raw = typeClass(type);
+        runtimeClass = typeClass(type);
     }
 
     /**
@@ -75,13 +75,13 @@ public class TypeToken<T> {
      * deriving the class.
      *
      * @param genericType
-     *            the generic type. It must not be an instance of {@link Class}
-     *            or {@link ParameterizedType} whose raw type is an instance of
-     *            {@code Class}
+     *            the generic type. It must be an instance of {@link Class} or
+     *            {@link ParameterizedType} whose raw type is an instance of
+     *            {@code Class}.
      */
     public TypeToken(Type genericType) {
         type = Objects.requireNonNull(genericType);
-        raw = typeClass(type);
+        runtimeClass = typeClass(type);
     }
 
     /**
@@ -123,9 +123,39 @@ public class TypeToken<T> {
      *
      * @return the representation of the type that declared the type represented
      *         by this generic type instance
+     *
+     * @deprecated Replaced with {@link #runtimeClass()} (which aligns better
+     *             with the later-added {@link #nominalClass()}). This method
+     *             shall disappear.
      */
+    @Deprecated
     public final Class<?> raw() {
-        return raw;
+        return runtimeClass;
+    }
+
+    /**
+     * Returns the {@link Class} instance representing the type that declared
+     * the type represented by this generic type instance.
+     *
+     * @return the representation of the type that declared the type represented
+     *         by this generic type instance
+     */
+    public final Class<?> runtimeClass() {
+        return runtimeClass;
+    }
+
+    /**
+     * Returns the {@link Class} instance representing the type that declared
+     * the type represented by this generic type instance with the same formal
+     * type parameter, so that the class can be used to cast an object to the
+     * same formal type.
+     *
+     * @return the representation of the type that declared the type represented
+     *         by this generic type instance
+     */
+    @SuppressWarnings("unchecked")
+    public final Class<T> nominalClass() {
+        return (Class<T>) runtimeClass;
     }
 
     /**
