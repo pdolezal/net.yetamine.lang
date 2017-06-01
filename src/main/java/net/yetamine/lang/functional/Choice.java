@@ -35,7 +35,11 @@ import net.yetamine.lang.exceptions.ThrowingOperation;
  *
  * @param <T>
  *            the type of the contained value
+ *
+ * @deprecated Planned for removal. Alternative and more powerful options, e.g.,
+ *             {@code net.yetamine.sova.Adaptation} are available.
  */
+@Deprecated
 public final class Choice<T> implements Supplier<T> {
 
     /** Shared instance for <i>right</i> {@code null}. */

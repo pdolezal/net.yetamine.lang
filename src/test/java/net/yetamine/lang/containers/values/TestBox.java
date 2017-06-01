@@ -26,8 +26,6 @@ import java.util.stream.Collectors;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import net.yetamine.lang.containers.values.Box;
-
 /**
  * Tests {@link Box}.
  */

@@ -30,6 +30,7 @@ import net.yetamine.lang.exceptions.Throwables;
 /**
  * Tests {@link Choice}.
  */
+@Deprecated
 public final class TestChoice {
 
     /**

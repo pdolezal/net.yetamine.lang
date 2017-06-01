@@ -220,33 +220,6 @@ final String connectToAddress = NETWORK.apply(configuration).flatMap(CONNECT).fl
 How to do so? Even without any modification of the type of the `configuration` variable? The trick is to let the constants implement the `Traversing` interface (which is basically a slightly polished `Function`) and that's it. Another sweet point of this approach is that `enum` can be used for implementing these constants. See the `net.yetamine.lang.snippets` package.
 
 
-### When `Optional` becomes awkward ###
-
-`Optional` is great and the `Traversing` example shows it. However, it can distinguish only whether an object is present or not and the only invalid value is `null`. Sometimes you might appreciate more a container that just remembers whether a value is *right* or *wrong* and lets the consumer to decide how to deal with the value. Sometimes even a wrong value is better than none, e.g., when logging or when taking an alternative decision needs some additional information.
-
-Besides that, there is one more use case when `Optional` does not work very well, although it should:
-
-```java
-boolean greet(String name) {
-    final Optional<String> result = greeting(name); // Find some optional value
-    if (result.isPresent()) {
-        System.out.println(result.get());
-        return true;
-    }
-
-    return false; // No greeting for you
-}
-```
-
-Try to avoid consulting *both* `isPresent` *and* `get`. There are several ways: using `Optional::map`, storing `result.orElse(null)` and testing the intermediate result… or to use `Choice`:
-
-```java
-boolean greet(String name) {
-    return Choice.from(greeting(name)).ifRight(System.out::println).isRight();
-}
-```
-
-
 ### Deferred computation and caching ###
 
 Performing a demanding value computation on demand can be often useful. Here are two decorators for `Supplier` that provide such a functionality easily:
