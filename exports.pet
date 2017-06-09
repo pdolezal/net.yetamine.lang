@@ -1,12 +1,12 @@
 # OSGi package version definitions
 
 # Target bundle version (should match the final artifact version)
-$bundle: 1.2.0 < 2.0.0 @ none
+$bundle: 1.3.0 < 2.0.0 @ none
 
 # Packages to export
-net.yetamine.lang:                      1.1.0 @ minor
+net.yetamine.lang:                      1.2.0 @ none
 net.yetamine.lang.closeables:           1.0.0 @ none
-net.yetamine.lang.collections:          1.1.0 @ minor
+net.yetamine.lang.collections:          1.2.0 @ none
 net.yetamine.lang.concurrent:           1.0.0 @ none
 net.yetamine.lang.containers:           1.0.0 @ none
 net.yetamine.lang.containers.bytes:     1.0.0 @ none
